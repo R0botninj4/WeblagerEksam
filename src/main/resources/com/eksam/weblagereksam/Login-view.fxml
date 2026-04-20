@@ -1,24 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <VBox alignment="CENTER" prefHeight="381.0" prefWidth="413.0" spacing="15" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Login.LoginController">
    <children>
-      <Label text="EASV Ticket Manager">
-         <font>
-            <Font name="System Bold" size="22.0" />
-         </font>
-      </Label>
-      <Label prefHeight="38.0" prefWidth="77.0" style="-fx-font-size: 28px; -fx-font-weight: bold;" text="Login">
-         <VBox.margin>
-            <Insets top="10.0" />
-         </VBox.margin></Label>
+      <ImageView fitHeight="138.0" fitWidth="270.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../Weblagerlogo.png" />
+         </image>
+      </ImageView>
       <VBox alignment="CENTER" prefHeight="124.0" prefWidth="413.0" spacing="20.0">
          <children>
             <TextField fx:id="txtUsername" maxWidth="250" promptText="Brugernavn" />
