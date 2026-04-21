@@ -10,8 +10,7 @@ module com.eksam.weblagereksam {
     requires de.mkammerer.argon2.nolibs;
     requires com.google.zxing;
     requires com.google.zxing.javase;
-
-
+    requires java.net.http;
 
 
     opens com.eksam.weblagereksam to javafx.fxml;
