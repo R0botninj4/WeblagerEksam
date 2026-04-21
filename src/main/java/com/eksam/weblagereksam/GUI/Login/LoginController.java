@@ -1,7 +1,5 @@
 package com.eksam.weblagereksam.GUI.Login;
 
-import de.mkammerer.argon2.Argon2;
-import de.mkammerer.argon2.Argon2Factory;
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BLL.UserManager;
 import javafx.event.ActionEvent;
@@ -23,62 +21,79 @@ public class LoginController {
 
     @FXML
     private Label lblMessage;
+
+    private UserManager userManager;
+
     @FXML
-    private void initialize() {
+    public void initialize() {
+
+        try {
+            userManager = new UserManager();
+        } catch (Exception e) {
+            lblMessage.setText("Database fejl.");
+            e.printStackTrace();
+        }
+
         txtUsername.setOnAction(e -> handleLogin(new ActionEvent()));
         txtPassword.setOnAction(e -> handleLogin(new ActionEvent()));
     }
-    private final UserManager userManager = new UserManager();
 
     @FXML
-    private void handleLogin(ActionEvent actionEvent) {
+    private void handleLogin(ActionEvent event) {
+
         try {
-            String username = txtUsername.getText();
+            String username = txtUsername.getText().trim();
             String password = txtPassword.getText();
+
+            if (username.isBlank() || password.isBlank()) {
+                showError("Indtast brugernavn og password.");
+                return;
+            }
 
             User user = userManager.login(username, password);
 
             if (user == null) {
-                lblMessage.setText("Forkert brugernavn eller password");
-                lblMessage.setStyle("-fx-text-fill: red;");
+                showError("Forkert brugernavn eller password.");
                 return;
             }
 
-            // GEM USER I SESSION
+            if (!user.isActive()) {
+                showError("Brugeren er deaktiveret.");
+                return;
+            }
+
+            // save logged in user
             Session.setUser(user);
 
-            // ÅBN MAIN
+            // open main system
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/eksam/weblagereksam/Main-view.fxml")
+                    getClass().getResource(
+                            "/com/eksam/weblagereksam/Main-view.fxml"
+                    )
             );
 
             Scene scene = new Scene(loader.load());
 
             Stage stage = new Stage();
-            stage.setTitle("Event Manager");
+            stage.setTitle("Diamond Nova");
             stage.setScene(scene);
+            stage.setMaximized(true);
             stage.show();
 
-            // LUK LOGIN
-            ((Stage) txtUsername.getScene().getWindow()).close();
+            // close login window
+            Stage loginStage =
+                    (Stage) txtUsername.getScene().getWindow();
+
+            loginStage.close();
 
         } catch (Exception e) {
-            lblMessage.setText("Fejl: " + e.getMessage());
+            showError("Login fejl.");
             e.printStackTrace();
         }
     }
 
-
-    public class PasswordHasher {
-
-        private static final Argon2 argon2 = Argon2Factory.create();
-
-        public static String hash(String password) {
-            return argon2.hash(3, 65536, 1, password.toCharArray());
-        }
-
-        public static boolean verify(String hash, String password) {
-            return argon2.verify(hash, password.toCharArray());
-        }
+    private void showError(String text) {
+        lblMessage.setText(text);
+        lblMessage.setStyle("-fx-text-fill: red;");
     }
 }

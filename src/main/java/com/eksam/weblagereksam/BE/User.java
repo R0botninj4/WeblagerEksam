@@ -1,74 +1,61 @@
 package com.eksam.weblagereksam.BE;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import java.util.UUID;
 
 public class User {
 
-    private final IntegerProperty id = new SimpleIntegerProperty();
-    private final StringProperty username = new SimpleStringProperty();
-    private final StringProperty passwordHash = new SimpleStringProperty();
-    private final StringProperty name = new SimpleStringProperty();
-    private final StringProperty email = new SimpleStringProperty();
-    private final StringProperty phoneNumber = new SimpleStringProperty();
-    private final IntegerProperty roleInt = new SimpleIntegerProperty();
-    private final StringProperty roleText = new SimpleStringProperty();
+    private UUID id;
+    private String username;
+    private String passwordHash;
+    private String fullName;
+    private UUID roleId;
+    private String roleName;
+    private boolean active;
 
-    // FULL constructor (DB / login)
-    public User(int id, String username, String passwordHash, String name, String email, String phoneNumber, int roleInt) {
-        this.id.set(id);
-        this.username.set(username);
-        this.passwordHash.set(passwordHash);
-        this.name.set(name);
-        this.email.set(email);
-        this.phoneNumber.set(phoneNumber);
-        this.roleInt.set(roleInt);
+    public User(UUID id,
+                String username,
+                String passwordHash,
+                String fullName,
+                UUID roleId,
+                String roleName,
+                boolean active) {
 
-        this.roleText.set(mapRole(roleInt));
+        this.id = id;
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.fullName = fullName;
+        this.roleId = roleId;
+        this.roleName = roleName;
+        this.active = active;
     }
 
-    // constructor uden password (til UI hvis du vil)
-    public User(int id, String username, String name, String email, String phoneNumber, int roleInt) {
-        this(id, username, null, name, email, phoneNumber, roleInt);
+    public UUID getId() { return id; }
+
+    public String getUsername() { return username; }
+
+    public String getPasswordHash() { return passwordHash; }
+
+    public String getFullName() { return fullName; }
+
+    public UUID getRoleId() { return roleId; }
+
+    public String getRoleName() { return roleName; }
+
+    public boolean isActive() { return active; }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    private String mapRole(int roleInt) {
-        return switch (roleInt) {
-            case 1 -> "Admin";
-            case 2 -> "Coordinator";
-            default -> "Customer";
-        };
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    // GETTERS
-    public int getId() { return id.get(); }
-    public String getUsername() { return username.get(); }
-    public String getPassword() { return passwordHash.get(); }
-    public String getName() { return name.get(); }
-    public String getEmail() { return email.get(); }
-    public String getPhoneNumber() { return phoneNumber.get(); }
-    public int getRoleInt() { return roleInt.get(); }
-    public String getRoleText() { return roleText.get(); }
+    public void setRoleId(UUID roleId) {
+        this.roleId = roleId;
+    }
 
-    // PROPERTIES
-    public IntegerProperty idProperty() { return id; }
-    public StringProperty usernameProperty() { return username; }
-    public StringProperty nameProperty() { return name; }
-    public StringProperty emailProperty() { return email; }
-    public StringProperty phoneNumberProperty() { return phoneNumber; }
-    public IntegerProperty roleIntProperty() { return roleInt; }
-    public StringProperty roleTextProperty() { return roleText; }
-
-    // SETTERS
-    public void setUsername(String username) { this.username.set(username); }
-    public void setName(String name) { this.name.set(name); }
-    public void setEmail(String email) { this.email.set(email); }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber.set(phoneNumber); }
-
-    public void setRoleInt(int roleInt) {
-        this.roleInt.set(roleInt);
-        this.roleText.set(mapRole(roleInt));
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
