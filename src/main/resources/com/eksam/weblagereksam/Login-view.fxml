@@ -25,5 +25,6 @@
       <Label fx:id="lblMessage" style="-fx-text-fill: red;" text="" />
       <Button maxWidth="250" onAction="#Bypass" text="Bypass Admin" />
       <Button maxWidth="250" onAction="#BypassUser" text="Bypass User" />
+      <Button maxWidth="250" onAction="#BypassQA" text="Bypass QA" />
    </children>
 </VBox>

@@ -91,6 +91,8 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
+    //------Bypass----------
     @FXML
     public void Bypass(ActionEvent event) {
         txtUsername.setText("admin");
@@ -105,6 +107,15 @@ public class LoginController {
 
         handleLogin(new ActionEvent());
     }
+    @FXML
+    public void BypassQA(ActionEvent event) {
+        txtUsername.setText("QA");
+        txtPassword.setText("QA");
+
+        handleLogin(new ActionEvent());
+    }
+
+    //----------------------------------------------
 
     private void showError(String text) {
         lblMessage.setText(text);
