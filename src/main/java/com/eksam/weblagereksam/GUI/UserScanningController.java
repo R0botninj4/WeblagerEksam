@@ -12,8 +12,12 @@ import com.eksam.weblagereksam.BLL.ScanImportManager;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import javafx.fxml.FXML;
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -24,6 +28,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.awt.image.BufferedImage;
 import java.security.MessageDigest;
@@ -65,6 +72,7 @@ public class UserScanningController {
     @FXML private Button btnNavLeft;
     @FXML private Button btnNavRight;
     @FXML private Button btnFetchNext;
+    @FXML private Button btnFetchTen;
 
     @FXML private VBox documentsContainer;
     @FXML private HBox filmstripBox;
@@ -84,6 +92,8 @@ public class UserScanningController {
     private final Map<UUID, VBox> filmstripThumbs = new HashMap<>();
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
+    private boolean loadingBoxData = false;
+    private Stage progressPopup;
 
     @FXML
     public void initialize() {
@@ -98,7 +108,7 @@ public class UserScanningController {
             setupButtons();
             setupKeyboardShortcuts();
             loadBox();
-            loadCurrentBoxData();
+            loadCurrentBoxDataAsync(false);
         } catch (Exception e) {
             showStatus("Scanning setup failed: " + e.getMessage());
             e.printStackTrace();
@@ -126,6 +136,7 @@ public class UserScanningController {
 
     private void setupButtons() {
         btnFetchNext.setOnAction(e -> handleFetchNext());
+        btnFetchTen.setOnAction(e -> handleFetchTen());
         btnPrev.setOnAction(e -> showPreviousPage());
         btnNext.setOnAction(e -> showNextPage());
         btnNavLeft.setOnAction(e -> showPreviousPage());
@@ -187,6 +198,14 @@ public class UserScanningController {
     }
 
     private void handleFetchNext() {
+        startImportTask(1);
+    }
+
+    private void handleFetchTen() {
+        startImportTask(10);
+    }
+
+    private void startImportTask(int amount) {
         if (importInProgress) {
             return;
         }
@@ -199,26 +218,40 @@ public class UserScanningController {
         Task<Integer> importTask = new Task<>() {
             @Override
             protected Integer call() throws Exception {
-                return scanImportManager.importRandomTiffToBox(currentBox.getId());
+                if (amount == 1) {
+                    return scanImportManager.importRandomTiffToBox(currentBox.getId());
+                }
+                return scanImportManager.importRandomTiffBatchToBox(currentBox.getId(), amount, (completed, total, message) -> {
+                    updateProgress(completed, total);
+                    updateMessage(message);
+                });
             }
         };
 
         importTask.setOnRunning(event -> {
             importInProgress = true;
             btnFetchNext.setDisable(true);
-            showStatus("Fetching and processing scan...");
+            btnFetchTen.setDisable(true);
+            showStatus("Fetching and processing " + amount + " scan(s)...");
+            if (amount > 1) {
+                showProgressPopup(importTask, amount);
+            }
         });
 
         importTask.setOnSucceeded(event -> {
             importInProgress = false;
             btnFetchNext.setDisable(false);
-            loadCurrentBoxData();
+            btnFetchTen.setDisable(false);
+            closeProgressPopup();
             showStatus("Imported " + importTask.getValue() + " document(s) into " + currentBox.getBoxNumber() + ".");
+            loadCurrentBoxDataAsync(false);
         });
 
         importTask.setOnFailed(event -> {
             importInProgress = false;
             btnFetchNext.setDisable(false);
+            btnFetchTen.setDisable(false);
+            closeProgressPopup();
             Throwable error = importTask.getException();
             showStatus("Import failed: " + (error != null ? error.getMessage() : "Unknown error"));
             if (error != null) {
@@ -231,66 +264,161 @@ public class UserScanningController {
         importThread.start();
     }
 
-    private void loadCurrentBoxData() {
-        try {
-            currentDocuments.clear();
-            currentPages.clear();
-            pagesByDocument.clear();
-            filmstripThumbs.clear();
+    private void showProgressPopup(Task<?> importTask, int amount) {
+        closeProgressPopup();
 
-            if (currentBox == null) {
-                renderDocumentCards();
-                renderFilmstrip();
-                showCurrentPage();
-                return;
-            }
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setPrefWidth(280);
+        progressBar.progressProperty().bind(importTask.progressProperty());
 
-            UUID selectedDocumentId = selectedDocument != null ? selectedDocument.getId() : null;
-            int totalFiles = 0;
-            for (Document document : documentManager.getDocumentsByBoxId(currentBox.getId())) {
-                List<Page> pages = pageManager.getPagesByDocumentId(document.getId());
+        Label titleLabel = new Label("Scanning " + amount + " files");
+        titleLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
 
-                if (pages.isEmpty()) {
-                    continue;
-                }
+        Label statusLabel = new Label("Preparing scans...");
+        statusLabel.textProperty().bind(importTask.messageProperty());
 
-                currentDocuments.add(document);
-                pagesByDocument.put(document.getId(), new ArrayList<>(pages));
-                totalFiles += pages.size();
-            }
+        VBox content = new VBox(12, titleLabel, statusLabel, progressBar);
+        content.setPadding(new Insets(16));
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setStyle("-fx-background-color: white;");
 
-            labelDocsCount.setText("Docs " + currentDocuments.size());
-            labelDocCount.setText(currentDocuments.size() + " docs");
-            labelFilesCount.setText("Files " + totalFiles);
-            btnExport.setText("Export (" + currentDocuments.size() + " docs)");
+        progressPopup = new Stage();
+        progressPopup.initModality(Modality.APPLICATION_MODAL);
 
-            if (selectedDocumentId != null) {
-                selectedDocument = currentDocuments.stream()
-                        .filter(document -> document.getId().equals(selectedDocumentId))
-                        .findFirst()
-                        .orElse(null);
-            }
-
-            if (selectedDocument == null && !currentDocuments.isEmpty()) {
-                selectedDocument = currentDocuments.get(0);
-            }
-
-            if (selectedDocument != null) {
-                currentPages.addAll(copyPages(pagesByDocument.get(selectedDocument.getId())));
-                if (currentPageIndex >= currentPages.size()) {
-                    currentPageIndex = Math.max(0, currentPages.size() - 1);
-                }
-            } else {
-                currentPageIndex = 0;
-            }
-
-            renderDocumentCards();
-            renderFilmstrip();
-            showCurrentPage();
-        } catch (Exception e) {
-            showStatus("Could not load box data: " + e.getMessage());
-            e.printStackTrace();
+        Window owner = pageImageView.getScene() != null ? pageImageView.getScene().getWindow() : null;
+        if (owner != null) {
+            progressPopup.initOwner(owner);
         }
+
+        progressPopup.setTitle("Scanning");
+        progressPopup.setResizable(false);
+        progressPopup.setScene(new Scene(content));
+        progressPopup.show();
+    }
+
+    private void closeProgressPopup() {
+        if (progressPopup != null) {
+            progressPopup.close();
+            progressPopup = null;
+        }
+    }
+
+    private void loadCurrentBoxDataAsync(boolean preserveStatusMessage) {
+        if (loadingBoxData) {
+            return;
+        }
+
+        Task<BoxDataSnapshot> loadTask = new Task<>() {
+            @Override
+            protected BoxDataSnapshot call() throws Exception {
+                return fetchBoxDataSnapshot();
+            }
+        };
+
+        loadTask.setOnRunning(event -> {
+            loadingBoxData = true;
+            setNavigationDisabled(true);
+            if (!preserveStatusMessage) {
+                showStatus("Loading scans...");
+            }
+        });
+
+        loadTask.setOnSucceeded(event -> {
+            loadingBoxData = false;
+            setNavigationDisabled(false);
+            applyBoxDataSnapshot(loadTask.getValue());
+            if (!preserveStatusMessage) {
+                showStatus("Ready");
+            }
+        });
+
+        loadTask.setOnFailed(event -> {
+            loadingBoxData = false;
+            setNavigationDisabled(false);
+            Throwable error = loadTask.getException();
+            showStatus("Could not load box data: " + (error != null ? error.getMessage() : "Unknown error"));
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread loadThread = new Thread(loadTask, "scan-box-load-thread");
+        loadThread.setDaemon(true);
+        loadThread.start();
+    }
+
+    private BoxDataSnapshot fetchBoxDataSnapshot() {
+        if (currentBox == null) {
+            return new BoxDataSnapshot(List.of(), Map.of(), null, 0);
+        }
+
+        UUID selectedDocumentId = selectedDocument != null ? selectedDocument.getId() : null;
+        List<Document> documents = new ArrayList<>();
+        Map<UUID, List<Page>> pagesMap = new HashMap<>();
+        int totalFiles = 0;
+
+        for (Document document : documentManager.getDocumentsByBoxId(currentBox.getId())) {
+            List<Page> pages = pageManager.getPagesByDocumentId(document.getId());
+
+            if (pages.isEmpty()) {
+                continue;
+            }
+
+            documents.add(document);
+            pagesMap.put(document.getId(), new ArrayList<>(pages));
+            totalFiles += pages.size();
+        }
+
+        return new BoxDataSnapshot(documents, pagesMap, selectedDocumentId, totalFiles);
+    }
+
+    private void applyBoxDataSnapshot(BoxDataSnapshot snapshot) {
+        currentDocuments.clear();
+        currentPages.clear();
+        pagesByDocument.clear();
+        filmstripThumbs.clear();
+
+        currentDocuments.addAll(snapshot.documents());
+        pagesByDocument.putAll(snapshot.pagesByDocument());
+
+        labelDocsCount.setText("Docs " + currentDocuments.size());
+        labelDocCount.setText(currentDocuments.size() + " docs");
+        labelFilesCount.setText("Files " + snapshot.totalFiles());
+        btnExport.setText("Export (" + currentDocuments.size() + " docs)");
+
+        if (snapshot.selectedDocumentId() != null) {
+            selectedDocument = currentDocuments.stream()
+                    .filter(document -> document.getId().equals(snapshot.selectedDocumentId()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (selectedDocument == null && !currentDocuments.isEmpty()) {
+            selectedDocument = currentDocuments.get(0);
+        }
+
+        if (selectedDocument != null) {
+            currentPages.addAll(copyPages(pagesByDocument.get(selectedDocument.getId())));
+            if (currentPageIndex >= currentPages.size()) {
+                currentPageIndex = Math.max(0, currentPages.size() - 1);
+            }
+        } else {
+            currentPageIndex = 0;
+        }
+
+        renderDocumentCards();
+        renderFilmstrip();
+        showCurrentPage();
+    }
+
+    private void setNavigationDisabled(boolean disabled) {
+        btnPrev.setDisable(disabled);
+        btnNext.setDisable(disabled);
+        btnNavLeft.setDisable(disabled);
+        btnNavRight.setDisable(disabled);
+        btnRotateCCW.setDisable(disabled);
+        btnRotateCW.setDisable(disabled);
+        btnDelete.setDisable(disabled);
     }
 
     private List<Page> copyPages(List<Page> pages) {
@@ -560,7 +688,7 @@ public class UserScanningController {
                 }
             }
 
-            loadCurrentBoxData();
+            loadCurrentBoxDataAsync(true);
             showStatus("Page deleted.");
         } catch (Exception e) {
             showStatus("Delete failed: " + e.getMessage());
@@ -589,7 +717,7 @@ public class UserScanningController {
         } catch (Exception e) {
             showStatus("Could not reorder pages: " + e.getMessage());
             e.printStackTrace();
-            loadCurrentBoxData();
+            loadCurrentBoxDataAsync(true);
             return false;
         }
     }
@@ -617,4 +745,11 @@ public class UserScanningController {
     private void showStatus(String message) {
         labelConnected.setText(message);
     }
+
+    private record BoxDataSnapshot(
+            List<Document> documents,
+            Map<UUID, List<Page>> pagesByDocument,
+            UUID selectedDocumentId,
+            int totalFiles
+    ) {}
 }

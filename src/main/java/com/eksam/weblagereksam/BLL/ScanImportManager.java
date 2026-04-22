@@ -35,8 +35,27 @@ public class ScanImportManager {
 
     public int importRandomTiffToBox(UUID boxId) throws Exception {
         byte[] tiffBytes = tiffApiClient.getRandomTiffBytes();
-        List<BufferedImage> images = tiffPageReader.readAllPages(tiffBytes);
-        List<ProcessedPage> processedPages = preprocessPages(images);
+        return importTiffBytesToBox(boxId, List.of(tiffBytes));
+    }
+
+    public int importRandomTiffBatchToBox(UUID boxId, int amount) throws Exception {
+        List<byte[]> tiffFiles = tiffApiClient.getRandomTiffBatch(amount);
+        return importTiffBytesToBox(boxId, tiffFiles, null);
+    }
+
+    public int importRandomTiffBatchToBox(UUID boxId, int amount, ProgressListener progressListener) throws Exception {
+        List<byte[]> tiffFiles = tiffApiClient.getRandomTiffBatch(amount);
+        return importTiffBytesToBox(boxId, tiffFiles, progressListener);
+    }
+
+    private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles) throws Exception {
+        return importTiffBytesToBox(boxId, tiffFiles, null);
+    }
+
+    private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles, ProgressListener progressListener) throws Exception {
+        if (progressListener != null) {
+            progressListener.onProgress(0, Math.max(1, tiffFiles.size()), "Preparing scans...");
+        }
         String importBatchId = UUID.randomUUID().toString().substring(0, 8);
 
         Document currentDocument = documentDAO.getLatestDocumentByBoxId(boxId);
@@ -46,45 +65,59 @@ public class ScanImportManager {
         int currentUiOrder = currentDocumentId != null ? pageDAO.getNextUiOrder(currentDocumentId) : 1;
         int importedDocuments = 0;
 
-        for (ProcessedPage processedPage : processedPages) {
-            boolean isBarcodePage = processedPage.barcodeValue() != null && !processedPage.barcodeValue().isBlank();
+        for (int fileIndex = 0; fileIndex < tiffFiles.size(); fileIndex++) {
+            byte[] tiffBytes = tiffFiles.get(fileIndex);
+            List<BufferedImage> images = tiffPageReader.readAllPages(tiffBytes);
+            List<ProcessedPage> processedPages = preprocessPages(images);
 
-            if (isBarcodePage) {
-                currentDocumentId = createDocument(boxId, currentDocumentNumber, processedPage.barcodeValue());
-                currentDocumentNumber++;
-                importedDocuments++;
-                currentReferenceScanOrder = pageDAO.getNextReferenceScanOrder(currentDocumentId);
-                currentUiOrder = pageDAO.getNextUiOrder(currentDocumentId);
+            for (ProcessedPage processedPage : processedPages) {
+                boolean isBarcodePage = processedPage.barcodeValue() != null && !processedPage.barcodeValue().isBlank();
+
+                if (isBarcodePage) {
+                    currentDocumentId = createDocument(boxId, currentDocumentNumber, processedPage.barcodeValue());
+                    currentDocumentNumber++;
+                    importedDocuments++;
+                    currentReferenceScanOrder = pageDAO.getNextReferenceScanOrder(currentDocumentId);
+                    currentUiOrder = pageDAO.getNextUiOrder(currentDocumentId);
+                }
+
+                if (currentDocumentId == null) {
+                    currentDocumentId = createDocument(boxId, currentDocumentNumber, null);
+                    currentDocumentNumber++;
+                    currentReferenceScanOrder = 1;
+                    currentUiOrder = 1;
+                    importedDocuments++;
+                }
+
+                Page page = new Page(
+                        null,
+                        currentDocumentId,
+                        currentReferenceScanOrder,
+                        currentUiOrder,
+                        buildFileName(importBatchId, currentDocumentNumber - 1, currentReferenceScanOrder, isBarcodePage),
+                        "image/png",
+                        processedPage.pageBytes(),
+                        (long) processedPage.pageBytes().length,
+                        processedPage.checksum(),
+                        0,
+                        processedPage.width(),
+                        processedPage.height(),
+                        isBarcodePage,
+                        LocalDateTime.now()
+                );
+
+                pageDAO.addPage(page);
+                currentReferenceScanOrder++;
+                currentUiOrder++;
             }
 
-            if (currentDocumentId == null) {
-                currentDocumentId = createDocument(boxId, currentDocumentNumber, null);
-                currentDocumentNumber++;
-                currentReferenceScanOrder = 1;
-                currentUiOrder = 1;
-                importedDocuments++;
+            if (progressListener != null) {
+                progressListener.onProgress(
+                        fileIndex + 1,
+                        Math.max(1, tiffFiles.size()),
+                        "Processed file " + (fileIndex + 1) + " of " + tiffFiles.size()
+                );
             }
-
-            Page page = new Page(
-                    null,
-                    currentDocumentId,
-                    currentReferenceScanOrder,
-                    currentUiOrder,
-                    buildFileName(importBatchId, currentDocumentNumber - 1, currentReferenceScanOrder, isBarcodePage),
-                    "image/png",
-                    processedPage.pageBytes(),
-                    (long) processedPage.pageBytes().length,
-                    processedPage.checksum(),
-                    0,
-                    processedPage.width(),
-                    processedPage.height(),
-                    isBarcodePage,
-                    LocalDateTime.now()
-            );
-
-            pageDAO.addPage(page);
-            currentReferenceScanOrder++;
-            currentUiOrder++;
         }
 
         return importedDocuments;
@@ -166,4 +199,9 @@ public class ScanImportManager {
             int width,
             int height
     ) {}
+
+    @FunctionalInterface
+    public interface ProgressListener {
+        void onProgress(int completed, int total, String message);
+    }
 }

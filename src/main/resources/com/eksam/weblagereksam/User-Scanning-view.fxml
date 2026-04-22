@@ -257,9 +257,11 @@
                     </center>
 
                     <right>
-                        <Button fx:id="btnFetchNext" text="Fetch Next" BorderPane.alignment="CENTER">
+                        <VBox spacing="8" BorderPane.alignment="CENTER">
                             <BorderPane.margin><Insets left="8" /></BorderPane.margin>
-                        </Button>
+                            <Button fx:id="btnFetchNext" text="Fetch Next" maxWidth="Infinity" />
+                            <Button fx:id="btnFetchTen" text="Fetch 10" maxWidth="Infinity" />
+                        </VBox>
                     </right>
 
                 </BorderPane>
