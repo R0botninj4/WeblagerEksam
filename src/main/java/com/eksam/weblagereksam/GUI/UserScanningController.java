@@ -1,39 +1,61 @@
 package com.eksam.weblagereksam.GUI;
 
 import com.eksam.weblagereksam.BE.Box;
+import com.eksam.weblagereksam.BE.Document;
+import com.eksam.weblagereksam.BE.Page;
 import com.eksam.weblagereksam.BLL.BoxManager;
+import com.eksam.weblagereksam.BLL.DocumentManager;
+import com.eksam.weblagereksam.BLL.FxImageConverter;
+import com.eksam.weblagereksam.BLL.ImageByteConverter;
+import com.eksam.weblagereksam.BLL.PageManager;
 import com.eksam.weblagereksam.BLL.ScanImportManager;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import javafx.fxml.FXML;
+import javafx.concurrent.Task;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.awt.image.BufferedImage;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class UserScanningController {
 
-    // ===== TOP =====
+    private static final String DEFAULT_BOX_NUMBER = "BOX-001";
+
     @FXML private Label labelBoxId;
     @FXML private Label labelProfile;
     @FXML private Label labelFilesCount;
     @FXML private Label labelDocsCount;
     @FXML private Label labelSessionTimer;
     @FXML private Label labelUser;
-
-    // ===== LEFT =====
     @FXML private Label labelDocCount;
-    @FXML private VBox documentsContainer;
     @FXML private Label labelOutputName;
     @FXML private Label labelFormat;
+    @FXML private Label labelPagePosition;
+    @FXML private Label labelPageRef;
+    @FXML private Label labelConnected;
+    @FXML private Label labelRotationInfo;
+    @FXML private Label labelStatusUser;
 
     @FXML private Button btnMultiPage;
     @FXML private Button btnSinglePage;
     @FXML private Button btnExport;
-
-    // ===== CENTER =====
     @FXML private Button btnRotateCCW;
     @FXML private Button btnRotateCW;
     @FXML private Button btnDelete;
@@ -42,55 +64,51 @@ public class UserScanningController {
     @FXML private Button btnSlideshow;
     @FXML private Button btnNavLeft;
     @FXML private Button btnNavRight;
-
-    @FXML private Label labelPagePosition;
-    @FXML private Label labelPageRef;
-    @FXML private ImageView pageImageView;
-    @FXML private HBox filmstripBox;
     @FXML private Button btnFetchNext;
 
-    // ===== BOTTOM =====
-    @FXML private Label labelConnected;
-    @FXML private Label labelRotationInfo;
-    @FXML private Label labelStatusUser;
+    @FXML private VBox documentsContainer;
+    @FXML private HBox filmstripBox;
+    @FXML private ImageView pageImageView;
+
+    private BoxManager boxManager;
+    private DocumentManager documentManager;
+    private PageManager pageManager;
+    private ScanImportManager scanImportManager;
 
     private Box currentBox;
+    private Document selectedDocument;
+    private final List<Document> currentDocuments = new ArrayList<>();
+    private final List<Page> currentPages = new ArrayList<>();
+    private final Map<UUID, List<Page>> pagesByDocument = new HashMap<>();
+    private final Map<UUID, Image> pageImageCache = new HashMap<>();
+    private final Map<UUID, VBox> filmstripThumbs = new HashMap<>();
+    private int currentPageIndex = 0;
+    private boolean importInProgress = false;
 
     @FXML
     public void initialize() {
         try {
+            boxManager = new BoxManager();
+            documentManager = new DocumentManager();
+            pageManager = new PageManager();
+            scanImportManager = new ScanImportManager();
+
             setupUserInfo();
-            loadBox();
             setupDefaultUi();
             setupButtons();
+            setupKeyboardShortcuts();
+            loadBox();
+            loadCurrentBoxData();
         } catch (Exception e) {
+            showStatus("Scanning setup failed: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private void setupUserInfo() {
-        if (Session.getUser() != null) {
-            labelUser.setText(Session.getUser().getUsername());
-            labelStatusUser.setText(Session.getUser().getUsername() + " · Scanning");
-        } else {
-            labelUser.setText("Unknown");
-            labelStatusUser.setText("Unknown · Scanning");
-        }
-    }
-
-    private void loadBox() throws Exception {
-        BoxManager boxManager = new BoxManager();
-        currentBox = boxManager.getBoxByBoxNumber("BOX-001");
-
-        if (currentBox != null) {
-            labelBoxId.setText(currentBox.getBoxNumber());
-            labelProfile.setText(currentBox.getLabel() != null ? currentBox.getLabel() : "No profile");
-            labelOutputName.setText(currentBox.getBoxNumber());
-        } else {
-            labelBoxId.setText("No Box");
-            labelProfile.setText("No Profile");
-            labelOutputName.setText("No Box");
-        }
+        String username = Session.getUser() != null ? Session.getUser().getUsername() : "Unknown";
+        labelUser.setText(username);
+        labelStatusUser.setText(username + " | Scanning");
     }
 
     private void setupDefaultUi() {
@@ -98,50 +116,505 @@ public class UserScanningController {
         labelDocsCount.setText("Docs 0");
         labelDocCount.setText("0 docs");
         labelSessionTimer.setText("00:00");
-        labelFormat.setText("TIFF");
+        labelFormat.setText("TIFF Multi-page");
         labelPagePosition.setText("0 / 0");
         labelPageRef.setText("No page loaded");
-        labelConnected.setText("● Connected");
-        labelRotationInfo.setText("Rotation: 0°");
+        labelConnected.setText("Connected");
+        labelRotationInfo.setText("Rotation: 0 degrees");
+        btnExport.setText("Export (0 docs)");
     }
 
     private void setupButtons() {
         btnFetchNext.setOnAction(e -> handleFetchNext());
-
+        btnPrev.setOnAction(e -> showPreviousPage());
+        btnNext.setOnAction(e -> showNextPage());
+        btnNavLeft.setOnAction(e -> showPreviousPage());
+        btnNavRight.setOnAction(e -> showNextPage());
+        btnRotateCCW.setOnAction(e -> rotateCurrentPage(-90));
+        btnRotateCW.setOnAction(e -> rotateCurrentPage(90));
+        btnDelete.setOnAction(e -> deleteCurrentPage());
         btnMultiPage.setOnAction(e -> labelFormat.setText("TIFF Multi-page"));
         btnSinglePage.setOnAction(e -> labelFormat.setText("TIFF Single-page"));
-
-        btnRotateCCW.setOnAction(e -> System.out.println("Rotate CCW"));
-        btnRotateCW.setOnAction(e -> System.out.println("Rotate CW"));
-        btnDelete.setOnAction(e -> System.out.println("Delete"));
-        btnPrev.setOnAction(e -> System.out.println("Prev"));
-        btnNext.setOnAction(e -> System.out.println("Next"));
-        btnSlideshow.setOnAction(e -> System.out.println("Slideshow"));
-        btnNavLeft.setOnAction(e -> System.out.println("Nav Left"));
-        btnNavRight.setOnAction(e -> System.out.println("Nav Right"));
-        btnExport.setOnAction(e -> System.out.println("Export"));
+        btnSlideshow.setOnAction(e -> showStatus("Slideshow is not implemented yet."));
+        btnExport.setOnAction(e -> showStatus("Export is not implemented yet."));
     }
 
-    private void handleFetchNext() {
-        try {
-            if (currentBox == null) {
-                System.out.println("No box selected.");
+    private void setupKeyboardShortcuts() {
+        pageImageView.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
                 return;
             }
 
-            ScanImportManager scanImportManager = new ScanImportManager();
-            UUID documentId = scanImportManager.importRandomTiffToBox(currentBox.getId());
+            newScene.setOnKeyPressed(event -> {
+                if (event.getCode() == KeyCode.RIGHT) {
+                    showNextPage();
+                } else if (event.getCode() == KeyCode.LEFT) {
+                    showPreviousPage();
+                } else if (event.getCode() == KeyCode.DELETE) {
+                    deleteCurrentPage();
+                } else if (event.getCode() == KeyCode.R) {
+                    if (event.isShiftDown()) {
+                        rotateCurrentPage(-90);
+                    } else {
+                        rotateCurrentPage(90);
+                    }
+                }
+            });
+        });
+    }
 
-            System.out.println("Imported document: " + documentId);
+    private void loadBox() throws Exception {
+        currentBox = boxManager.getBoxByBoxNumber(DEFAULT_BOX_NUMBER);
 
-            // midlertidig UI update
-            labelDocsCount.setText("Docs +1");
-            labelDocCount.setText("Imported 1 doc");
-            labelPageRef.setText("TIFF imported to DB");
-            labelFilesCount.setText("Files imported");
+        if (currentBox == null) {
+            List<Box> boxes = boxManager.getAllBoxes();
+            if (!boxes.isEmpty()) {
+                currentBox = boxes.get(0);
+            }
+        }
 
+        if (currentBox == null) {
+            labelBoxId.setText("No Box");
+            labelProfile.setText("No Profile");
+            labelOutputName.setText("No Box");
+            showStatus("No boxes found in the database.");
+            return;
+        }
+
+        labelBoxId.setText(currentBox.getBoxNumber());
+        labelProfile.setText(currentBox.getLabel() != null ? currentBox.getLabel() : "No profile");
+        labelOutputName.setText(currentBox.getBoxNumber());
+    }
+
+    private void handleFetchNext() {
+        if (importInProgress) {
+            return;
+        }
+
+        if (currentBox == null) {
+            showStatus("No box selected.");
+            return;
+        }
+
+        Task<Integer> importTask = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                return scanImportManager.importRandomTiffToBox(currentBox.getId());
+            }
+        };
+
+        importTask.setOnRunning(event -> {
+            importInProgress = true;
+            btnFetchNext.setDisable(true);
+            showStatus("Fetching and processing scan...");
+        });
+
+        importTask.setOnSucceeded(event -> {
+            importInProgress = false;
+            btnFetchNext.setDisable(false);
+            loadCurrentBoxData();
+            showStatus("Imported " + importTask.getValue() + " document(s) into " + currentBox.getBoxNumber() + ".");
+        });
+
+        importTask.setOnFailed(event -> {
+            importInProgress = false;
+            btnFetchNext.setDisable(false);
+            Throwable error = importTask.getException();
+            showStatus("Import failed: " + (error != null ? error.getMessage() : "Unknown error"));
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread importThread = new Thread(importTask, "scan-import-thread");
+        importThread.setDaemon(true);
+        importThread.start();
+    }
+
+    private void loadCurrentBoxData() {
+        try {
+            currentDocuments.clear();
+            currentPages.clear();
+            pagesByDocument.clear();
+            filmstripThumbs.clear();
+
+            if (currentBox == null) {
+                renderDocumentCards();
+                renderFilmstrip();
+                showCurrentPage();
+                return;
+            }
+
+            UUID selectedDocumentId = selectedDocument != null ? selectedDocument.getId() : null;
+            int totalFiles = 0;
+            for (Document document : documentManager.getDocumentsByBoxId(currentBox.getId())) {
+                List<Page> pages = pageManager.getPagesByDocumentId(document.getId());
+
+                if (pages.isEmpty()) {
+                    continue;
+                }
+
+                currentDocuments.add(document);
+                pagesByDocument.put(document.getId(), new ArrayList<>(pages));
+                totalFiles += pages.size();
+            }
+
+            labelDocsCount.setText("Docs " + currentDocuments.size());
+            labelDocCount.setText(currentDocuments.size() + " docs");
+            labelFilesCount.setText("Files " + totalFiles);
+            btnExport.setText("Export (" + currentDocuments.size() + " docs)");
+
+            if (selectedDocumentId != null) {
+                selectedDocument = currentDocuments.stream()
+                        .filter(document -> document.getId().equals(selectedDocumentId))
+                        .findFirst()
+                        .orElse(null);
+            }
+
+            if (selectedDocument == null && !currentDocuments.isEmpty()) {
+                selectedDocument = currentDocuments.get(0);
+            }
+
+            if (selectedDocument != null) {
+                currentPages.addAll(copyPages(pagesByDocument.get(selectedDocument.getId())));
+                if (currentPageIndex >= currentPages.size()) {
+                    currentPageIndex = Math.max(0, currentPages.size() - 1);
+                }
+            } else {
+                currentPageIndex = 0;
+            }
+
+            renderDocumentCards();
+            renderFilmstrip();
+            showCurrentPage();
         } catch (Exception e) {
+            showStatus("Could not load box data: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private List<Page> copyPages(List<Page> pages) {
+        return pages == null ? new ArrayList<>() : new ArrayList<>(pages);
+    }
+
+    private void renderDocumentCards() {
+        documentsContainer.getChildren().clear();
+
+        for (Document document : currentDocuments) {
+            List<Page> pages = pagesByDocument.getOrDefault(document.getId(), List.of());
+            VBox card = new VBox(4);
+            card.setStyle(document.equals(selectedDocument)
+                    ? "-fx-border-color: #333333; -fx-border-width: 2; -fx-padding: 8; -fx-background-color: #f1f1f1;"
+                    : "-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;");
+
+            HBox header = new HBox(8);
+            Label title = new Label("Document " + document.getDocumentNumber());
+            title.setStyle("-fx-font-weight: bold;");
+            Label fileCount = new Label(pages.size() + " pages");
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            header.getChildren().addAll(title, spacer, fileCount);
+
+            HBox pageMarkers = new HBox(4);
+            for (int i = 0; i < pages.size(); i++) {
+                String markerText = pages.get(i).isBarcodePage() ? "[B]" : "[" + (i + 1) + "]";
+                Label marker = new Label(markerText);
+                marker.setStyle("-fx-font-size: 10;");
+                pageMarkers.getChildren().add(marker);
+            }
+
+            if (document.getBarcodeValue() != null && !document.getBarcodeValue().isBlank()) {
+                Label barcode = new Label("Split: " + document.getBarcodeValue());
+                barcode.setStyle("-fx-font-size: 10;");
+                pageMarkers.getChildren().add(barcode);
+            }
+
+            Label status = new Label(document.getStatus());
+            card.getChildren().addAll(header, pageMarkers, status);
+            card.setOnMouseClicked(event -> selectDocument(document.getId(), 0));
+            documentsContainer.getChildren().add(card);
+        }
+    }
+
+    private void selectDocument(UUID documentId, int pageIndex) {
+        selectedDocument = currentDocuments.stream()
+                .filter(document -> document.getId().equals(documentId))
+                .findFirst()
+                .orElse(null);
+
+        currentPages.clear();
+        if (selectedDocument != null) {
+            currentPages.addAll(copyPages(pagesByDocument.get(selectedDocument.getId())));
+        }
+
+        currentPageIndex = Math.max(0, Math.min(pageIndex, Math.max(0, currentPages.size() - 1)));
+        renderDocumentCards();
+        renderFilmstrip();
+        showCurrentPage();
+    }
+
+    private void renderFilmstrip() {
+        filmstripBox.getChildren().clear();
+        filmstripThumbs.clear();
+
+        if (selectedDocument == null) {
+            Label empty = new Label("No pages");
+            empty.setStyle("-fx-padding: 8;");
+            filmstripBox.getChildren().add(empty);
+            return;
+        }
+
+        for (int i = 0; i < currentPages.size(); i++) {
+            Page page = currentPages.get(i);
+            VBox thumb = createThumbnail(page, i);
+            filmstripThumbs.put(page.getId(), thumb);
+            filmstripBox.getChildren().add(thumb);
+        }
+    }
+
+    private VBox createThumbnail(Page page, int index) {
+        VBox thumb = new VBox(2);
+        thumb.setAlignment(javafx.geometry.Pos.CENTER);
+        applyThumbnailStyle(thumb, page, index == currentPageIndex);
+
+        ImageView preview = new ImageView(getCachedPageImage(page));
+        preview.setFitWidth(50);
+        preview.setFitHeight(66);
+        preview.setPreserveRatio(true);
+
+        Label ref = new Label("REF-" + String.format("%03d", page.getReferenceScanOrder()));
+        ref.setStyle("-fx-font-size: 9;");
+
+        String indexText = page.isBarcodePage() ? "BARCODE" : "#" + page.getUiOrder();
+        if (page.getRotation() != 0) {
+            indexText += " " + page.getRotation() + "deg";
+        }
+
+        Label pageIndexLabel = new Label(indexText);
+        pageIndexLabel.setStyle("-fx-font-size: 9;");
+
+        thumb.getChildren().addAll(preview, ref, pageIndexLabel);
+        thumb.setOnMouseClicked(event -> {
+            currentPageIndex = index;
+            refreshFilmstripSelection();
+            showCurrentPage();
+        });
+
+        thumb.setOnDragDetected(event -> {
+            Dragboard dragboard = thumb.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(String.valueOf(index));
+            dragboard.setContent(content);
+            event.consume();
+        });
+
+        thumb.setOnDragOver(event -> {
+            if (event.getGestureSource() != thumb && event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        thumb.setOnDragDropped(event -> {
+            boolean completed = false;
+
+            if (event.getDragboard().hasString()) {
+                int fromIndex = Integer.parseInt(event.getDragboard().getString());
+                completed = reorderPage(fromIndex, index);
+            }
+
+            event.setDropCompleted(completed);
+            event.consume();
+        });
+
+        return thumb;
+    }
+
+    private void applyThumbnailStyle(VBox thumb, Page page, boolean selected) {
+        thumb.setStyle(selected
+                ? (page.isBarcodePage()
+                ? "-fx-padding: 4; -fx-border-color: #b4004e; -fx-border-width: 2; -fx-background-color: #ffd7e8;"
+                : "-fx-padding: 4; -fx-border-color: #333333; -fx-border-width: 2; -fx-background-color: #dddddd;")
+                : (page.isBarcodePage()
+                ? "-fx-padding: 4; -fx-border-color: #d9719d; -fx-border-width: 1; -fx-background-color: #fff0f6;"
+                : "-fx-padding: 4;"));
+    }
+
+    private void refreshFilmstripSelection() {
+        for (int i = 0; i < currentPages.size(); i++) {
+            Page page = currentPages.get(i);
+            VBox thumb = filmstripThumbs.get(page.getId());
+            if (thumb != null) {
+                applyThumbnailStyle(thumb, page, i == currentPageIndex);
+            }
+        }
+    }
+
+    private Image getCachedPageImage(Page page) {
+        return pageImageCache.computeIfAbsent(page.getId(), ignored -> FxImageConverter.bytesToFxImage(page.getImageData()));
+    }
+
+    private void showCurrentPage() {
+        if (selectedDocument == null || currentPages.isEmpty()) {
+            pageImageView.setImage(null);
+            labelPagePosition.setText("0 / 0");
+            labelPageRef.setText("No page loaded");
+            labelRotationInfo.setText("Rotation: 0 degrees");
+            return;
+        }
+
+        Page page = currentPages.get(currentPageIndex);
+        pageImageView.setImage(getCachedPageImage(page));
+        labelPagePosition.setText((currentPageIndex + 1) + " / " + currentPages.size());
+        labelPageRef.setText(
+                "Document " + selectedDocument.getDocumentNumber()
+                        + " | "
+                        + page.getFileName()
+                        + (page.isBarcodePage() ? " | BARCODE" : "")
+        );
+        labelRotationInfo.setText("Rotation: " + page.getRotation() + " degrees");
+    }
+
+    private void showNextPage() {
+        if (currentPages.isEmpty()) {
+            return;
+        }
+
+        if (currentPageIndex < currentPages.size() - 1) {
+            currentPageIndex++;
+            refreshFilmstripSelection();
+            showCurrentPage();
+        }
+    }
+
+    private void showPreviousPage() {
+        if (currentPages.isEmpty()) {
+            return;
+        }
+
+        if (currentPageIndex > 0) {
+            currentPageIndex--;
+            refreshFilmstripSelection();
+            showCurrentPage();
+        }
+    }
+
+    private void rotateCurrentPage(int delta) {
+        if (selectedDocument == null || currentPages.isEmpty()) {
+            return;
+        }
+
+        try {
+            Page page = currentPages.get(currentPageIndex);
+            BufferedImage source = ImageByteConverter.bytesToBufferedImage(page.getImageData());
+            BufferedImage rotated = ImageByteConverter.rotate(source, delta);
+            byte[] imageBytes = ImageByteConverter.bufferedImageToPngBytes(rotated);
+
+            page.setImageData(imageBytes);
+            page.setFileSize((long) imageBytes.length);
+            page.setWidth(rotated.getWidth());
+            page.setHeight(rotated.getHeight());
+            page.setRotation(normalizeRotation(page.getRotation() + delta));
+            page.setChecksum(sha256(imageBytes));
+            pageImageCache.remove(page.getId());
+
+            if (pageManager.updatePage(page)) {
+                pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
+                renderFilmstrip();
+                showCurrentPage();
+                showStatus("Saved page rotation.");
+            } else {
+                showStatus("Could not save page rotation.");
+            }
+        } catch (Exception e) {
+            showStatus("Rotation failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteCurrentPage() {
+        if (selectedDocument == null || currentPages.isEmpty()) {
+            return;
+        }
+
+        try {
+            Page page = currentPages.get(currentPageIndex);
+
+            if (!pageManager.deletePage(page.getId())) {
+                showStatus("Could not delete page.");
+                return;
+            }
+
+            pageImageCache.remove(page.getId());
+            filmstripThumbs.remove(page.getId());
+            currentPages.remove(currentPageIndex);
+
+            if (currentPages.isEmpty()) {
+                documentManager.deleteDocument(selectedDocument.getId());
+                selectedDocument = null;
+                currentPageIndex = 0;
+            } else {
+                persistCurrentPageOrder();
+                if (currentPageIndex >= currentPages.size()) {
+                    currentPageIndex = currentPages.size() - 1;
+                }
+            }
+
+            loadCurrentBoxData();
+            showStatus("Page deleted.");
+        } catch (Exception e) {
+            showStatus("Delete failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private boolean reorderPage(int fromIndex, int toIndex) {
+        if (selectedDocument == null || fromIndex == toIndex || fromIndex < 0 || toIndex < 0
+                || fromIndex >= currentPages.size() || toIndex >= currentPages.size()) {
+            return false;
+        }
+
+        Page movedPage = currentPages.remove(fromIndex);
+        currentPages.add(toIndex, movedPage);
+
+        try {
+            persistCurrentPageOrder();
+            currentPageIndex = toIndex;
+            pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
+            renderDocumentCards();
+            renderFilmstrip();
+            showCurrentPage();
+            showStatus("Page order updated.");
+            return true;
+        } catch (Exception e) {
+            showStatus("Could not reorder pages: " + e.getMessage());
+            e.printStackTrace();
+            loadCurrentBoxData();
+            return false;
+        }
+    }
+
+    private void persistCurrentPageOrder() throws Exception {
+        for (int i = 0; i < currentPages.size(); i++) {
+            currentPages.get(i).setUiOrder(i + 1);
+        }
+
+        if (!pageManager.updatePageOrders(selectedDocument.getId(), currentPages)) {
+            throw new Exception("Database did not accept the new page order.");
+        }
+    }
+
+    private int normalizeRotation(int rotation) {
+        int normalized = rotation % 360;
+        return normalized < 0 ? normalized + 360 : normalized;
+    }
+
+    private String sha256(byte[] data) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        return HexFormat.of().formatHex(digest.digest(data));
+    }
+
+    private void showStatus(String message) {
+        labelConnected.setText(message);
     }
 }

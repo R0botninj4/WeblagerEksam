@@ -11,5 +11,11 @@ public interface IDocumentDAO {
 
     List<Document> getDocumentsByBoxId(UUID boxId);
 
+    Document getLatestDocumentByBoxId(UUID boxId);
+
     int getNextDocumentNumber(UUID boxId);
+
+    boolean updateDocumentStatus(UUID documentId, String status);
+
+    boolean deleteDocument(UUID documentId);
 }

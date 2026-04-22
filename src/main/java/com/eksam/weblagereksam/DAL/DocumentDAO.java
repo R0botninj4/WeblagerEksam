@@ -85,6 +85,43 @@ public class DocumentDAO implements IDocumentDAO {
     }
 
     @Override
+    public Document getLatestDocumentByBoxId(UUID boxId) {
+        String sql = """
+                SELECT TOP 1 *
+                FROM Documents
+                WHERE BoxId = ?
+                ORDER BY DocumentNumber DESC
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, boxId.toString());
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                Timestamp ts = rs.getTimestamp("CreatedAt");
+                LocalDateTime createdAt = ts != null ? ts.toLocalDateTime() : null;
+
+                return new Document(
+                        UUID.fromString(rs.getString("Id")),
+                        UUID.fromString(rs.getString("BoxId")),
+                        rs.getInt("DocumentNumber"),
+                        rs.getString("BarcodeValue"),
+                        rs.getString("Status"),
+                        createdAt
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
     public int getNextDocumentNumber(UUID boxId) {
         String sql = """
                 SELECT ISNULL(MAX(DocumentNumber), 0) + 1 AS NextNumber
@@ -108,5 +145,44 @@ public class DocumentDAO implements IDocumentDAO {
         }
 
         return 1;
+    }
+
+    @Override
+    public boolean updateDocumentStatus(UUID documentId, String status) {
+        String sql = """
+                UPDATE Documents
+                SET Status = ?
+                WHERE Id = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, status);
+            stmt.setString(2, documentId.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean deleteDocument(UUID documentId) {
+        String sql = "DELETE FROM Documents WHERE Id = ?";
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, documentId.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }
