@@ -1,47 +1,257 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
+<BorderPane prefHeight="800" prefWidth="1280" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
-   <top>
-      <VBox prefHeight="73.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-         <children>
-            <HBox alignment="CENTER" prefHeight="35.0" prefWidth="600.0">
-               <children>
-                  <Label prefHeight="31.0" prefWidth="47.0" text="LOGO" />
-                  <Label text="PROFILE" />
-               </children>
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 8 16 8 16; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
+            <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="Weblager" />
+            <Separator orientation="VERTICAL" />
+            <Label text="Box" />
+            <Label fx:id="labelBoxId" style="-fx-font-weight: bold;" text="BOX-ID" />
+            <Label text="Profile" />
+            <Label fx:id="labelProfile" text="Archive: Name" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="labelFilesCount" text="Files  X" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="labelDocsCount" text="Docs  X" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="labelSessionTimer" text="Session TIME" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="labelUser" style="-fx-font-weight: bold;" text="Username" />
+        </HBox>
+    </top>
+
+    <!-- LEFT SIDEBAR -->
+    <left>
+        <VBox prefWidth="220" spacing="0" style="-fx-border-color: #cccccc; -fx-border-width: 0 1 0 0;">
+
+            <!-- Sidebar header -->
+            <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 8 12 8 12; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
+                <Label style="-fx-font-weight: bold;" text="DOCUMENTS" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="labelDocCount" text="3 docs" />
             </HBox>
-            <HBox alignment="CENTER" prefHeight="58.0" prefWidth="600.0" spacing="20.0">
-               <children>
-                  <Label text="CURRENT PROFILE" />
-                  <Label text="CURRENT BOX" />
-                  <Label text="METADATA INFO" />
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-   </top>
-   <left>
-      <VBox prefHeight="327.0" prefWidth="134.0" spacing="20.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label text="DOCUMENTS AMOUNT" />
-            <Label text="DUCUMENT 1" />
-            <Label text="DUCUMENT 2" />
-            <Label text="DUCUMENT 3" />
-         </children>
-      </VBox>
-   </left>
-   <center>
-      <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-         <children>
-            <ImageView fitHeight="259.0" fitWidth="465.0" pickOnBounds="true" preserveRatio="true" />
-         </children>
-      </VBox>
-   </center>
+
+            <!-- Scrollable document cards -->
+            <ScrollPane fitToWidth="true" style="-fx-border-width: 0;" VBox.vgrow="ALWAYS">
+                <VBox spacing="6" style="-fx-padding: 8;">
+
+                    <!-- Document 1 -->
+                    <VBox fx:id="docCard1" spacing="4" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;">
+                        <HBox alignment="CENTER_LEFT" spacing="50.0">
+                            <Label style="-fx-font-weight: bold;" text="Document 1" HBox.hgrow="ALWAYS" />
+                            <Label text="4 files" />
+                        </HBox>
+                        <HBox spacing="4">
+                            <Label text="[ ]" /><Label text="[ ]" /><Label text="[ ]" /><Label text="[ ]" />
+                        </HBox>
+                        <Label text="● Progress status" />
+                    </VBox>
+
+                    <!-- Document 2 -->
+                    <VBox fx:id="docCard2" spacing="4" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;">
+                        <HBox alignment="CENTER_LEFT" spacing="50.0">
+                            <Label style="-fx-font-weight: bold;" text="Document 2" HBox.hgrow="ALWAYS" />
+                            <Label text="3 files" />
+                        </HBox>
+                        <HBox spacing="4">
+                            <Label text="[ ]" /><Label text="[ ]" /><Label text="[ ]" />
+                        </HBox>
+                        <Label text="● Progress status" />
+                    </VBox>
+
+                    <!-- Document 3 -->
+                    <VBox fx:id="docCard3" spacing="4" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;">
+                        <HBox alignment="CENTER_LEFT" spacing="50.0">
+                            <Label style="-fx-font-weight: bold;" text="Document 3" HBox.hgrow="ALWAYS" />
+                            <Label text="1 file" />
+                        </HBox>
+                        <HBox spacing="4">
+                            <Label text="[ ]" />
+                        </HBox>
+                        <Label text="● Progress status" />
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+            <!-- Export section -->
+            <VBox spacing="8" style="-fx-padding: 12; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
+                <Label style="-fx-font-weight: bold;" text="EXPORT" />
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Output" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="labelOutputName" text="Archive Name + BOX ID" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Format" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="labelFormat" text="TIFF" />
+                </HBox>
+                <HBox spacing="0">
+                    <Button fx:id="btnMultiPage" maxWidth="Infinity" text="Multi-page" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnSinglePage" maxWidth="Infinity" text="Single-page" HBox.hgrow="ALWAYS" />
+                </HBox>
+                <Button fx:id="btnExport" maxWidth="Infinity" text="Export (docs amount)" />
+            </VBox>
+
+        </VBox>
+    </left>
+
+    <!-- CENTER - Viewer -->
+    <center>
+        <BorderPane>
+
+            <!-- Viewer toolbar -->
+            <top>
+                <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 8 16 8 16; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
+                    <Button fx:id="btnRotateCCW" text="Rotate CCW" />
+                    <Button fx:id="btnRotateCW" text="Rotate CW" />
+                    <Button fx:id="btnDelete" text="Delete" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnPrev" text="Prev" />
+                    <Label fx:id="labelPagePosition" style="-fx-padding: 0 8 0 8;" text="0 / 0" />
+                    <Button fx:id="btnNext" text="Next" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnSlideshow" text="Slideshow" />
+                </HBox>
+            </top>
+
+            <!-- Page preview with left/right nav arrows -->
+            <center>
+                <BorderPane style="-fx-background-color: #e0e0e0;">
+
+                    <left>
+                        <Button fx:id="btnNavLeft" style="-fx-font-size: 18;" text="&lt;" BorderPane.alignment="CENTER">
+                            <BorderPane.margin><Insets left="12" /></BorderPane.margin>
+                        </Button>
+                    </left>
+
+                    <right>
+                        <Button fx:id="btnNavRight" style="-fx-font-size: 18;" text="&gt;" BorderPane.alignment="CENTER">
+                            <BorderPane.margin><Insets right="12" /></BorderPane.margin>
+                        </Button>
+                    </right>
+
+                    <center>
+                        <StackPane BorderPane.alignment="CENTER">
+                            <!-- White page card: swap the Label for an ImageView when you have real scans -->
+                            <VBox alignment="CENTER" maxHeight="680" maxWidth="500" style="-fx-background-color: white; -fx-border-color: #bbbbbb; -fx-border-width: 1;" StackPane.alignment="CENTER">
+                                <Label style="-fx-text-fill: #aaaaaa;" text="[ Page Preview ]" />
+                                <Region VBox.vgrow="ALWAYS" />
+                            </VBox>
+                            <!-- Reference badge -->
+                            <Label fx:id="labelPageRef" style="-fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-padding: 3 8 3 8;" text="REF-006 · Doc 2 · File #5" StackPane.alignment="BOTTOM_CENTER">
+                                <StackPane.margin><Insets bottom="20" /></StackPane.margin>
+                            </Label>
+                        </StackPane>
+                    </center>
+
+                </BorderPane>
+            </center>
+
+            <!-- Filmstrip -->
+            <bottom>
+                <BorderPane style="-fx-border-color: #cccccc; -fx-border-width: 1 0 0 0; -fx-padding: 6; -fx-background-color: #f5f5f5;">
+
+                    <center>
+                        <ScrollPane fitToHeight="true" hbarPolicy="ALWAYS" style="-fx-border-width: 0; -fx-background: transparent;" vbarPolicy="NEVER">
+                            <HBox fx:id="filmstripBox" alignment="CENTER_LEFT" spacing="4" style="-fx-padding: 4;">
+
+                                <!-- Thumb 1 -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-001" />
+                                    <Label style="-fx-font-size: 9;" text="#1" />
+                                </VBox>
+                                <!-- Thumb 2 -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-002" />
+                                    <Label style="-fx-font-size: 9;" text="#2" />
+                                </VBox>
+                                <!-- Thumb 3 with rotation note -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-003" />
+                                    <Label style="-fx-font-size: 9;" text="#3  90deg" />
+                                </VBox>
+                                <!-- Thumb 4 -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-004" />
+                                    <Label style="-fx-font-size: 9;" text="#4" />
+                                </VBox>
+
+                                <!-- SPLIT marker -->
+                                <Label style="-fx-rotate: 90; -fx-font-size: 9; -fx-font-weight: bold; -fx-padding: 0 6 0 6;" text="SPLIT" />
+
+                                <!-- Thumb 5 - SELECTED -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4; -fx-border-color: #333333; -fx-border-width: 2; -fx-background-color: #dddddd;">
+                                    <Label style="-fx-border-color: #555555; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9; -fx-font-weight: bold;" text="REF-006" />
+                                    <Label style="-fx-font-size: 9; -fx-font-weight: bold;" text="#5" />
+                                </VBox>
+                                <!-- Thumb 6 -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-007" />
+                                    <Label style="-fx-font-size: 9;" text="#6" />
+                                </VBox>
+                                <!-- Thumb 7 -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-008" />
+                                    <Label style="-fx-font-size: 9;" text="#7" />
+                                </VBox>
+
+                                <!-- SPLIT marker -->
+                                <Label style="-fx-rotate: 90; -fx-font-size: 9; -fx-font-weight: bold; -fx-padding: 0 6 0 6;" text="SPLIT" />
+
+                                <!-- Thumb 8 -->
+                                <VBox alignment="CENTER" spacing="2" style="-fx-padding: 4;">
+                                    <Label style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
+                                    <Label style="-fx-font-size: 9;" text="REF-010" />
+                                    <Label style="-fx-font-size: 9;" text="#8" />
+                                </VBox>
+
+                            </HBox>
+                        </ScrollPane>
+                    </center>
+
+                    <right>
+                        <Button fx:id="btnFetchNext" text="Fetch Next" BorderPane.alignment="CENTER">
+                            <BorderPane.margin><Insets left="8" /></BorderPane.margin>
+                        </Button>
+                    </right>
+
+                </BorderPane>
+            </bottom>
+
+        </BorderPane>
+    </center>
+
+    <!-- BOTTOM STATUS BAR -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding: 4 16 4 16; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
+            <Label fx:id="labelConnected" text="● Connected" />
+            <Label fx:id="labelRotationInfo" text="Rotation: X° " />
+            <Label text="SHORTCUTS:  Space=  Arrows=  =Rotate  S=Slideshow  Del=Delete" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="labelStatusUser" text="Username · Archive name" />
+        </HBox>
+    </bottom>
+
 </BorderPane>
