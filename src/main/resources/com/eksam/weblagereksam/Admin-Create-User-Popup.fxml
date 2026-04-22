@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="250.0" prefWidth="300" spacing="10" styleClass="cBoarder" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <padding>
+      <Insets bottom="10" left="10" right="10" top="10" />
+   </padding>
+   <children>
+      <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="User creation" />
+      <TextField promptText="Full name" />
+      <TextField promptText="Username" />
+      <TextField promptText="Password" />
+      <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Role" />
+      <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" text="Add">
+         <VBox.margin>
+            <Insets top="10.0" />
+         </VBox.margin>
+      </Button>
+   </children>
+</VBox>
