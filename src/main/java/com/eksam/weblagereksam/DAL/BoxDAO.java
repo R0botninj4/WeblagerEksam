@@ -66,8 +66,7 @@ public class BoxDAO implements IBoxDAO {
             }
 
         } catch (Exception e) {
-            // If the assignment table is not created yet, keep the scanner usable.
-            return getAllBoxes();
+            e.printStackTrace();
         }
 
         return boxes;
