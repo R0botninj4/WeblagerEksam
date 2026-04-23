@@ -62,16 +62,17 @@ public class LoginController {
                 return;
             }
 
-            // save logged in user
             Session.setUser(user);
 
-            // open main system
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource(
-                            "/com/eksam/weblagereksam/Main-view.fxml"
-                    )
-            );
+            String viewPath;
 
+            if (user.getRoleName().equalsIgnoreCase("User")) {
+                viewPath = "/com/eksam/weblagereksam/User-Scanning-view.fxml";
+            } else {
+                viewPath = "/com/eksam/weblagereksam/Main-view.fxml";
+            }
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
             Scene scene = new Scene(loader.load());
 
             Stage stage = new Stage();
@@ -80,10 +81,7 @@ public class LoginController {
             stage.setMaximized(true);
             stage.show();
 
-            // close login window
-            Stage loginStage =
-                    (Stage) txtUsername.getScene().getWindow();
-
+            Stage loginStage = (Stage) txtUsername.getScene().getWindow();
             loginStage.close();
 
         } catch (Exception e) {

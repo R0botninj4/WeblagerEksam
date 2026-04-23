@@ -11,6 +11,7 @@ module com.eksam.weblagereksam {
     requires com.google.zxing;
     requires com.google.zxing.javase;
     requires java.net.http;
+    requires javafx.swing;
 
 
     opens com.eksam.weblagereksam to javafx.fxml;
