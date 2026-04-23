@@ -4,11 +4,10 @@ import com.eksam.weblagereksam.BE.Box;
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
 import com.eksam.weblagereksam.BLL.BoxManager;
-import com.eksam.weblagereksam.BLL.DocumentManager;
 import com.eksam.weblagereksam.BLL.FxImageConverter;
-import com.eksam.weblagereksam.BLL.ImageByteConverter;
-import com.eksam.weblagereksam.BLL.PageManager;
 import com.eksam.weblagereksam.BLL.ScanImportManager;
+import com.eksam.weblagereksam.BLL.ScanWorkspaceManager;
+import com.eksam.weblagereksam.BLL.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import javafx.fxml.FXML;
 import javafx.concurrent.Task;
@@ -16,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -31,21 +31,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.StringConverter;
 
-import java.awt.image.BufferedImage;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class UserScanningController {
 
-    private static final String DEFAULT_BOX_NUMBER = "BOX-001";
-
-    @FXML private Label labelBoxId;
     @FXML private Label labelProfile;
     @FXML private Label labelFilesCount;
     @FXML private Label labelDocsCount;
@@ -59,6 +54,7 @@ public class UserScanningController {
     @FXML private Label labelConnected;
     @FXML private Label labelRotationInfo;
     @FXML private Label labelStatusUser;
+    @FXML private ComboBox<Box> comboBoxBoxes;
 
     @FXML private Button btnMultiPage;
     @FXML private Button btnSinglePage;
@@ -79,9 +75,8 @@ public class UserScanningController {
     @FXML private ImageView pageImageView;
 
     private BoxManager boxManager;
-    private DocumentManager documentManager;
-    private PageManager pageManager;
     private ScanImportManager scanImportManager;
+    private ScanWorkspaceManager scanWorkspaceManager;
 
     private Box currentBox;
     private Document selectedDocument;
@@ -99,18 +94,17 @@ public class UserScanningController {
     public void initialize() {
         try {
             boxManager = new BoxManager();
-            documentManager = new DocumentManager();
-            pageManager = new PageManager();
             scanImportManager = new ScanImportManager();
+            scanWorkspaceManager = new ScanWorkspaceManager();
 
             setupUserInfo();
             setupDefaultUi();
             setupButtons();
             setupKeyboardShortcuts();
-            loadBox();
+            loadBoxesForCurrentUser();
             loadCurrentBoxDataAsync(false);
         } catch (Exception e) {
-            showStatus("Scanning setup failed: " + e.getMessage());
+            showStatus("Scanner could not start.");
             e.printStackTrace();
         }
     }
@@ -128,10 +122,50 @@ public class UserScanningController {
         labelSessionTimer.setText("00:00");
         labelFormat.setText("TIFF Multi-page");
         labelPagePosition.setText("0 / 0");
-        labelPageRef.setText("No page loaded");
+        labelPageRef.setText("No page selected");
         labelConnected.setText("Connected");
         labelRotationInfo.setText("Rotation: 0 degrees");
-        btnExport.setText("Export (0 docs)");
+        btnExport.setText("Export (0 documents)");
+        setupBoxDropdown();
+    }
+
+    private void setupBoxDropdown() {
+        comboBoxBoxes.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Box box) {
+                if (box == null) {
+                    return "";
+                }
+
+                if (box.getLabel() == null || box.getLabel().isBlank()) {
+                    return box.getBoxNumber();
+                }
+
+                return box.getBoxNumber() + " - " + box.getLabel();
+            }
+
+            @Override
+            public Box fromString(String string) {
+                return null;
+            }
+        });
+
+        comboBoxBoxes.setOnAction(event -> {
+            Box selectedBox = comboBoxBoxes.getSelectionModel().getSelectedItem();
+            if (selectedBox == null || selectedBox.equals(currentBox)) {
+                return;
+            }
+
+            currentBox = selectedBox;
+            selectedDocument = null;
+            currentPageIndex = 0;
+            currentDocuments.clear();
+            currentPages.clear();
+            pagesByDocument.clear();
+            filmstripThumbs.clear();
+            updateBoxHeader();
+            loadCurrentBoxDataAsync(false);
+        });
     }
 
     private void setupButtons() {
@@ -146,8 +180,8 @@ public class UserScanningController {
         btnDelete.setOnAction(e -> deleteCurrentPage());
         btnMultiPage.setOnAction(e -> labelFormat.setText("TIFF Multi-page"));
         btnSinglePage.setOnAction(e -> labelFormat.setText("TIFF Single-page"));
-        btnSlideshow.setOnAction(e -> showStatus("Slideshow is not implemented yet."));
-        btnExport.setOnAction(e -> showStatus("Export is not implemented yet."));
+        btnSlideshow.setOnAction(e -> showStatus("Slideshow is not ready yet."));
+        btnExport.setOnAction(e -> showStatus("Export is not ready yet."));
     }
 
     private void setupKeyboardShortcuts() {
@@ -174,25 +208,34 @@ public class UserScanningController {
         });
     }
 
-    private void loadBox() throws Exception {
-        currentBox = boxManager.getBoxByBoxNumber(DEFAULT_BOX_NUMBER);
+    private void loadBoxesForCurrentUser() throws Exception {
+        List<Box> boxes;
 
-        if (currentBox == null) {
-            List<Box> boxes = boxManager.getAllBoxes();
-            if (!boxes.isEmpty()) {
-                currentBox = boxes.get(0);
-            }
+        if (Session.getUser() != null) {
+            boxes = boxManager.getBoxesByUserId(Session.getUser().getId());
+        } else {
+            boxes = boxManager.getAllBoxes();
+        }
+
+        comboBoxBoxes.getItems().setAll(boxes);
+
+        if (!boxes.isEmpty()) {
+            currentBox = boxes.get(0);
+            comboBoxBoxes.getSelectionModel().select(currentBox);
         }
 
         if (currentBox == null) {
-            labelBoxId.setText("No Box");
             labelProfile.setText("No Profile");
             labelOutputName.setText("No Box");
-            showStatus("No boxes found in the database.");
+            comboBoxBoxes.setPromptText("No boxes");
+            showStatus("No boxes found.");
             return;
         }
 
-        labelBoxId.setText(currentBox.getBoxNumber());
+        updateBoxHeader();
+    }
+
+    private void updateBoxHeader() {
         labelProfile.setText(currentBox.getLabel() != null ? currentBox.getLabel() : "No profile");
         labelOutputName.setText(currentBox.getBoxNumber());
     }
@@ -211,7 +254,7 @@ public class UserScanningController {
         }
 
         if (currentBox == null) {
-            showStatus("No box selected.");
+            showStatus("Select a box first.");
             return;
         }
 
@@ -232,7 +275,7 @@ public class UserScanningController {
             importInProgress = true;
             btnFetchNext.setDisable(true);
             btnFetchTen.setDisable(true);
-            showStatus("Fetching and processing " + amount + " scan(s)...");
+            showStatus("Fetching " + amount + " scans...");
             if (amount > 1) {
                 showProgressPopup(importTask, amount);
             }
@@ -243,7 +286,7 @@ public class UserScanningController {
             btnFetchNext.setDisable(false);
             btnFetchTen.setDisable(false);
             closeProgressPopup();
-            showStatus("Imported " + importTask.getValue() + " document(s) into " + currentBox.getBoxNumber() + ".");
+            showStatus("Done. " + importTask.getValue() + " documents updated.");
             loadCurrentBoxDataAsync(false);
         });
 
@@ -253,7 +296,7 @@ public class UserScanningController {
             btnFetchTen.setDisable(false);
             closeProgressPopup();
             Throwable error = importTask.getException();
-            showStatus("Import failed: " + (error != null ? error.getMessage() : "Unknown error"));
+            showStatus("Scan failed.");
             if (error != null) {
                 error.printStackTrace();
             }
@@ -274,7 +317,7 @@ public class UserScanningController {
         Label titleLabel = new Label("Scanning " + amount + " files");
         titleLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
 
-        Label statusLabel = new Label("Preparing scans...");
+        Label statusLabel = new Label("Getting ready...");
         statusLabel.textProperty().bind(importTask.messageProperty());
 
         VBox content = new VBox(12, titleLabel, statusLabel, progressBar);
@@ -319,7 +362,7 @@ public class UserScanningController {
             loadingBoxData = true;
             setNavigationDisabled(true);
             if (!preserveStatusMessage) {
-                showStatus("Loading scans...");
+                showStatus("Loading pages...");
             }
         });
 
@@ -336,7 +379,7 @@ public class UserScanningController {
             loadingBoxData = false;
             setNavigationDisabled(false);
             Throwable error = loadTask.getException();
-            showStatus("Could not load box data: " + (error != null ? error.getMessage() : "Unknown error"));
+            showStatus("Could not load pages.");
             if (error != null) {
                 error.printStackTrace();
             }
@@ -353,23 +396,7 @@ public class UserScanningController {
         }
 
         UUID selectedDocumentId = selectedDocument != null ? selectedDocument.getId() : null;
-        List<Document> documents = new ArrayList<>();
-        Map<UUID, List<Page>> pagesMap = new HashMap<>();
-        int totalFiles = 0;
-
-        for (Document document : documentManager.getDocumentsByBoxId(currentBox.getId())) {
-            List<Page> pages = pageManager.getPagesByDocumentId(document.getId());
-
-            if (pages.isEmpty()) {
-                continue;
-            }
-
-            documents.add(document);
-            pagesMap.put(document.getId(), new ArrayList<>(pages));
-            totalFiles += pages.size();
-        }
-
-        return new BoxDataSnapshot(documents, pagesMap, selectedDocumentId, totalFiles);
+        return scanWorkspaceManager.loadBoxData(currentBox.getId(), selectedDocumentId);
     }
 
     private void applyBoxDataSnapshot(BoxDataSnapshot snapshot) {
@@ -384,7 +411,7 @@ public class UserScanningController {
         labelDocsCount.setText("Docs " + currentDocuments.size());
         labelDocCount.setText(currentDocuments.size() + " docs");
         labelFilesCount.setText("Files " + snapshot.totalFiles());
-        btnExport.setText("Export (" + currentDocuments.size() + " docs)");
+        btnExport.setText("Export (" + currentDocuments.size() + " documents)");
 
         if (snapshot.selectedDocumentId() != null) {
             selectedDocument = currentDocuments.stream()
@@ -586,7 +613,7 @@ public class UserScanningController {
         if (selectedDocument == null || currentPages.isEmpty()) {
             pageImageView.setImage(null);
             labelPagePosition.setText("0 / 0");
-            labelPageRef.setText("No page loaded");
+            labelPageRef.setText("No page selected");
             labelRotationInfo.setText("Rotation: 0 degrees");
             return;
         }
@@ -634,28 +661,17 @@ public class UserScanningController {
 
         try {
             Page page = currentPages.get(currentPageIndex);
-            BufferedImage source = ImageByteConverter.bytesToBufferedImage(page.getImageData());
-            BufferedImage rotated = ImageByteConverter.rotate(source, delta);
-            byte[] imageBytes = ImageByteConverter.bufferedImageToPngBytes(rotated);
-
-            page.setImageData(imageBytes);
-            page.setFileSize((long) imageBytes.length);
-            page.setWidth(rotated.getWidth());
-            page.setHeight(rotated.getHeight());
-            page.setRotation(normalizeRotation(page.getRotation() + delta));
-            page.setChecksum(sha256(imageBytes));
-            pageImageCache.remove(page.getId());
-
-            if (pageManager.updatePage(page)) {
+            if (scanWorkspaceManager.rotatePage(page, delta)) {
+                pageImageCache.remove(page.getId());
                 pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
                 renderFilmstrip();
                 showCurrentPage();
-                showStatus("Saved page rotation.");
+                showStatus("Rotation saved.");
             } else {
-                showStatus("Could not save page rotation.");
+                showStatus("Could not save rotation.");
             }
         } catch (Exception e) {
-            showStatus("Rotation failed: " + e.getMessage());
+            showStatus("Rotation failed.");
             e.printStackTrace();
         }
     }
@@ -667,22 +683,23 @@ public class UserScanningController {
 
         try {
             Page page = currentPages.get(currentPageIndex);
+            List<Page> remainingPages = new ArrayList<>(currentPages);
+            remainingPages.remove(currentPageIndex);
 
-            if (!pageManager.deletePage(page.getId())) {
+            if (!scanWorkspaceManager.deletePage(page, selectedDocument.getId(), remainingPages)) {
                 showStatus("Could not delete page.");
                 return;
             }
 
             pageImageCache.remove(page.getId());
             filmstripThumbs.remove(page.getId());
-            currentPages.remove(currentPageIndex);
+            currentPages.clear();
+            currentPages.addAll(remainingPages);
 
             if (currentPages.isEmpty()) {
-                documentManager.deleteDocument(selectedDocument.getId());
                 selectedDocument = null;
                 currentPageIndex = 0;
             } else {
-                persistCurrentPageOrder();
                 if (currentPageIndex >= currentPages.size()) {
                     currentPageIndex = currentPages.size() - 1;
                 }
@@ -691,7 +708,7 @@ public class UserScanningController {
             loadCurrentBoxDataAsync(true);
             showStatus("Page deleted.");
         } catch (Exception e) {
-            showStatus("Delete failed: " + e.getMessage());
+            showStatus("Delete failed.");
             e.printStackTrace();
         }
     }
@@ -706,50 +723,25 @@ public class UserScanningController {
         currentPages.add(toIndex, movedPage);
 
         try {
-            persistCurrentPageOrder();
+            if (!scanWorkspaceManager.updatePageOrders(selectedDocument.getId(), currentPages)) {
+                throw new Exception("Database did not accept the new page order.");
+            }
             currentPageIndex = toIndex;
             pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
             renderDocumentCards();
             renderFilmstrip();
             showCurrentPage();
-            showStatus("Page order updated.");
+            showStatus("Page order saved.");
             return true;
         } catch (Exception e) {
-            showStatus("Could not reorder pages: " + e.getMessage());
+            showStatus("Could not save page order.");
             e.printStackTrace();
             loadCurrentBoxDataAsync(true);
             return false;
         }
     }
 
-    private void persistCurrentPageOrder() throws Exception {
-        for (int i = 0; i < currentPages.size(); i++) {
-            currentPages.get(i).setUiOrder(i + 1);
-        }
-
-        if (!pageManager.updatePageOrders(selectedDocument.getId(), currentPages)) {
-            throw new Exception("Database did not accept the new page order.");
-        }
-    }
-
-    private int normalizeRotation(int rotation) {
-        int normalized = rotation % 360;
-        return normalized < 0 ? normalized + 360 : normalized;
-    }
-
-    private String sha256(byte[] data) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        return HexFormat.of().formatHex(digest.digest(data));
-    }
-
     private void showStatus(String message) {
         labelConnected.setText(message);
     }
-
-    private record BoxDataSnapshot(
-            List<Document> documents,
-            Map<UUID, List<Page>> pagesByDocument,
-            UUID selectedDocumentId,
-            int totalFiles
-    ) {}
 }

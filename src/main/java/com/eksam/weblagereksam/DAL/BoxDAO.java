@@ -43,6 +43,37 @@ public class BoxDAO implements IBoxDAO {
     }
 
     @Override
+    public List<Box> getBoxesByUserId(UUID userId) {
+        List<Box> boxes = new ArrayList<>();
+
+        String sql = """
+                SELECT b.*
+                FROM Boxes b
+                INNER JOIN UserBoxes ub ON ub.BoxId = b.Id
+                WHERE ub.UserId = ?
+                ORDER BY b.BoxNumber
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, userId.toString());
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                boxes.add(mapBox(rs));
+            }
+
+        } catch (Exception e) {
+            // If the assignment table is not created yet, keep the scanner usable.
+            return getAllBoxes();
+        }
+
+        return boxes;
+    }
+
+    @Override
     public Box getBoxById(UUID id) {
         String sql = """
                 SELECT *

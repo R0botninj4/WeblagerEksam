@@ -9,6 +9,8 @@ public interface IBoxDAO {
 
     List<Box> getAllBoxes();
 
+    List<Box> getBoxesByUserId(UUID userId);
+
     Box getBoxById(UUID id);
 
     Box getBoxByBoxNumber(String boxNumber);

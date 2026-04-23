@@ -54,7 +54,7 @@ public class ScanImportManager {
 
     private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles, ProgressListener progressListener) throws Exception {
         if (progressListener != null) {
-            progressListener.onProgress(0, Math.max(1, tiffFiles.size()), "Preparing scans...");
+            progressListener.onProgress(0, Math.max(1, tiffFiles.size()), "Getting ready...");
         }
         String importBatchId = UUID.randomUUID().toString().substring(0, 8);
 
@@ -115,7 +115,7 @@ public class ScanImportManager {
                 progressListener.onProgress(
                         fileIndex + 1,
                         Math.max(1, tiffFiles.size()),
-                        "Processed file " + (fileIndex + 1) + " of " + tiffFiles.size()
+                        "File " + (fileIndex + 1) + " of " + tiffFiles.size()
                 );
             }
         }
@@ -156,7 +156,7 @@ public class ScanImportManager {
 
             return processedPages;
         } catch (ExecutionException e) {
-            throw new Exception("Could not preprocess TIFF pages.", e.getCause());
+            throw new Exception("Could not process TIFF pages.", e.getCause());
         } finally {
             executor.shutdown();
         }

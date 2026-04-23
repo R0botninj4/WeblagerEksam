@@ -19,6 +19,10 @@ public class BoxManager {
         return boxDAO.getAllBoxes();
     }
 
+    public List<Box> getBoxesByUserId(UUID userId) {
+        return boxDAO.getBoxesByUserId(userId);
+    }
+
     public Box getBoxById(UUID id) {
         return boxDAO.getBoxById(id);
     }

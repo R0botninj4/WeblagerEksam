@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
@@ -23,7 +24,7 @@
             <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="Weblager" />
             <Separator orientation="VERTICAL" />
             <Label text="Box" />
-            <Label fx:id="labelBoxId" style="-fx-font-weight: bold;" text="BOX-ID" />
+            <ComboBox fx:id="comboBoxBoxes" prefWidth="190" />
             <Label text="Profile" />
             <Label fx:id="labelProfile" text="Archive: Name" />
             <Region HBox.hgrow="ALWAYS" />
@@ -113,7 +114,7 @@
                     <Button fx:id="btnMultiPage" maxWidth="Infinity" text="Multi-page" HBox.hgrow="ALWAYS" />
                     <Button fx:id="btnSinglePage" maxWidth="Infinity" text="Single-page" HBox.hgrow="ALWAYS" />
                 </HBox>
-                <Button fx:id="btnExport" maxWidth="Infinity" text="Export (docs amount)" />
+                <Button fx:id="btnExport" maxWidth="Infinity" text="Export" />
             </VBox>
 
         </VBox>
@@ -128,11 +129,11 @@
             <!-- Viewer toolbar -->
             <top>
                 <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 8 16 8 16; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
-                    <Button fx:id="btnRotateCCW" text="Rotate CCW" />
-                    <Button fx:id="btnRotateCW" text="Rotate CW" />
+                    <Button fx:id="btnRotateCCW" text="Rotate left" />
+                    <Button fx:id="btnRotateCW" text="Rotate right" />
                     <Button fx:id="btnDelete" text="Delete" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnPrev" text="Prev" />
+                    <Button fx:id="btnPrev" text="Previous" />
                     <Label fx:id="labelPagePosition" style="-fx-padding: 0 8 0 8;" text="0 / 0" />
                     <Button fx:id="btnNext" text="Next" />
                     <Region HBox.hgrow="ALWAYS" />
@@ -259,7 +260,7 @@
                     <right>
                         <VBox spacing="8" BorderPane.alignment="CENTER">
                             <BorderPane.margin><Insets left="8" /></BorderPane.margin>
-                            <Button fx:id="btnFetchNext" text="Fetch Next" maxWidth="Infinity" />
+                            <Button fx:id="btnFetchNext" text="Fetch next" maxWidth="Infinity" />
                             <Button fx:id="btnFetchTen" text="Fetch 10" maxWidth="Infinity" />
                         </VBox>
                     </right>
@@ -276,7 +277,7 @@
         <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding: 4 16 4 16; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
             <Label fx:id="labelConnected" text="● Connected" />
             <Label fx:id="labelRotationInfo" text="Rotation: 0°" />
-            <Label fx:id="labelShortcuts" text="SHORTCUTS: Space=Next  Arrows=Navigate  R=Rotate  S=Slideshow  Del=Delete" />
+            <Label fx:id="labelShortcuts" text="Shortcuts: Arrows=navigate  R=rotate  Del=delete" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="labelStatusUser" text="Username · Archive name" />
         </HBox>
