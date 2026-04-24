@@ -9,8 +9,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * BLL service for splitting a TIFF file into separate image pages.
+ */
 public class TiffPageReader {
 
+    /**
+     * Reads all pages from a TIFF byte array.
+     *
+     * Some TIFF files contain more than one page, so scanning must handle every page separately.
+     */
     public List<BufferedImage> readAllPages(byte[] tiffBytes) throws Exception {
         List<BufferedImage> pages = new ArrayList<>();
 
@@ -29,6 +37,7 @@ public class TiffPageReader {
                 reader.setInput(iis);
                 int count = reader.getNumImages(true);
 
+                // Read every page in the multi-page TIFF.
                 for (int i = 0; i < count; i++) {
                     pages.add(reader.read(i));
                 }

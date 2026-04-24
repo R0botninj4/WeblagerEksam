@@ -18,269 +18,153 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.eksam.weblagereksam.GUI.UserScanningController">
 
-    <!-- TOP BAR -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 8 16 8 16; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
             <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="Weblager" />
             <Separator orientation="VERTICAL" />
             <Label text="Box" />
-            <ComboBox fx:id="comboBoxBoxes" prefWidth="190" />
+            <ComboBox fx:id="comboBoxBoxes" onAction="#handleBoxSelected" prefWidth="190" />
             <Label text="Profile" />
             <Label fx:id="labelProfile" text="Archive: Name" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="labelFilesCount" text="Files  X" />
+            <Label fx:id="labelFilesCount" text="Files 0" />
             <Separator orientation="VERTICAL" />
-            <Label fx:id="labelDocsCount" text="Docs  X" />
+            <Label fx:id="labelDocsCount" text="Docs 0" />
             <Separator orientation="VERTICAL" />
-            <Label fx:id="labelSessionTimer" text="Session TIME" />
+            <Label fx:id="labelSessionTimer" text="00:00" />
             <Separator orientation="VERTICAL" />
             <Label fx:id="labelUser" style="-fx-font-weight: bold;" text="Username" />
         </HBox>
     </top>
 
-    <!-- LEFT SIDEBAR -->
     <left>
         <VBox prefWidth="220" spacing="0" style="-fx-border-color: #cccccc; -fx-border-width: 0 1 0 0;">
-
-            <!-- Sidebar header -->
             <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 8 12 8 12; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
                 <Label style="-fx-font-weight: bold;" text="DOCUMENTS" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="labelDocCount" text="3 docs" />
+                <Label fx:id="labelDocCount" text="0 docs" />
             </HBox>
 
-            <!-- Scrollable document cards -->
             <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" style="-fx-border-width: 0;" VBox.vgrow="ALWAYS">
-                <VBox fx:id="documentsContainer" spacing="6" style="-fx-padding: 8;">
-
-                    <!-- Document 1 -->
-                    <VBox fx:id="docCard1" spacing="4" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;">
-                        <HBox alignment="CENTER_LEFT" spacing="50.0">
-                            <Label fx:id="labelDoc1Title" style="-fx-font-weight: bold;" text="Document 1" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="labelDoc1Files" text="4 files" />
-                        </HBox>
-                        <HBox fx:id="doc1PagesBox" spacing="4">
-                            <Label text="[ ]" />
-                            <Label text="[ ]" />
-                            <Label text="[ ]" />
-                            <Label text="[ ]" />
-                        </HBox>
-                        <Label fx:id="labelDoc1Status" text="● Progress status" />
-                    </VBox>
-
-                    <!-- Document 2 -->
-                    <VBox fx:id="docCard2" spacing="4" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;">
-                        <HBox alignment="CENTER_LEFT" spacing="50.0">
-                            <Label fx:id="labelDoc2Title" style="-fx-font-weight: bold;" text="Document 2" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="labelDoc2Files" text="3 files" />
-                        </HBox>
-                        <HBox fx:id="doc2PagesBox" spacing="4">
-                            <Label text="[ ]" />
-                            <Label text="[ ]" />
-                            <Label text="[ ]" />
-                        </HBox>
-                        <Label fx:id="labelDoc2Status" text="● Progress status" />
-                    </VBox>
-
-                    <!-- Document 3 -->
-                    <VBox fx:id="docCard3" spacing="4" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;">
-                        <HBox alignment="CENTER_LEFT" spacing="50.0">
-                            <Label fx:id="labelDoc3Title" style="-fx-font-weight: bold;" text="Document 3" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="labelDoc3Files" text="1 file" />
-                        </HBox>
-                        <HBox fx:id="doc3PagesBox" spacing="4">
-                            <Label text="[ ]" />
-                        </HBox>
-                        <Label fx:id="labelDoc3Status" text="● Progress status" />
-                    </VBox>
-
-                </VBox>
+                <VBox fx:id="documentsContainer" spacing="6" style="-fx-padding: 8;" />
             </ScrollPane>
 
-            <!-- Export section -->
             <VBox spacing="8" style="-fx-padding: 12; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
                 <Label style="-fx-font-weight: bold;" text="EXPORT" />
                 <HBox alignment="CENTER_LEFT" spacing="8">
                     <Label text="Output" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="labelOutputName" text="Archive Name + BOX ID" />
+                    <Label fx:id="labelOutputName" text="No Box" />
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="8">
                     <Label text="Format" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="labelFormat" text="TIFF" />
+                    <Label fx:id="labelFormat" text="TIFF Multi-page" />
                 </HBox>
                 <HBox spacing="0">
-                    <Button fx:id="btnMultiPage" maxWidth="Infinity" text="Multi-page" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnSinglePage" maxWidth="Infinity" text="Single-page" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnMultiPage" maxWidth="Infinity" onAction="#handleMultiPageFormat" text="Multi-page" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnSinglePage" maxWidth="Infinity" onAction="#handleSinglePageFormat" text="Single-page" HBox.hgrow="ALWAYS" />
                 </HBox>
-                <Button fx:id="btnExport" maxWidth="Infinity" text="Export" />
+                <Button fx:id="btnExport" maxWidth="Infinity" onAction="#handleExport" text="Export (0 documents)" />
             </VBox>
-
         </VBox>
     </left>
 
-    <!-- CENTER - Viewer -->
     <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true"
-                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
-        <BorderPane>
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <BorderPane>
+                <top>
+                    <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 8 16 8 16; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
+                        <Button fx:id="btnRotateCCW" onAction="#handleRotateLeft" text="Rotate left" />
+                        <Button fx:id="btnRotateCW" onAction="#handleRotateRight" text="Rotate right" />
+                        <Button fx:id="btnDelete" onAction="#deleteCurrentPage" text="Delete" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="btnPrev" onAction="#showPreviousPage" text="Previous" />
+                        <Label fx:id="labelPagePosition" style="-fx-padding: 0 8 0 8;" text="0 / 0" />
+                        <Button fx:id="btnNext" onAction="#showNextPage" text="Next" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="btnSlideshow" onAction="#handleSlideshow" text="Slideshow" />
+                    </HBox>
+                </top>
 
-            <!-- Viewer toolbar -->
-            <top>
-                <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 8 16 8 16; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
-                    <Button fx:id="btnRotateCCW" text="Rotate left" />
-                    <Button fx:id="btnRotateCW" text="Rotate right" />
-                    <Button fx:id="btnDelete" text="Delete" />
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnPrev" text="Previous" />
-                    <Label fx:id="labelPagePosition" style="-fx-padding: 0 8 0 8;" text="0 / 0" />
-                    <Button fx:id="btnNext" text="Next" />
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnSlideshow" text="Slideshow" />
-                </HBox>
-            </top>
+                <center>
+                    <BorderPane style="-fx-background-color: #e0e0e0;">
+                        <left>
+                            <Button fx:id="btnNavLeft" onAction="#showPreviousPage" style="-fx-font-size: 18;" text="&lt;" BorderPane.alignment="CENTER">
+                                <BorderPane.margin>
+                                    <Insets left="12" />
+                                </BorderPane.margin>
+                            </Button>
+                        </left>
 
-            <!-- Page preview with left/right nav arrows -->
-            <center>
-                <BorderPane style="-fx-background-color: #e0e0e0;">
+                        <right>
+                            <Button fx:id="btnNavRight" onAction="#showNextPage" style="-fx-font-size: 18;" text="&gt;" BorderPane.alignment="CENTER">
+                                <BorderPane.margin>
+                                    <Insets right="12" />
+                                </BorderPane.margin>
+                            </Button>
+                        </right>
 
-                    <left>
-                        <Button fx:id="btnNavLeft" style="-fx-font-size: 18;" text="&lt;" BorderPane.alignment="CENTER">
-                            <BorderPane.margin><Insets left="12" /></BorderPane.margin>
-                        </Button>
-                    </left>
+                        <center>
+                            <StackPane BorderPane.alignment="CENTER">
+                                <VBox alignment="CENTER"
+                                      maxHeight="680"
+                                      maxWidth="500"
+                                      style="-fx-background-color: white; -fx-border-color: #bbbbbb; -fx-border-width: 1;"
+                                      StackPane.alignment="CENTER">
+                                    <ImageView fx:id="pageImageView"
+                                               fitHeight="640"
+                                               fitWidth="480"
+                                               preserveRatio="true" />
+                                </VBox>
 
-                    <right>
-                        <Button fx:id="btnNavRight" style="-fx-font-size: 18;" text="&gt;" BorderPane.alignment="CENTER">
-                            <BorderPane.margin><Insets right="12" /></BorderPane.margin>
-                        </Button>
-                    </right>
+                                <Label fx:id="labelPageRef"
+                                       style="-fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-padding: 3 8 3 8;"
+                                       text="No page selected"
+                                       StackPane.alignment="BOTTOM_CENTER">
+                                    <StackPane.margin>
+                                        <Insets bottom="20" />
+                                    </StackPane.margin>
+                                </Label>
+                            </StackPane>
+                        </center>
+                    </BorderPane>
+                </center>
 
-                    <center>
-                        <StackPane BorderPane.alignment="CENTER">
-                            <VBox alignment="CENTER"
-                                  maxHeight="680"
-                                  maxWidth="500"
-                                  style="-fx-background-color: white; -fx-border-color: #bbbbbb; -fx-border-width: 1;"
-                                  StackPane.alignment="CENTER">
+                <bottom>
+                    <BorderPane style="-fx-border-color: #cccccc; -fx-border-width: 1 0 0 0; -fx-padding: 6; -fx-background-color: #f5f5f5;">
+                        <center>
+                            <ScrollPane fx:id="filmstripScrollPane"
+                                        fitToHeight="true"
+                                        hbarPolicy="ALWAYS"
+                                        style="-fx-border-width: 0; -fx-background: transparent;"
+                                        vbarPolicy="NEVER">
+                                <HBox fx:id="filmstripBox" alignment="CENTER_LEFT" spacing="4" style="-fx-padding: 4;" />
+                            </ScrollPane>
+                        </center>
 
-                                <ImageView fx:id="pageImageView"
-                                           fitWidth="480"
-                                           fitHeight="640"
-                                           preserveRatio="true" />
+                        <right>
+                            <VBox spacing="8" BorderPane.alignment="CENTER">
+                                <BorderPane.margin>
+                                    <Insets left="8" />
+                                </BorderPane.margin>
+                                <Button fx:id="btnFetchNext" maxWidth="Infinity" onAction="#handleFetchNext" text="Fetch next" />
+                                <Button fx:id="btnFetchTen" maxWidth="Infinity" onAction="#handleFetchTen" text="Fetch 10" />
                             </VBox>
-
-                            <Label fx:id="labelPageRef"
-                                   style="-fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-padding: 3 8 3 8;"
-                                   text="REF-006 · Doc 2 · File #5"
-                                   StackPane.alignment="BOTTOM_CENTER">
-                                <StackPane.margin><Insets bottom="20" /></StackPane.margin>
-                            </Label>
-                        </StackPane>
-                    </center>
-
-                </BorderPane>
-            </center>
-
-            <!-- Filmstrip -->
-            <bottom>
-                <BorderPane style="-fx-border-color: #cccccc; -fx-border-width: 1 0 0 0; -fx-padding: 6; -fx-background-color: #f5f5f5;">
-
-                    <center>
-                        <ScrollPane fx:id="filmstripScrollPane" fitToHeight="true" hbarPolicy="ALWAYS" style="-fx-border-width: 0; -fx-background: transparent;" vbarPolicy="NEVER">
-                            <HBox fx:id="filmstripBox" alignment="CENTER_LEFT" spacing="4" style="-fx-padding: 4;">
-
-                                <!-- Thumb 1 -->
-                                <VBox fx:id="thumb1" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb1Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb1Ref" style="-fx-font-size: 9;" text="REF-001" />
-                                    <Label fx:id="thumb1Index" style="-fx-font-size: 9;" text="#1" />
-                                </VBox>
-
-                                <!-- Thumb 2 -->
-                                <VBox fx:id="thumb2" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb2Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb2Ref" style="-fx-font-size: 9;" text="REF-002" />
-                                    <Label fx:id="thumb2Index" style="-fx-font-size: 9;" text="#2" />
-                                </VBox>
-
-                                <!-- Thumb 3 -->
-                                <VBox fx:id="thumb3" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb3Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb3Ref" style="-fx-font-size: 9;" text="REF-003" />
-                                    <Label fx:id="thumb3Index" style="-fx-font-size: 9;" text="#3  90deg" />
-                                </VBox>
-
-                                <!-- Thumb 4 -->
-                                <VBox fx:id="thumb4" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb4Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb4Ref" style="-fx-font-size: 9;" text="REF-004" />
-                                    <Label fx:id="thumb4Index" style="-fx-font-size: 9;" text="#4" />
-                                </VBox>
-
-                                <!-- SPLIT marker -->
-                                <Label fx:id="splitMarker1" style="-fx-rotate: 90; -fx-font-size: 9; -fx-font-weight: bold; -fx-padding: 0 6 0 6;" text="SPLIT" />
-
-                                <!-- Thumb 5 - SELECTED -->
-                                <VBox fx:id="thumb5" alignment="CENTER" spacing="2" style="-fx-padding: 4; -fx-border-color: #333333; -fx-border-width: 2; -fx-background-color: #dddddd;">
-                                    <Label fx:id="thumb5Preview" style="-fx-border-color: #555555; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb5Ref" style="-fx-font-size: 9; -fx-font-weight: bold;" text="REF-006" />
-                                    <Label fx:id="thumb5Index" style="-fx-font-size: 9; -fx-font-weight: bold;" text="#5" />
-                                </VBox>
-
-                                <!-- Thumb 6 -->
-                                <VBox fx:id="thumb6" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb6Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb6Ref" style="-fx-font-size: 9;" text="REF-007" />
-                                    <Label fx:id="thumb6Index" style="-fx-font-size: 9;" text="#6" />
-                                </VBox>
-
-                                <!-- Thumb 7 -->
-                                <VBox fx:id="thumb7" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb7Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb7Ref" style="-fx-font-size: 9;" text="REF-008" />
-                                    <Label fx:id="thumb7Index" style="-fx-font-size: 9;" text="#7" />
-                                </VBox>
-
-                                <!-- SPLIT marker -->
-                                <Label fx:id="splitMarker2" style="-fx-rotate: 90; -fx-font-size: 9; -fx-font-weight: bold; -fx-padding: 0 6 0 6;" text="SPLIT" />
-
-                                <!-- Thumb 8 -->
-                                <VBox fx:id="thumb8" alignment="CENTER" spacing="2" style="-fx-padding: 4;">
-                                    <Label fx:id="thumb8Preview" style="-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-min-width: 50; -fx-min-height: 66;" />
-                                    <Label fx:id="thumb8Ref" style="-fx-font-size: 9;" text="REF-010" />
-                                    <Label fx:id="thumb8Index" style="-fx-font-size: 9;" text="#8" />
-                                </VBox>
-
-                            </HBox>
-                        </ScrollPane>
-                    </center>
-
-                    <right>
-                        <VBox spacing="8" BorderPane.alignment="CENTER">
-                            <BorderPane.margin><Insets left="8" /></BorderPane.margin>
-                            <Button fx:id="btnFetchNext" text="Fetch next" maxWidth="Infinity" />
-                            <Button fx:id="btnFetchTen" text="Fetch 10" maxWidth="Infinity" />
-                        </VBox>
-                    </right>
-
-                </BorderPane>
-            </bottom>
-
-        </BorderPane>
+                        </right>
+                    </BorderPane>
+                </bottom>
+            </BorderPane>
         </ScrollPane>
     </center>
 
-    <!-- BOTTOM STATUS BAR -->
     <bottom>
         <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding: 4 16 4 16; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
-            <Label fx:id="labelConnected" text="● Connected" />
-            <Label fx:id="labelRotationInfo" text="Rotation: 0°" />
+            <Label fx:id="labelConnected" text="Connected" />
+            <Label fx:id="labelRotationInfo" text="Rotation: 0 degrees" />
             <Label fx:id="labelShortcuts" text="Shortcuts: Arrows=navigate  R=rotate  Del=delete" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="labelStatusUser" text="Username · Archive name" />
+            <Label fx:id="labelStatusUser" text="Username - Archive name" />
         </HBox>
     </bottom>
-
 </BorderPane>

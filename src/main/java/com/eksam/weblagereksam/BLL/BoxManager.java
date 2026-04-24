@@ -7,7 +7,15 @@ import com.eksam.weblagereksam.DAL.IBoxDAO;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * BLL manager for boxes.
+ *
+ * The GUI should call this class instead of calling BoxDAO directly.
+ * That keeps the project in a 3-layer structure: GUI -> BLL -> DAL.
+ */
 public class BoxManager {
+
+    // ===== DAL dependency =====
 
     private final IBoxDAO boxDAO;
 
@@ -15,10 +23,15 @@ public class BoxManager {
         boxDAO = new BoxDAO();
     }
 
+    // ===== Read methods =====
+
     public List<Box> getAllBoxes() {
         return boxDAO.getAllBoxes();
     }
 
+    /**
+     * Used by the scanning screen so each scanner only sees assigned boxes.
+     */
     public List<Box> getBoxesByUserId(UUID userId) {
         return boxDAO.getBoxesByUserId(userId);
     }
@@ -30,6 +43,8 @@ public class BoxManager {
     public Box getBoxByBoxNumber(String boxNumber) {
         return boxDAO.getBoxByBoxNumber(boxNumber);
     }
+
+    // ===== Write methods =====
 
     public UUID addBox(Box box) {
         return boxDAO.addBox(box);

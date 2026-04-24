@@ -10,36 +10,37 @@ import com.eksam.weblagereksam.BLL.ScanWorkspaceManager;
 import com.eksam.weblagereksam.BLL.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.util.StringConverter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Controller for the user scanning screen.
+ *
+ * This class belongs to the GUI layer. It should only coordinate the screen:
+ * read user actions, call BLL managers, and update JavaFX controls.
+ */
 public class UserScanningController {
+
+    // ===== FXML: Top bar and status labels =====
 
     @FXML private Label labelProfile;
     @FXML private Label labelFilesCount;
@@ -56,39 +57,56 @@ public class UserScanningController {
     @FXML private Label labelStatusUser;
     @FXML private ComboBox<Box> comboBoxBoxes;
 
-    @FXML private Button btnMultiPage;
-    @FXML private Button btnSinglePage;
+    // ===== FXML: Action buttons =====
+
     @FXML private Button btnExport;
     @FXML private Button btnRotateCCW;
     @FXML private Button btnRotateCW;
     @FXML private Button btnDelete;
     @FXML private Button btnPrev;
     @FXML private Button btnNext;
-    @FXML private Button btnSlideshow;
     @FXML private Button btnNavLeft;
     @FXML private Button btnNavRight;
     @FXML private Button btnFetchNext;
     @FXML private Button btnFetchTen;
 
+    // ===== FXML: Main content containers =====
+
     @FXML private VBox documentsContainer;
     @FXML private HBox filmstripBox;
     @FXML private ImageView pageImageView;
 
+    // ===== BLL / GUI helpers =====
+
     private BoxManager boxManager;
     private ScanImportManager scanImportManager;
     private ScanWorkspaceManager scanWorkspaceManager;
+    private ScanViewRenderer scanViewRenderer;
+
+    // ===== Current screen state =====
 
     private Box currentBox;
     private Document selectedDocument;
     private final List<Document> currentDocuments = new ArrayList<>();
     private final List<Page> currentPages = new ArrayList<>();
     private final Map<UUID, List<Page>> pagesByDocument = new HashMap<>();
+
+    // Image conversion is expensive, so already converted pages are cached here.
     private final Map<UUID, Image> pageImageCache = new HashMap<>();
+
+    // Keeps track of thumbnail nodes so selection styling can be refreshed quickly.
     private final Map<UUID, VBox> filmstripThumbs = new HashMap<>();
+
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
     private boolean loadingBoxData = false;
+
+    // ===== Progress popup state =====
+
     private Stage progressPopup;
+    private ScanProgressDialogController progressDialogController;
+
+    // ===== JavaFX lifecycle =====
 
     @FXML
     public void initialize() {
@@ -96,10 +114,10 @@ public class UserScanningController {
             boxManager = new BoxManager();
             scanImportManager = new ScanImportManager();
             scanWorkspaceManager = new ScanWorkspaceManager();
+            scanViewRenderer = new ScanViewRenderer();
 
             setupUserInfo();
-            setupDefaultUi();
-            setupButtons();
+            setupBoxDropdown();
             setupKeyboardShortcuts();
             loadBoxesForCurrentUser();
             loadCurrentBoxDataAsync(false);
@@ -109,81 +127,39 @@ public class UserScanningController {
         }
     }
 
+    // ===== Initial screen setup =====
+
     private void setupUserInfo() {
         String username = Session.getUser() != null ? Session.getUser().getUsername() : "Unknown";
         labelUser.setText(username);
         labelStatusUser.setText(username + " | Scanning");
     }
 
-    private void setupDefaultUi() {
-        labelFilesCount.setText("Files 0");
-        labelDocsCount.setText("Docs 0");
-        labelDocCount.setText("0 docs");
-        labelSessionTimer.setText("00:00");
-        labelFormat.setText("TIFF Multi-page");
-        labelPagePosition.setText("0 / 0");
-        labelPageRef.setText("No page selected");
-        labelConnected.setText("Connected");
-        labelRotationInfo.setText("Rotation: 0 degrees");
-        btnExport.setText("Export (0 documents)");
-        setupBoxDropdown();
-    }
-
     private void setupBoxDropdown() {
-        comboBoxBoxes.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(Box box) {
-                if (box == null) {
-                    return "";
-                }
-
-                if (box.getLabel() == null || box.getLabel().isBlank()) {
-                    return box.getBoxNumber();
-                }
-
-                return box.getBoxNumber() + " - " + box.getLabel();
-            }
-
-            @Override
-            public Box fromString(String string) {
-                return null;
-            }
-        });
-
-        comboBoxBoxes.setOnAction(event -> {
-            Box selectedBox = comboBoxBoxes.getSelectionModel().getSelectedItem();
-            if (selectedBox == null || selectedBox.equals(currentBox)) {
-                return;
-            }
-
-            currentBox = selectedBox;
-            selectedDocument = null;
-            currentPageIndex = 0;
-            currentDocuments.clear();
-            currentPages.clear();
-            pagesByDocument.clear();
-            filmstripThumbs.clear();
-            updateBoxHeader();
-            loadCurrentBoxDataAsync(false);
-        });
+        comboBoxBoxes.setConverter(new BoxDisplayConverter());
     }
 
-    private void setupButtons() {
-        btnFetchNext.setOnAction(e -> handleFetchNext());
-        btnFetchTen.setOnAction(e -> handleFetchTen());
-        btnPrev.setOnAction(e -> showPreviousPage());
-        btnNext.setOnAction(e -> showNextPage());
-        btnNavLeft.setOnAction(e -> showPreviousPage());
-        btnNavRight.setOnAction(e -> showNextPage());
-        btnRotateCCW.setOnAction(e -> rotateCurrentPage(-90));
-        btnRotateCW.setOnAction(e -> rotateCurrentPage(90));
-        btnDelete.setOnAction(e -> deleteCurrentPage());
-        btnMultiPage.setOnAction(e -> labelFormat.setText("TIFF Multi-page"));
-        btnSinglePage.setOnAction(e -> labelFormat.setText("TIFF Single-page"));
-        btnSlideshow.setOnAction(e -> showStatus("Slideshow is not ready yet."));
-        btnExport.setOnAction(e -> showStatus("Export is not ready yet."));
+    // ===== FXML actions: box and toolbar controls =====
+
+    @FXML
+    private void handleBoxSelected() {
+        Box selectedBox = comboBoxBoxes.getSelectionModel().getSelectedItem();
+        if (selectedBox == null || selectedBox.equals(currentBox)) {
+            return;
+        }
+
+        currentBox = selectedBox;
+        selectedDocument = null;
+        currentPageIndex = 0;
+        currentDocuments.clear();
+        currentPages.clear();
+        pagesByDocument.clear();
+        filmstripThumbs.clear();
+        updateBoxHeader();
+        loadCurrentBoxDataAsync(false);
     }
 
+    // Keyboard shortcuts are added after the scene exists, because the scene is not ready in FXML initialize yet.
     private void setupKeyboardShortcuts() {
         pageImageView.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene == null) {
@@ -208,6 +184,7 @@ public class UserScanningController {
         });
     }
 
+    // Only boxes assigned to the current user are shown. Admin fallback is handled in the BLL/DAL.
     private void loadBoxesForCurrentUser() throws Exception {
         List<Box> boxes;
 
@@ -235,18 +212,53 @@ public class UserScanningController {
         updateBoxHeader();
     }
 
+    // Keeps the top/export labels in sync with the selected box.
     private void updateBoxHeader() {
         labelProfile.setText(currentBox.getLabel() != null ? currentBox.getLabel() : "No profile");
         labelOutputName.setText(currentBox.getBoxNumber());
     }
 
+    @FXML
     private void handleFetchNext() {
         startImportTask(1);
     }
 
+    @FXML
     private void handleFetchTen() {
         startImportTask(10);
     }
+
+    @FXML
+    private void handleRotateLeft() {
+        rotateCurrentPage(-90);
+    }
+
+    @FXML
+    private void handleRotateRight() {
+        rotateCurrentPage(90);
+    }
+
+    @FXML
+    private void handleMultiPageFormat() {
+        labelFormat.setText("TIFF Multi-page");
+    }
+
+    @FXML
+    private void handleSinglePageFormat() {
+        labelFormat.setText("TIFF Single-page");
+    }
+
+    @FXML
+    private void handleSlideshow() {
+        showStatus("Slideshow is not ready yet.");
+    }
+
+    @FXML
+    private void handleExport() {
+        showStatus("Export is not ready yet.");
+    }
+
+    // ===== Import / scanning flow =====
 
     private void startImportTask(int amount) {
         if (importInProgress) {
@@ -264,6 +276,10 @@ public class UserScanningController {
                 if (amount == 1) {
                     return scanImportManager.importRandomTiffToBox(currentBox.getId());
                 }
+
+                // Batch scans report progress back to the popup while the BLL imports pages.
+                updateProgress(0, amount);
+                updateMessage("Fetching files from scanner...");
                 return scanImportManager.importRandomTiffBatchToBox(currentBox.getId(), amount, (completed, total, message) -> {
                     updateProgress(completed, total);
                     updateMessage(message);
@@ -307,23 +323,23 @@ public class UserScanningController {
         importThread.start();
     }
 
+    // ===== Progress popup =====
+
     private void showProgressPopup(Task<?> importTask, int amount) {
         closeProgressPopup();
 
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setPrefWidth(280);
-        progressBar.progressProperty().bind(importTask.progressProperty());
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/Scan-Progress-dialog.fxml"));
+        VBox content;
+        try {
+            content = loader.load();
+        } catch (IOException e) {
+            showStatus("Could not open progress window.");
+            e.printStackTrace();
+            return;
+        }
 
-        Label titleLabel = new Label("Scanning " + amount + " files");
-        titleLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
-
-        Label statusLabel = new Label("Getting ready...");
-        statusLabel.textProperty().bind(importTask.messageProperty());
-
-        VBox content = new VBox(12, titleLabel, statusLabel, progressBar);
-        content.setPadding(new Insets(16));
-        content.setAlignment(Pos.CENTER_LEFT);
-        content.setStyle("-fx-background-color: white;");
+        progressDialogController = loader.getController();
+        progressDialogController.bind(importTask, amount);
 
         progressPopup = new Stage();
         progressPopup.initModality(Modality.APPLICATION_MODAL);
@@ -339,12 +355,20 @@ public class UserScanningController {
         progressPopup.show();
     }
 
+    // Always unbind properties before closing the popup, otherwise old tasks can stay referenced.
     private void closeProgressPopup() {
+        if (progressDialogController != null) {
+            progressDialogController.unbind();
+            progressDialogController = null;
+        }
+
         if (progressPopup != null) {
             progressPopup.close();
             progressPopup = null;
         }
     }
+
+    // ===== Box data loading =====
 
     private void loadCurrentBoxDataAsync(boolean preserveStatusMessage) {
         if (loadingBoxData) {
@@ -390,6 +414,7 @@ public class UserScanningController {
         loadThread.start();
     }
 
+    // The actual database read is delegated to BLL so the controller does not know DAO details.
     private BoxDataSnapshot fetchBoxDataSnapshot() {
         if (currentBox == null) {
             return new BoxDataSnapshot(List.of(), Map.of(), null, 0);
@@ -399,6 +424,7 @@ public class UserScanningController {
         return scanWorkspaceManager.loadBoxData(currentBox.getId(), selectedDocumentId);
     }
 
+    // Applies a fresh BLL snapshot to the screen state and then redraws the UI.
     private void applyBoxDataSnapshot(BoxDataSnapshot snapshot) {
         currentDocuments.clear();
         currentPages.clear();
@@ -438,6 +464,7 @@ public class UserScanningController {
         showCurrentPage();
     }
 
+    // Prevents the user from editing while a background load is replacing the current state.
     private void setNavigationDisabled(boolean disabled) {
         btnPrev.setDisable(disabled);
         btnNext.setDisable(disabled);
@@ -448,49 +475,24 @@ public class UserScanningController {
         btnDelete.setDisable(disabled);
     }
 
+    // Avoids mutating the same list instance that is stored in the document/page map.
     private List<Page> copyPages(List<Page> pages) {
         return pages == null ? new ArrayList<>() : new ArrayList<>(pages);
     }
 
+    // ===== Rendering helpers =====
+
     private void renderDocumentCards() {
-        documentsContainer.getChildren().clear();
-
-        for (Document document : currentDocuments) {
-            List<Page> pages = pagesByDocument.getOrDefault(document.getId(), List.of());
-            VBox card = new VBox(4);
-            card.setStyle(document.equals(selectedDocument)
-                    ? "-fx-border-color: #333333; -fx-border-width: 2; -fx-padding: 8; -fx-background-color: #f1f1f1;"
-                    : "-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;");
-
-            HBox header = new HBox(8);
-            Label title = new Label("Document " + document.getDocumentNumber());
-            title.setStyle("-fx-font-weight: bold;");
-            Label fileCount = new Label(pages.size() + " pages");
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            header.getChildren().addAll(title, spacer, fileCount);
-
-            HBox pageMarkers = new HBox(4);
-            for (int i = 0; i < pages.size(); i++) {
-                String markerText = pages.get(i).isBarcodePage() ? "[B]" : "[" + (i + 1) + "]";
-                Label marker = new Label(markerText);
-                marker.setStyle("-fx-font-size: 10;");
-                pageMarkers.getChildren().add(marker);
-            }
-
-            if (document.getBarcodeValue() != null && !document.getBarcodeValue().isBlank()) {
-                Label barcode = new Label("Split: " + document.getBarcodeValue());
-                barcode.setStyle("-fx-font-size: 10;");
-                pageMarkers.getChildren().add(barcode);
-            }
-
-            Label status = new Label(document.getStatus());
-            card.getChildren().addAll(header, pageMarkers, status);
-            card.setOnMouseClicked(event -> selectDocument(document.getId(), 0));
-            documentsContainer.getChildren().add(card);
-        }
+        scanViewRenderer.renderDocumentCards(
+                documentsContainer,
+                currentDocuments,
+                pagesByDocument,
+                selectedDocument,
+                documentId -> selectDocument(documentId, 0)
+        );
     }
 
+    // Updates selected document/page state when the user clicks a document card.
     private void selectDocument(UUID documentId, int pageIndex) {
         selectedDocument = currentDocuments.stream()
                 .filter(document -> document.getId().equals(documentId))
@@ -508,106 +510,34 @@ public class UserScanningController {
         showCurrentPage();
     }
 
+    // The renderer builds the dynamic thumbnail nodes; this controller only provides callbacks.
     private void renderFilmstrip() {
-        filmstripBox.getChildren().clear();
-        filmstripThumbs.clear();
-
-        if (selectedDocument == null) {
-            Label empty = new Label("No pages");
-            empty.setStyle("-fx-padding: 8;");
-            filmstripBox.getChildren().add(empty);
-            return;
-        }
-
-        for (int i = 0; i < currentPages.size(); i++) {
-            Page page = currentPages.get(i);
-            VBox thumb = createThumbnail(page, i);
-            filmstripThumbs.put(page.getId(), thumb);
-            filmstripBox.getChildren().add(thumb);
-        }
-    }
-
-    private VBox createThumbnail(Page page, int index) {
-        VBox thumb = new VBox(2);
-        thumb.setAlignment(javafx.geometry.Pos.CENTER);
-        applyThumbnailStyle(thumb, page, index == currentPageIndex);
-
-        ImageView preview = new ImageView(getCachedPageImage(page));
-        preview.setFitWidth(50);
-        preview.setFitHeight(66);
-        preview.setPreserveRatio(true);
-
-        Label ref = new Label("REF-" + String.format("%03d", page.getReferenceScanOrder()));
-        ref.setStyle("-fx-font-size: 9;");
-
-        String indexText = page.isBarcodePage() ? "BARCODE" : "#" + page.getUiOrder();
-        if (page.getRotation() != 0) {
-            indexText += " " + page.getRotation() + "deg";
-        }
-
-        Label pageIndexLabel = new Label(indexText);
-        pageIndexLabel.setStyle("-fx-font-size: 9;");
-
-        thumb.getChildren().addAll(preview, ref, pageIndexLabel);
-        thumb.setOnMouseClicked(event -> {
-            currentPageIndex = index;
-            refreshFilmstripSelection();
-            showCurrentPage();
-        });
-
-        thumb.setOnDragDetected(event -> {
-            Dragboard dragboard = thumb.startDragAndDrop(TransferMode.MOVE);
-            ClipboardContent content = new ClipboardContent();
-            content.putString(String.valueOf(index));
-            dragboard.setContent(content);
-            event.consume();
-        });
-
-        thumb.setOnDragOver(event -> {
-            if (event.getGestureSource() != thumb && event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
-            }
-            event.consume();
-        });
-
-        thumb.setOnDragDropped(event -> {
-            boolean completed = false;
-
-            if (event.getDragboard().hasString()) {
-                int fromIndex = Integer.parseInt(event.getDragboard().getString());
-                completed = reorderPage(fromIndex, index);
-            }
-
-            event.setDropCompleted(completed);
-            event.consume();
-        });
-
-        return thumb;
-    }
-
-    private void applyThumbnailStyle(VBox thumb, Page page, boolean selected) {
-        thumb.setStyle(selected
-                ? (page.isBarcodePage()
-                ? "-fx-padding: 4; -fx-border-color: #b4004e; -fx-border-width: 2; -fx-background-color: #ffd7e8;"
-                : "-fx-padding: 4; -fx-border-color: #333333; -fx-border-width: 2; -fx-background-color: #dddddd;")
-                : (page.isBarcodePage()
-                ? "-fx-padding: 4; -fx-border-color: #d9719d; -fx-border-width: 1; -fx-background-color: #fff0f6;"
-                : "-fx-padding: 4;"));
+        scanViewRenderer.renderFilmstrip(
+                filmstripBox,
+                currentPages,
+                selectedDocument != null,
+                currentPageIndex,
+                this::getCachedPageImage,
+                index -> {
+                    currentPageIndex = index;
+                    refreshFilmstripSelection();
+                    showCurrentPage();
+                },
+                this::reorderPage,
+                filmstripThumbs
+        );
     }
 
     private void refreshFilmstripSelection() {
-        for (int i = 0; i < currentPages.size(); i++) {
-            Page page = currentPages.get(i);
-            VBox thumb = filmstripThumbs.get(page.getId());
-            if (thumb != null) {
-                applyThumbnailStyle(thumb, page, i == currentPageIndex);
-            }
-        }
+        scanViewRenderer.refreshFilmstripSelection(currentPages, currentPageIndex, filmstripThumbs);
     }
 
+    // Converts page bytes to a JavaFX image once and then reuses it while the page stays loaded.
     private Image getCachedPageImage(Page page) {
         return pageImageCache.computeIfAbsent(page.getId(), ignored -> FxImageConverter.bytesToFxImage(page.getImageData()));
     }
+
+    // ===== Page viewer =====
 
     private void showCurrentPage() {
         if (selectedDocument == null || currentPages.isEmpty()) {
@@ -630,6 +560,9 @@ public class UserScanningController {
         labelRotationInfo.setText("Rotation: " + page.getRotation() + " degrees");
     }
 
+    // ===== Page navigation =====
+
+    @FXML
     private void showNextPage() {
         if (currentPages.isEmpty()) {
             return;
@@ -642,6 +575,7 @@ public class UserScanningController {
         }
     }
 
+    @FXML
     private void showPreviousPage() {
         if (currentPages.isEmpty()) {
             return;
@@ -653,6 +587,8 @@ public class UserScanningController {
             showCurrentPage();
         }
     }
+
+    // ===== Page actions =====
 
     private void rotateCurrentPage(int delta) {
         if (selectedDocument == null || currentPages.isEmpty()) {
@@ -676,6 +612,8 @@ public class UserScanningController {
         }
     }
 
+    // Deletes the selected page and lets BLL renumber the remaining pages.
+    @FXML
     private void deleteCurrentPage() {
         if (selectedDocument == null || currentPages.isEmpty()) {
             return;
@@ -713,6 +651,7 @@ public class UserScanningController {
         }
     }
 
+    // Called by drag/drop in the filmstrip. BLL persists the new UiOrder values.
     private boolean reorderPage(int fromIndex, int toIndex) {
         if (selectedDocument == null || fromIndex == toIndex || fromIndex < 0 || toIndex < 0
                 || fromIndex >= currentPages.size() || toIndex >= currentPages.size()) {
@@ -740,6 +679,8 @@ public class UserScanningController {
             return false;
         }
     }
+
+    // ===== Status message =====
 
     private void showStatus(String message) {
         labelConnected.setText(message);

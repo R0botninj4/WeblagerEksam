@@ -7,7 +7,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * BLL helper for converting and rotating stored page images.
+ *
+ * The database stores image bytes, but rotation and barcode reading need BufferedImage objects.
+ */
 public class ImageByteConverter {
+
+    // ===== Byte conversion =====
 
     public static byte[] bufferedImageToPngBytes(BufferedImage image) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -19,6 +26,11 @@ public class ImageByteConverter {
         return ImageIO.read(new ByteArrayInputStream(imageBytes));
     }
 
+    // ===== Image rotation =====
+
+    /**
+     * Rotates an image while keeping the whole page visible.
+     */
     public static BufferedImage rotate(BufferedImage source, int degrees) {
         int normalizedDegrees = ((degrees % 360) + 360) % 360;
 
@@ -34,6 +46,7 @@ public class ImageByteConverter {
         Graphics2D graphics = rotated.createGraphics();
 
         try {
+            // Bilinear interpolation makes rotated pages less jagged.
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
             AffineTransform transform = new AffineTransform();

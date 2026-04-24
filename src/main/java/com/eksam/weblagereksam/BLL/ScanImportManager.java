@@ -17,7 +17,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * BLL class responsible for importing TIFF scans into the database model.
+ *
+ * Main responsibility:
+ * fetch TIFF files, read their pages, detect barcode splits, create documents,
+ * and save pages with metadata through the DAL.
+ */
 public class ScanImportManager {
+
+    // ===== DAL and processing services =====
 
     private final DocumentDAO documentDAO;
     private final PageDAO pageDAO;
@@ -32,6 +41,8 @@ public class ScanImportManager {
         tiffPageReader = new TiffPageReader();
         barcodeReaderService = new BarcodeReaderService();
     }
+
+    // ===== Public import methods =====
 
     public int importRandomTiffToBox(UUID boxId) throws Exception {
         byte[] tiffBytes = tiffApiClient.getRandomTiffBytes();
@@ -48,10 +59,19 @@ public class ScanImportManager {
         return importTiffBytesToBox(boxId, tiffFiles, progressListener);
     }
 
+    // ===== Import pipeline =====
+
     private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles) throws Exception {
         return importTiffBytesToBox(boxId, tiffFiles, null);
     }
 
+    /**
+     * Imports one or more TIFF files into the selected box.
+     *
+     * Barcode rule:
+     * when a barcode page is found, a new document starts and that barcode page is saved
+     * as the first page of the new document.
+     */
     private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles, ProgressListener progressListener) throws Exception {
         if (progressListener != null) {
             progressListener.onProgress(0, Math.max(1, tiffFiles.size()), "Getting ready...");
@@ -65,6 +85,7 @@ public class ScanImportManager {
         int currentUiOrder = currentDocumentId != null ? pageDAO.getNextUiOrder(currentDocumentId) : 1;
         int importedDocuments = 0;
 
+        // One API file can contain multiple TIFF pages, so each file is read and then split into pages.
         for (int fileIndex = 0; fileIndex < tiffFiles.size(); fileIndex++) {
             byte[] tiffBytes = tiffFiles.get(fileIndex);
             List<BufferedImage> images = tiffPageReader.readAllPages(tiffBytes);
@@ -73,6 +94,7 @@ public class ScanImportManager {
             for (ProcessedPage processedPage : processedPages) {
                 boolean isBarcodePage = processedPage.barcodeValue() != null && !processedPage.barcodeValue().isBlank();
 
+                // A barcode means "start a new document from here".
                 if (isBarcodePage) {
                     currentDocumentId = createDocument(boxId, currentDocumentNumber, processedPage.barcodeValue());
                     currentDocumentNumber++;
@@ -81,6 +103,7 @@ public class ScanImportManager {
                     currentUiOrder = pageDAO.getNextUiOrder(currentDocumentId);
                 }
 
+                // If the first scanned page is not a barcode, continue or create the first document.
                 if (currentDocumentId == null) {
                     currentDocumentId = createDocument(boxId, currentDocumentNumber, null);
                     currentDocumentNumber++;
@@ -123,6 +146,12 @@ public class ScanImportManager {
         return importedDocuments;
     }
 
+    /**
+     * Reads barcodes and converts pages in parallel.
+     *
+     * This keeps the UI smoother because expensive image work is not done on the JavaFX thread,
+     * and multiple pages can be processed at the same time.
+     */
     private List<ProcessedPage> preprocessPages(List<BufferedImage> images) throws Exception {
         int poolSize = Math.max(1, Math.min(Runtime.getRuntime().availableProcessors(), images.size()));
         ExecutorService executor = Executors.newFixedThreadPool(poolSize);
@@ -162,6 +191,8 @@ public class ScanImportManager {
         }
     }
 
+    // ===== Database helpers =====
+
     private UUID createDocument(UUID boxId, int documentNumber, String barcodeValue) throws Exception {
         Document document = new Document(
                 null,
@@ -181,6 +212,8 @@ public class ScanImportManager {
         return documentId;
     }
 
+    // ===== Metadata helpers =====
+
     private String sha256(byte[] data) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         return HexFormat.of().formatHex(digest.digest(data));
@@ -191,6 +224,7 @@ public class ScanImportManager {
         return prefix + "-" + importBatchId + "-doc-" + documentNumber + "-ref-" + referenceScanOrder + ".png";
     }
 
+    // Small internal data object used while pages are processed before they are saved.
     private record ProcessedPage(
             int referenceScanOrder,
             String barcodeValue,
@@ -200,6 +234,7 @@ public class ScanImportManager {
             int height
     ) {}
 
+    // Callback used by the GUI task to update the progress popup.
     @FunctionalInterface
     public interface ProgressListener {
         void onProgress(int completed, int total, String message);

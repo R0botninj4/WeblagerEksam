@@ -11,7 +11,15 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+/**
+ * Controller for the login screen.
+ *
+ * This belongs to the GUI layer. It reads username/password from the form,
+ * asks UserManager to validate login, and then opens the correct view.
+ */
 public class LoginController {
+
+    // ===== FXML controls =====
 
     @FXML
     private TextField txtUsername;
@@ -24,6 +32,8 @@ public class LoginController {
 
     private UserManager userManager;
 
+    // ===== JavaFX lifecycle =====
+
     @FXML
     public void initialize() {
 
@@ -34,9 +44,12 @@ public class LoginController {
             e.printStackTrace();
         }
 
+        // Pressing Enter in either field should attempt login.
         txtUsername.setOnAction(e -> handleLogin(new ActionEvent()));
         txtPassword.setOnAction(e -> handleLogin(new ActionEvent()));
     }
+
+    // ===== Login flow =====
 
     @FXML
     private void handleLogin(ActionEvent event) {
@@ -64,6 +77,7 @@ public class LoginController {
 
             Session.setUser(user);
 
+            // Normal users go straight to scanning; other roles go to the main/admin area.
             String viewPath;
 
             if (user.getRoleName().equalsIgnoreCase("User")) {
@@ -90,7 +104,8 @@ public class LoginController {
         }
     }
 
-    //------Bypass----------
+    // ===== Test login shortcuts =====
+
     @FXML
     public void Bypass(ActionEvent event) {
         txtUsername.setText("admin");
@@ -98,6 +113,7 @@ public class LoginController {
 
         handleLogin(new ActionEvent());
     }
+
     @FXML
     public void BypassUser(ActionEvent event) {
         txtUsername.setText("user");
@@ -113,7 +129,7 @@ public class LoginController {
         handleLogin(new ActionEvent());
     }
 
-    //----------------------------------------------
+    // ===== UI feedback =====
 
     private void showError(String text) {
         lblMessage.setText(text);
