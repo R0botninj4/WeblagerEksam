@@ -1,0 +1,913 @@
+/* ============================================================
+   WebLager – Base Stylesheet (Global)
+   Load this file FIRST in every FXML stylesheets attribute.
+   Then load either the Light or Dark mode sheet on top of it.
+
+   This file contains NO colours. It only defines structure,
+   sizing, typography, spacing, and component behaviour.
+   Covers: Admin view, Scanner view, QA view.
+   ============================================================ */
+
+
+/* ============================================================
+   FONT
+   Loads the Montserrat font from Google Fonts.
+   This is the only font used anywhere in the application.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+
+/* ============================================================
+   ROOT
+   Sets the default font and text size for the entire
+   application. Every component inherits these values unless
+   a more specific rule overrides them.
+   ============================================================ */
+.root {
+    -fx-font-family: 'Montserrat';          /* Makes every text element in the app use Montserrat */
+    -fx-font-size: 12px;                    /* Sets the default text size for body text, labels, and buttons */
+}
+
+
+/* ============================================================
+   HEADING – H1
+   Used for the most important title on a page.
+   Apply the style class "h1" to a Label node in SceneBuilder.
+   ============================================================ */
+.h1 {
+    -fx-font-size: 21px;                    /* Makes H1 the largest text in the app */
+    -fx-font-weight: 700;                   /* Makes H1 bold */
+}
+
+/* ============================================================
+   HEADING – H2
+   Used for section titles.
+   Apply the style class "h2" to a Label node in SceneBuilder.
+   ============================================================ */
+.h2 {
+    -fx-font-size: 18px;                    /* Makes H2 the second largest text size */
+    -fx-font-weight: 600;                   /* Makes H2 semi-bold */
+}
+
+/* ============================================================
+   HEADING – H3
+   Used for card titles and sub-section labels.
+   Apply the style class "h3" to a Label node in SceneBuilder.
+   ============================================================ */
+.h3 {
+    -fx-font-size: 15px;                    /* Makes H3 slightly larger than body text */
+    -fx-font-weight: 600;                   /* Makes H3 semi-bold */
+}
+
+/* ============================================================
+   HELPER TEXT
+   Used for small hints, captions, and secondary information
+   below a component. Apply "helper-text" in SceneBuilder.
+   ============================================================ */
+.helper-text {
+    -fx-font-size: 10px;                    /* Makes helper text smaller than all other text */
+    -fx-font-weight: 400;                   /* Keeps helper text regular weight so it stays subtle */
+}
+
+
+/* ============================================================
+   SPACING SCALE REFERENCE
+   All spacing in the application is based on multiples of 3px.
+   These values are used for padding, margins, and gaps.
+   This block is documentation only – not applied anywhere.
+
+   3px  – micro spacing, icon-to-label gaps
+   6px  – tight spacing inside small components
+   9px  – standard internal padding for inputs and buttons
+   12px – gap between grouped elements
+   15px – mobile page padding
+   18px – tablet page padding
+   21px – compact interactive element height
+   24px – page padding between sidebar and content on web
+   27px – chip height with icon
+   30px – default height for buttons and input fields
+   33px – height for primary action buttons and page headers
+   35px – height for menu/dropdown rows
+   39px – tab height in selected state
+   45px – toast message height
+   61px – modal header height
+   ============================================================ */
+
+
+/* ============================================================
+   WINDOW / ROOT LAYOUT
+   Styles the outermost BorderPane that wraps every view.
+   ============================================================ */
+.root,
+.border-pane {
+    -fx-background-color: -wl-bg-page;      /* Fills the entire window with the page background colour */
+}
+
+
+/* ============================================================
+   TOP BAR
+   The horizontal bar at the top of every view.
+   Contains the app name, separators, and contextual labels.
+   Used in: Admin, Scanner, QA.
+   ============================================================ */
+.top-bar {
+    -fx-padding: 0 16 0 16;                 /* Adds horizontal breathing room inside the top bar */
+    -fx-spacing: 10;                        /* Sets the gap between items in the top bar */
+    -fx-alignment: CENTER_LEFT;             /* Vertically centres all children inside the top bar */
+    -fx-border-width: 0 0 1 0;             /* Draws a thin line along the bottom of the top bar */
+    -fx-background-color: -wl-bg-surface;   /* Fills the top bar with the surface/card background */
+    -fx-border-color: -wl-state-border;     /* Colours the bottom border line */
+}
+
+/* The "Weblager" app name label in the top bar */
+.top-bar-title {
+    -fx-font-size: 15px;                    /* Makes the app name slightly larger than body text */
+    -fx-font-weight: 700;                   /* Makes the app name bold so it stands out */
+    -fx-text-fill: -wl-text-primary;        /* Colours the app name with the primary text colour */
+}
+
+/* User name label shown on the right side of the top bar */
+.top-bar-username {
+    -fx-font-weight: 700;                   /* Makes the username bold to distinguish it from other labels */
+    -fx-text-fill: -wl-text-primary;        /* Colours the username with the primary text colour */
+}
+
+/* All other informational labels in the top bar (counts, timer, profile, role) */
+.top-bar-label {
+    -fx-text-fill: -wl-text-primary;        /* Colours all top bar info labels with the primary text colour */
+}
+
+/* The ADMIN role badge shown on the right of the admin top bar */
+.top-bar-role {
+    -fx-font-weight: 500;                   /* Makes the role label medium weight so it is readable but not dominant */
+    -fx-alignment: CENTER;                  /* Centres the role text inside its allocated space */
+    -fx-text-fill: -wl-text-primary;        /* Colours the role badge with the primary text colour */
+}
+
+
+/* ============================================================
+   BOTTOM STATUS BAR
+   The thin bar at the very bottom of the scanner view.
+   Shows connection status, rotation info, and shortcuts.
+   Used in: Scanner, QA.
+   ============================================================ */
+.status-bar {
+    -fx-padding: 4 16 4 16;                 /* Keeps the status bar compact with small vertical padding */
+    -fx-spacing: 16;                        /* Sets the gap between status items */
+    -fx-alignment: CENTER_LEFT;             /* Vertically centres all status labels */
+    -fx-border-width: 1 0 0 0;             /* Draws a thin line along the top of the status bar */
+    -fx-background-color: -wl-bg-surface;   /* Fills the status bar with the surface colour */
+    -fx-border-color: -wl-state-border;     /* Colours the top border line */
+}
+
+/* All labels inside the status bar */
+.status-bar .label {
+    -fx-font-size: 12px;                    /* Keeps status bar text at the standard body size */
+    -fx-text-fill: -wl-text-secondary;      /* Uses a muted text colour so the status bar stays subtle */
+}
+
+
+/* ============================================================
+   SIDEBAR / LEFT NAVIGATION PANEL
+   The left panel used in all views. In the admin view this
+   contains navigation buttons. In the scanner and QA views
+   it contains the document list and export section.
+   ============================================================ */
+
+/* Outer sidebar wrapper */
+.sidebar {
+    -fx-border-width: 0 1 0 0;             /* Draws a thin line on the right edge to separate it from the content area */
+    -fx-border-color: -wl-state-border;     /* Colours the right border line */
+    -fx-background-color: -wl-nav-secondary-bg; /* Fills the sidebar with the sidebar background colour */
+}
+
+/* Section header inside the sidebar (e.g. "DOCUMENTS", "EXPORT") */
+.sidebar-section-header {
+    -fx-padding: 8 12 8 12;                 /* Adds padding so the header text does not touch the edges */
+    -fxl-border-width: 0 0 1 0;            /* Draws a separator line below the section header */
+    -fx-border-color: -wl-state-border;     /* Colours the separator line */
+    -fx-background-color: -wl-nav-secondary-bg; /* Keeps the header background consistent with the sidebar */
+}
+
+/* Bold label inside a sidebar section header (e.g. "DOCUMENTS") */
+.sidebar-section-header .label {
+    -fx-font-weight: 700;                   /* Makes section header labels bold so they stand out */
+    -fx-text-fill: -wl-text-on-sidebar;     /* Colours the section header text to be visible on the sidebar bg */
+}
+
+/* Small count label on the right of a sidebar section header (e.g. "0 docs") */
+.sidebar-section-count {
+    -fx-text-fill: -wl-text-on-sidebar;     /* Colours the count label to be visible on the sidebar bg */
+}
+
+/* The scrollable area inside the sidebar that holds the document cards */
+.sidebar-scroll {
+    -fx-background-color: transparent;      /* Makes the scroll pane background transparent to show sidebar colour */
+    -fx-border-width: 0;                    /* Removes the default border that JavaFX adds to scroll panes */
+    -fx-padding: 0;                         /* Removes default scroll pane padding */
+}
+
+/* Removes the inner viewport background of the scroll pane */
+.sidebar-scroll .viewport {
+    -fx-background-color: transparent;      /* Lets the sidebar background show through the scroll area */
+}
+
+/* The VBox that directly contains all document cards in the scroll pane */
+.sidebar-documents-container {
+    -fx-padding: 8;                         /* Adds space around the document card list so cards don't touch the edges */
+    -fx-spacing: 6;                         /* Sets the gap between individual document cards */
+}
+
+/* The export section at the bottom of the scanner/QA sidebar */
+.sidebar-export-section {
+    -fx-padding: 12;                        /* Adds comfortable padding inside the export section */
+    -fx-spacing: 8;                         /* Sets the gap between elements in the export section */
+    -fx-border-width: 1 0 0 0;             /* Draws a line along the top to separate export from the document list */
+    -fx-border-color: -wl-state-border;     /* Colours the top separator line */
+    -fx-background-color: -wl-bg-surface;   /* Fills the export section with the card/surface colour */
+}
+
+/* Labels inside the export section (e.g. "Output", "Format") */
+.sidebar-export-section .label {
+    -fx-text-fill: -wl-text-primary;        /* Colours export labels with the primary text colour */
+}
+
+/* The bold "EXPORT" title label at the top of the export section */
+.sidebar-export-title {
+    -fx-font-weight: 700;                   /* Makes the export section title bold */
+    -fx-text-fill: -wl-text-primary;        /* Colours the title with the primary text colour */
+}
+
+/* The dynamic value labels in the export section (e.g. "No Box", "TIFF Multi-page") */
+.sidebar-export-value {
+    -fx-text-fill: -wl-text-secondary;      /* Uses a slightly muted colour to visually separate values from labels */
+}
+
+
+/* ============================================================
+   DOCUMENT CARD
+   Each scanned document shown as a card in the sidebar
+   scroll area. Used in: Scanner, QA.
+   ============================================================ */
+.document-card {
+    -fx-background-color: -wl-bg-surface;   /* Fills each document card with white/surface colour so it stands out against the teal/dark sidebar */
+    -fx-background-radius: 6;               /* Rounds the corners of the document card */
+    -fx-border-radius: 6;                   /* Rounds the border of the document card to match the background */
+    -fx-border-width: 1;                    /* Adds a thin border around the document card */
+    -fx-border-color: -wl-state-border;     /* Colours the document card border */
+    -fx-padding: 8;                         /* Adds internal spacing inside the document card */
+    -fx-cursor: hand;                       /* Changes the cursor to a pointer to show the card is clickable */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 12, 0, 0, 2); /* Adds a subtle shadow to lift the card off the sidebar */
+}
+
+/* Document card when the mouse is hovering over it */
+.document-card:hover {
+    -fx-background-color: -wl-state-hover;  /* Highlights the card slightly when hovered to indicate it is interactive */
+}
+
+/* Document card when it is the currently selected/active document */
+.document-card:selected,
+.document-card-active {
+    -fx-border-color: -wl-action-primary;   /* Changes the border to the primary colour to clearly show which document is selected */
+    -fx-border-width: 2;                    /* Makes the selected card border thicker for visibility */
+}
+
+
+/* ============================================================
+   NAVIGATION BUTTONS (Admin sidebar)
+   The large clickable buttons in the admin sidebar that
+   navigate between sections (Attendance, Users, etc.).
+   Used in: Admin view only.
+   ============================================================ */
+.nav-btn {
+    -fx-pref-width: 148px;                  /* Sets a fixed width so all nav buttons are the same size */
+    -fx-pref-height: 53px;                  /* Makes nav buttons taller than standard buttons for easy clicking */
+    -fx-font-size: 12px;                    /* Keeps the button label at the standard text size */
+    -fx-font-weight: 500;                   /* Makes the button label medium weight */
+    -fx-background-radius: 6;              /* Rounds the corners of the nav button */
+    -fx-border-radius: 6;                   /* Rounds the border to match the background */
+    -fx-cursor: hand;                       /* Shows a pointer cursor to indicate the button is clickable */
+    -fx-alignment: CENTER;                  /* Centres the button label text */
+    -fx-background-color: -wl-nav-secondary-btn; /* Fills the nav button with the sidebar button colour */
+    -fx-text-fill: -wl-text-on-dark;        /* Colours the button label so it is readable on the dark button */
+}
+
+/* Nav button when the mouse is hovering over it */
+.nav-btn:hover {
+    -fx-background-color: -wl-nav-primary-btn; /* Slightly changes the button colour on hover to give feedback */
+}
+
+/* Nav button when it is the currently active/selected section */
+.nav-btn:selected,
+.nav-btn-active {
+    -fx-border-color: -wl-text-on-dark;     /* Adds a visible border to show which section is currently active */
+    -fx-border-width: 0 0 0 3;             /* Only draws the border on the left side as an active indicator stripe */
+}
+
+/* Nav button when it is being pressed */
+.nav-btn:armed {
+    -fx-background-color: -wl-action-primary; /* Darkens the button slightly while it is being clicked */
+}
+
+/* Nav button when it has keyboard focus */
+.nav-btn:focused {
+    -fx-border-color: -wl-text-on-dark;     /* Shows a white focus ring so keyboard users can see which button is focused */
+    -fx-border-width: 1.5;                  /* Makes the focus ring visible but not overpowering */
+}
+
+
+/* ============================================================
+   TOOLBAR
+   The row of action buttons above the main content area.
+   Contains search, separators, and icon action buttons.
+   Used in: Admin view. A similar action bar is used in Scanner.
+   ============================================================ */
+.toolbar {
+    -fx-padding: 10 10 10 10;              /* Adds space inside the toolbar so contents don't touch the edges */
+    -fx-spacing: 6;                         /* Sets the gap between toolbar items */
+    -fx-alignment: CENTER_LEFT;             /* Vertically centres all toolbar items */
+    -fx-background-color: -wl-bg-surface;   /* Fills the toolbar with the card/surface colour */
+    -fx-border-color: -wl-state-border;     /* Colours the toolbar border */
+    -fx-border-width: 1;                    /* Adds a thin border around the toolbar card */
+    -fx-background-radius: 6;              /* Rounds the toolbar corners */
+    -fx-border-radius: 6;                   /* Rounds the border to match the background */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 12, 0, 0, 2); /* Adds a shadow to lift the toolbar off the page */
+}
+
+
+/* ============================================================
+   SEARCH FIELD
+   The text input used to search or filter content.
+   Used in: Admin view toolbar.
+   ============================================================ */
+.search-field {
+    -fx-pref-height: 30px;                  /* Sets the input to the default component height */
+    -fx-font-size: 12px;                    /* Keeps input text at the standard body size */
+    -fx-background-radius: 6;              /* Rounds the corners of the input field */
+    -fx-border-radius: 6;                   /* Rounds the border to match the background */
+    -fx-padding: 0 9 0 9;                  /* Adds horizontal inner padding so text doesn't touch the edge */
+    -fx-background-color: -wl-bg-surface;   /* Fills the input with the surface colour */
+    -fx-border-color: -wl-state-border;     /* Colours the input border */
+    -fx-border-width: 1;                    /* Adds a thin border around the input */
+    -fx-text-fill: -wl-text-primary;        /* Colours the typed text */
+    -fx-prompt-text-fill: -wl-state-placeholder; /* Colours the placeholder text in a muted tone */
+}
+
+/* Search field when it has keyboard or mouse focus */
+.search-field:focused {
+    -fx-border-color: -wl-focus-ring;       /* Changes the border to the focus colour to show the field is active */
+}
+
+
+/* ============================================================
+   COMBOBOX
+   A dropdown selector used to choose from a list of options.
+   Used in: Scanner view (box selector in top bar).
+   ============================================================ */
+.combo-box {
+    -fx-pref-height: 30px;                  /* Sets the combo box to the default component height */
+    -fx-font-size: 12px;                    /* Keeps the selected value text at standard body size */
+    -fx-background-radius: 6;              /* Rounds the corners of the combo box */
+    -fx-border-radius: 6;                   /* Rounds the border to match the background */
+    -fx-background-color: -wl-bg-surface;   /* Fills the combo box with the surface colour */
+    -fx-border-color: -wl-state-border;     /* Colours the combo box border */
+    -fx-border-width: 1;                    /* Adds a thin border around the combo box */
+}
+
+/* The text label showing the currently selected value */
+.combo-box .list-cell {
+    -fx-text-fill: -wl-text-primary;        /* Colours the selected value text */
+    -fx-background-color: transparent;      /* Removes the default cell background so the combo box colour shows through */
+    -fx-padding: 0 9 0 9;                  /* Adds horizontal padding so text doesn't touch the edge */
+}
+
+/* The dropdown arrow button on the right side of the combo box */
+.combo-box .arrow-button {
+    -fx-background-color: transparent;      /* Removes the default arrow button background */
+    -fx-padding: 0 9 0 0;                  /* Adds right padding to give the arrow some space */
+}
+
+/* The dropdown list that appears when the combo box is opened */
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-bg-surface;   /* Fills the dropdown list with the surface colour */
+    -fx-border-color: -wl-state-border;     /* Adds a border around the dropdown list */
+    -fx-border-width: 1;
+    -fx-background-radius: 6;              /* Rounds the corners of the dropdown popup */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 12, 0, 0, 2); /* Adds a shadow to lift the dropdown above the content */
+}
+
+/* Each option row inside the dropdown list */
+.combo-box-popup .list-cell {
+    -fx-text-fill: -wl-text-primary;        /* Colours the option text */
+    -fx-padding: 6 9 6 9;                  /* Adds vertical and horizontal padding so options are easy to click */
+    -fx-background-color: transparent;      /* Keeps the default cell background transparent */
+}
+
+/* A dropdown option when the mouse hovers over it */
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: -wl-state-hover;  /* Highlights the option on hover to show it is selectable */
+}
+
+/* The currently selected option in the dropdown list */
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -wl-action-primary; /* Fills the selected option with the primary action colour */
+    -fx-text-fill: -wl-text-on-dark;          /* Changes the text colour to white so it is readable on the coloured background */
+}
+
+/* The combo box when it has focus */
+.combo-box:focused {
+    -fx-border-color: -wl-focus-ring;       /* Changes the border to the focus colour when the combo box is active */
+}
+
+
+/* ============================================================
+   BUTTONS – PRIMARY
+   The most important action on a screen (e.g. Save, Export,
+   Create). Dark filled background with white text.
+   Apply style class "btn-primary" in SceneBuilder.
+   ============================================================ */
+.btn-primary {
+    -fx-pref-height: 30px;                  /* Sets the button to the default component height */
+    -fx-font-size: 12px;                    /* Keeps the button label at standard body size */
+    -fx-font-weight: 500;                   /* Makes the label medium weight for clarity */
+    -fx-background-radius: 6;              /* Rounds the button corners */
+    -fx-border-radius: 6;                   /* Rounds the border to match the background */
+    -fx-border-width: 0;                    /* Removes the border – the filled background defines the button */
+    -fx-cursor: hand;                       /* Shows a pointer to indicate the button is clickable */
+    -fx-background-color: -wl-action-primary; /* Fills the button with the primary action colour */
+    -fx-text-fill: -wl-text-on-dark;        /* Colours the label white so it is readable on the dark background */
+}
+
+.btn-primary:hover {
+    -fx-background-color: -wl-action-primary-hover; /* Darkens the button slightly on hover to give click feedback */
+}
+
+.btn-primary:disabled {
+    -fx-opacity: 0.6;                       /* Fades the button to 60% to show it is not currently usable */
+}
+
+.btn-primary:focused {
+    -fx-border-color: -wl-focus-ring;       /* Adds a focus ring so keyboard users can see the focused button */
+    -fx-border-width: 1.5;
+}
+
+
+/* ============================================================
+   BUTTONS – SECONDARY
+   A less prominent action alongside a primary button.
+   Filled with a muted colour.
+   Apply style class "btn-secondary" in SceneBuilder.
+   ============================================================ */
+.btn-secondary {
+    -fx-pref-height: 30px;                  /* Sets the button to the default component height */
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-background-color: -wl-action-secondary; /* Fills the button with the secondary muted colour */
+    -fx-text-fill: -wl-text-on-dark;            /* White label text on the muted background */
+}
+
+.btn-secondary:hover {
+    -fx-background-color: -wl-action-secondary-hover; /* Darkens on hover */
+}
+
+.btn-secondary:disabled {
+    -fx-opacity: 0.6;                       /* Fades to 60% when disabled */
+}
+
+.btn-secondary:focused {
+    -fx-border-color: -wl-focus-ring;
+    -fx-border-width: 1.5;
+}
+
+
+/* ============================================================
+   BUTTONS – TERTIARY / OUTLINE
+   A ghost button used for low-priority actions.
+   Light background with a border, no strong fill.
+   Apply style class "btn-tertiary" in SceneBuilder.
+   ============================================================ */
+.btn-tertiary {
+    -fx-pref-height: 30px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;                    /* Adds a border to define the button since the fill is very light */
+    -fx-cursor: hand;
+    -fx-background-color: -wl-action-tertiary-btn; /* Fills with a near-white or very light colour */
+    -fx-text-fill: -wl-text-primary;               /* Uses dark text since the background is light */
+    -fx-border-color: -wl-state-border;            /* Colours the border with the standard border colour */
+}
+
+.btn-tertiary:hover {
+    -fx-background-color: -wl-state-hover;  /* Adds a light tint on hover to indicate interactivity */
+}
+
+.btn-tertiary:disabled {
+    -fx-opacity: 0.6;
+}
+
+.btn-tertiary:focused {
+    -fx-border-color: -wl-focus-ring;
+    -fx-border-width: 1.5;
+}
+
+
+/* ============================================================
+   BUTTONS – DESTRUCTIVE
+   Used only for delete or irreversible actions. Red fill.
+   Apply style class "btn-destructive" in SceneBuilder.
+   ============================================================ */
+.btn-destructive {
+    -fx-pref-height: 30px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-background-color: -wl-action-destructive; /* Fills with red to signal this action is dangerous */
+    -fx-text-fill: -wl-text-on-dark;              /* White label so it is readable on red */
+}
+
+.btn-destructive:hover {
+    -fx-background-color: #DC2626;          /* Darkens the red slightly on hover */
+}
+
+.btn-destructive:disabled {
+    -fx-opacity: 0.6;
+}
+
+.btn-destructive:focused {
+    -fx-border-color: -wl-focus-ring;
+    -fx-border-width: 1.5;
+}
+
+
+/* ============================================================
+   BUTTONS – ICON ONLY
+   Small square buttons that contain only an icon (no text).
+   Used in the admin toolbar (add, edit, delete, save buttons).
+   Apply style class "btn-icon" in SceneBuilder.
+   ============================================================ */
+.btn-icon {
+    -fx-pref-height: 30px;                  /* Sets the button to default height */
+    -fx-min-width: 30px;                    /* Makes the button square by enforcing a minimum width */
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;                    /* Adds a border to define the button area */
+    -fx-cursor: hand;
+    -fx-background-color: -wl-action-tertiary-btn; /* Light fill – the icon provides the meaning */
+    -fx-border-color: -wl-state-border;
+    -fx-padding: 0 9 0 9;                  /* Horizontal padding around the icon */
+}
+
+.btn-icon:hover {
+    -fx-background-color: -wl-state-hover;  /* Highlights on hover to show it is clickable */
+}
+
+.btn-icon:armed {
+    -fx-background-color: -wl-state-border; /* Slightly darker when being pressed */
+}
+
+.btn-icon:focused {
+    -fx-border-color: -wl-focus-ring;
+    -fx-border-width: 1.5;
+}
+
+
+/* ============================================================
+   BUTTONS – FORMAT TOGGLE (Multi-page / Single-page)
+   A pair of side-by-side buttons used to switch between
+   export format options. They behave like a toggle group.
+   Used in: Scanner sidebar export section.
+   Apply style class "btn-format" in SceneBuilder.
+   ============================================================ */
+.btn-format {
+    -fx-pref-height: 30px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 0;              /* No rounded corners so adjacent buttons connect seamlessly */
+    -fx-border-radius: 0;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-background-color: -wl-action-tertiary-btn; /* Light fill for unselected state */
+    -fx-text-fill: -wl-text-primary;
+    -fx-border-color: -wl-state-border;
+}
+
+/* The currently active format button */
+.btn-format-active {
+    -fx-background-color: -wl-action-primary; /* Fills with the primary colour to show this format is selected */
+    -fx-text-fill: -wl-text-on-dark;          /* White text on the coloured active button */
+    -fx-border-color: -wl-action-primary;     /* Matches the border to the fill so it looks solid */
+}
+
+.btn-format:hover {
+    -fx-background-color: -wl-state-hover;
+}
+
+
+/* ============================================================
+   TABLE VIEW
+   The data grid used to display records in a list.
+   Used in: Admin view (users table).
+   ============================================================ */
+.table-view {
+    -fx-background-color: -wl-bg-surface;   /* Fills the table with the card/surface colour */
+    -fx-border-color: -wl-state-border;     /* Adds a border around the whole table */
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-table-cell-border-color: -wl-state-border; /* Colours the lines between cells */
+}
+
+/* The row of column header labels at the top of the table */
+.table-view .column-header-background {
+    -fx-background-color: -wl-bg-card-content; /* Fills the header area with a slightly different colour to separate it from the rows */
+}
+
+/* Individual column header cells */
+.table-view .column-header {
+    -fx-background-color: transparent;      /* The header cell itself is transparent so the row background shows */
+    -fx-border-color: -wl-state-border;
+    -fx-border-width: 0 1 1 0;             /* Right and bottom borders only to create a grid effect */
+}
+
+/* The text label inside each column header cell */
+.table-view .column-header .label {
+    -fx-text-fill: -wl-text-primary;        /* Colours the column header text */
+    -fx-font-weight: 500;                   /* Makes column headers slightly bolder than row text */
+    -fx-padding: 0 9 0 9;                  /* Adds horizontal padding inside column headers */
+    -fx-alignment: CENTER_LEFT;             /* Left-aligns the header text */
+}
+
+/* Each row in the table */
+.table-row-cell {
+    -fx-pref-height: 30px;                  /* Sets each row to the default component height */
+    -fx-background-color: -wl-bg-surface;   /* Default row background */
+    -fx-border-color: -wl-state-border;
+    -fx-border-width: 0 0 1 0;             /* Bottom border only to create row dividers */
+}
+
+/* Even-numbered rows get a slightly different background to make rows easier to read */
+.table-row-cell:even {
+    -fx-background-color: -wl-bg-card-content;
+}
+
+/* Odd-numbered rows stay on the standard surface colour */
+.table-row-cell:odd {
+    -fx-background-color: -wl-bg-surface;
+}
+
+/* A row when the mouse is hovering over it */
+.table-row-cell:hover {
+    -fx-background-color: -wl-state-hover;  /* Highlights the row to show it is interactive */
+}
+
+/* The currently selected row */
+.table-row-cell:selected {
+    -fx-background-color: -wl-action-primary; /* Fills the selected row with the primary colour */
+}
+
+/* The text inside each table cell */
+.table-cell {
+    -fx-text-fill: -wl-text-primary;        /* Colours all cell text with the primary text colour */
+    -fx-font-size: 12px;
+    -fx-padding: 0 9 0 9;                  /* Adds horizontal padding so text doesn't touch cell borders */
+    -fx-alignment: CENTER_LEFT;             /* Left-aligns cell content */
+}
+
+/* Cell text on a selected row needs to switch to white to stay readable */
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -wl-text-on-dark;        /* Makes cell text white when the row is selected */
+}
+
+/* The message shown when the table has no data */
+.table-view .placeholder .label {
+    -fx-text-fill: -wl-state-placeholder;   /* Uses the muted placeholder colour for the empty-state message */
+    -fx-font-size: 12px;
+}
+
+/* The scrollbar thumb (the draggable part of the scrollbar) */
+.table-view .scroll-bar .thumb {
+    -fx-background-color: -wl-state-border; /* Colours the scrollbar thumb */
+    -fx-background-radius: 3;              /* Slightly rounds the scrollbar thumb */
+}
+
+/* The scrollbar thumb when hovered */
+.table-view .scroll-bar .thumb:hover {
+    -fx-background-color: -wl-action-secondary; /* Darkens the scrollbar thumb on hover */
+}
+
+/* Removes the default background from the scrollbar track */
+.table-view .scroll-bar .track-background {
+    -fx-background-color: transparent;      /* Hides the scrollbar track so only the thumb is visible */
+}
+
+
+/* ============================================================
+   SCANNER IMAGE VIEWER
+   The large area in the centre of the scanner view that
+   displays the currently selected page image.
+   Used in: Scanner view, QA view.
+   ============================================================ */
+
+/* The grey area surrounding the image card */
+.image-viewer-bg {
+    -fx-background-color: -wl-bg-image-area; /* Fills the area around the image with a neutral backdrop */
+}
+
+/* The white card that the image sits on (simulates a page/document) */
+.image-card {
+    -fx-background-color: -wl-bg-surface;   /* Fills the image card with white to simulate a paper page */
+    -fx-border-color: -wl-state-border;     /* Adds a border around the image card */
+    -fx-border-width: 1;
+    -fx-max-height: 680px;                  /* Limits the card height so it doesn't grow beyond the visible area */
+    -fx-max-width: 500px;                   /* Limits the card width */
+    -fx-alignment: CENTER;                  /* Centres the image inside the card */
+}
+
+/* The overlay label at the bottom of the image that shows the page reference */
+.image-page-ref {
+    -fx-background-color: rgba(0,0,0,0.5); /* Semi-transparent dark background so the text is always readable over any image */
+    -fx-text-fill: white;                   /* White text on the dark overlay */
+    -fx-padding: 3 8 3 8;                  /* Small padding around the reference text */
+    -fx-background-radius: 3;              /* Slightly rounds the corners of the overlay label */
+}
+
+
+/* ============================================================
+   IMAGE VIEWER ACTION BAR
+   The toolbar above the image viewer with rotate, delete,
+   and navigation controls.
+   Used in: Scanner view, QA view.
+   ============================================================ */
+.image-action-bar {
+    -fx-padding: 8 16 8 16;                /* Adds comfortable padding inside the action bar */
+    -fx-spacing: 8;                         /* Sets the gap between action bar buttons */
+    -fx-alignment: CENTER_LEFT;             /* Vertically centres all items */
+    -fx-background-color: -wl-bg-surface;   /* Fills the bar with the surface colour */
+    -fx-border-color: -wl-state-border;
+    -fx-border-width: 0 0 1 0;             /* Bottom border only to separate bar from the image area */
+}
+
+/* The page position label (e.g. "2 / 10") in the image action bar */
+.image-page-position {
+    -fx-padding: 0 8 0 8;                  /* Adds horizontal padding so the label doesn't sit too close to the nav buttons */
+    -fx-text-fill: -wl-text-primary;
+}
+
+
+/* ============================================================
+   FILMSTRIP
+   The horizontal scrollable row of small page thumbnails
+   at the bottom of the scanner/QA view.
+   Used in: Scanner view, QA view.
+   ============================================================ */
+
+/* The container area behind the filmstrip */
+.filmstrip-bar {
+    -fx-background-color: -wl-bg-page;      /* Fills the filmstrip area with the page background colour */
+    -fx-border-color: -wl-state-border;
+    -fx-border-width: 1 0 0 0;             /* Top border to separate filmstrip from image area */
+    -fx-padding: 6;                         /* Adds padding around the filmstrip scroll area */
+}
+
+/* The scroll pane wrapping the filmstrip */
+.filmstrip-scroll {
+    -fx-background-color: transparent;      /* Makes the scroll pane background transparent */
+    -fx-border-width: 0;                    /* Removes the default scroll pane border */
+}
+
+/* The inner background of the filmstrip scroll pane */
+.filmstrip-scroll .viewport {
+    -fx-background-color: transparent;      /* Keeps the viewport transparent so the bar colour shows through */
+}
+
+/* The HBox that directly contains all the thumbnail images */
+.filmstrip-container {
+    -fx-padding: 4;                         /* Adds a small amount of padding around the thumbnails */
+    -fx-spacing: 4;                         /* Sets the gap between thumbnail images */
+    -fx-alignment: CENTER_LEFT;             /* Aligns thumbnails to the left */
+}
+
+/* Each individual thumbnail image inside the filmstrip */
+.filmstrip-thumb {
+    -fx-cursor: hand;                       /* Shows a pointer to indicate thumbnails are clickable */
+    -fx-border-width: 1;                    /* Adds a border around each thumbnail */
+    -fx-border-color: -wl-state-border;     /* Colours the thumbnail border */
+}
+
+/* A thumbnail that is currently selected / being viewed */
+.filmstrip-thumb-active {
+    -fx-border-color: -wl-action-primary;   /* Changes the border to the primary colour to show the active page */
+    -fx-border-width: 2;                    /* Makes the active thumbnail border thicker */
+}
+
+
+/* ============================================================
+   FETCH BUTTONS (Scanner filmstrip area)
+   The "Fetch next" and "Fetch 10" buttons on the right side
+   of the filmstrip area.
+   Used in: Scanner view, QA view.
+   ============================================================ */
+.btn-fetch {
+    -fx-pref-height: 30px;
+    -fx-max-width: Infinity;                /* Stretches to fill the available width in the VBox */
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-background-color: -wl-action-secondary; /* Fills with secondary colour – these are supporting actions */
+    -fx-text-fill: -wl-text-on-dark;
+}
+
+.btn-fetch:hover {
+    -fx-background-color: -wl-action-secondary-hover;
+}
+
+.btn-fetch:disabled {
+    -fx-opacity: 0.6;
+}
+
+
+/* ============================================================
+   SEPARATOR
+   The thin dividing lines used between elements in toolbars,
+   top bars, sidebars, and status bars.
+   Used in: All views.
+   ============================================================ */
+.separator .line {
+    -fx-border-color: -wl-state-border;     /* Colours the separator line with the standard border colour */
+    -fx-border-width: 1;                    /* Keeps the separator line at 1px thickness */
+}
+
+
+/* ============================================================
+   SCROLL PANE (general)
+   Removes default JavaFX styling from scroll panes that are
+   used as layout containers rather than visible surfaces.
+   ============================================================ */
+.scroll-pane {
+    -fx-background-color: transparent;      /* Makes the scroll pane background transparent by default */
+    -fx-border-width: 0;                    /* Removes the default border JavaFX adds to scroll panes */
+    -fx-padding: 0;                         /* Removes default scroll pane padding */
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;      /* Makes the inner viewport transparent so parent background shows */
+}
+
+
+/* ============================================================
+   CBORDER CARD UTILITY
+   Used as styleClass="cBoarder" on container nodes in the
+   FXML files. Marks a node as a card-like surface with a
+   border and drop shadow.
+   ============================================================ */
+.cBoarder {
+    -fx-background-color: -wl-bg-surface;   /* Fills the container with the card surface colour */
+    -fx-border-color: -wl-state-border;     /* Adds a border to define the card edges */
+    -fx-border-width: 1;
+    -fx-border-radius: 6;                   /* Rounds all card corners */
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 12, 0, 0, 2); /* Adds a subtle shadow to lift the card above the background */
+}
+
+
+/* ============================================================
+   DISABLED STATE (global)
+   Applied automatically by JavaFX when a node is disabled.
+   Fades any disabled component to 60% opacity.
+   ============================================================ */
+:disabled {
+    -fx-opacity: 0.6;                       /* Fades any disabled component to 60% to show it is not usable */
+}
+
+
+/* ============================================================
+   FOCUS RING (global fallback)
+   Applied to any interactive component when it receives
+   keyboard focus. Ensures keyboard users always have a
+   visible indicator of which element is focused.
+   ============================================================ */
+.button:focused,
+.text-field:focused,
+.combo-box:focused,
+.table-view:focused {
+    -fx-border-color: -wl-focus-ring;       /* Changes the border to the focus colour when the element is keyboard focused */
+    -fx-border-width: 1.5;                  /* Makes the focus ring visible but not distracting */
+    -fx-border-radius: 6;                   /* Rounds the focus ring corners to match the component */
+}
+
+
+/* ============================================================
+   END OF BASE STYLESHEET
+   ============================================================ */

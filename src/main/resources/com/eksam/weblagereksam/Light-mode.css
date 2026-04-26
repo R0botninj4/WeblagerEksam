@@ -1,0 +1,477 @@
+/* ============================================================
+   WebLager – Light Mode Stylesheet (Global)
+   Load this file SECOND in every FXML stylesheets attribute,
+   always after WebLager-Base.css.
+   To switch to dark mode, replace this file with
+   WebLager-Dark.css – do not load both at the same time.
+
+   This file contains ONLY colour values. Every colour token
+   is defined in the .root block and then applied to components
+   below. No sizing, spacing, or font rules live here.
+   ============================================================ */
+
+
+/* ============================================================
+   COLOUR TOKENS – LIGHT MODE
+   All colours from the style guide "Lightmode" section.
+   Every token is used by at least one component below.
+   Changing a token here updates every component that uses it.
+   ============================================================ */
+.root {
+
+    /* Page and surface backgrounds */
+    -wl-bg-page:            #F5F5F5;        /* The main window/page background */
+    -wl-bg-surface:         #FFFFFF;        /* Cards, toolbars, top bar, and modal backgrounds */
+    -wl-bg-card-content:    #F9F9F9;        /* Inner card content and alternating table rows */
+    -wl-bg-image-area:      #E0E0E0;        /* The neutral grey area surrounding the image viewer */
+
+    /* Navigation colours */
+    -wl-nav-primary-bg:     #2D3D4F;        /* Top bar background when used as a primary nav surface */
+    -wl-nav-primary-btn:    #415060;        /* Hover colour for nav buttons in the primary nav area */
+    -wl-nav-secondary-bg:   #24C79F;        /* Sidebar background colour (teal) */
+    -wl-nav-secondary-btn:  #2D3D4F;        /* Sidebar navigation button fill colour */
+
+    /* Action / button colours */
+    -wl-action-primary:         #2D3D4F;    /* Primary buttons, selected states, active indicators */
+    -wl-action-primary-hover:   #1C252F;    /* Primary button colour when hovered */
+    -wl-action-secondary:       #64748B;    /* Secondary buttons and fetch buttons */
+    -wl-action-secondary-hover: #354556;    /* Secondary button colour when hovered */
+    -wl-action-tertiary:        #F9F9F9;    /* Tertiary action background colour */
+    -wl-action-tertiary-btn:    #FFFFFF;    /* Tertiary and icon button fill colour */
+    -wl-action-destructive:     #EF4444;    /* Delete and irreversible action buttons */
+
+    /* State and feedback colours */
+    -wl-state-border:       #E2E4E8;        /* All borders throughout the interface */
+    -wl-state-placeholder:  #BFBFBF;        /* Placeholder text in inputs and empty states */
+    -wl-state-hover:        #F1F5F9;        /* Background colour when hovering over an interactive surface */
+    -wl-state-success:      #4CD07D;        /* Success feedback indicators */
+    -wl-state-error:        #FF3D32;        /* Error feedback and validation indicators */
+
+    /* Text colours */
+    -wl-text-primary:       #2D3D4F;        /* Default text colour used for most labels and content */
+    -wl-text-secondary:     #64748B;        /* Muted text used for secondary information and status labels */
+    -wl-text-on-dark:       #FFFFFF;        /* Text placed on dark or coloured backgrounds */
+    -wl-text-on-sidebar:    #2D3D4F;        /* Text and icons inside the teal sidebar (must stay dark per style guide) */
+
+    /* Focus ring */
+    -wl-focus-ring:         #2D3D4F;        /* The border colour shown on any focused interactive element */
+}
+
+
+/* ============================================================
+   TOP BAR – LIGHT MODE
+   The horizontal bar at the top of every view.
+   White surface with a bottom border.
+   ============================================================ */
+.top-bar {
+    -fx-background-color: -wl-bg-surface;   /* White top bar */
+    -fx-border-color: -wl-state-border;     /* Light grey bottom border line */
+}
+
+.top-bar-title {
+    -fx-text-fill: -wl-text-primary;        /* Dark navy app name */
+}
+
+.top-bar-username {
+    -fx-text-fill: -wl-text-primary;        /* Dark navy username */
+}
+
+.top-bar-label {
+    -fx-text-fill: -wl-text-primary;        /* Dark navy informational labels */
+}
+
+.top-bar-role {
+    -fx-text-fill: -wl-text-primary;        /* Dark navy role badge */
+}
+
+
+/* ============================================================
+   BOTTOM STATUS BAR – LIGHT MODE
+   ============================================================ */
+.status-bar {
+    -fx-background-color: -wl-bg-surface;   /* White status bar */
+    -fx-border-color: -wl-state-border;     /* Light grey top border */
+}
+
+.status-bar .label {
+    -fx-text-fill: -wl-text-secondary;      /* Muted text for status information */
+}
+
+
+/* ============================================================
+   SIDEBAR – LIGHT MODE
+   Teal background with dark navy buttons and text.
+   The style guide explicitly states that icons and interactive
+   elements inside the sidebar must use the primary colour
+   (#2D3D4F) – this is enforced by -wl-text-on-sidebar.
+   ============================================================ */
+.sidebar {
+    -fx-background-color: -wl-nav-secondary-bg; /* Teal sidebar background */
+    -fx-border-color: -wl-state-border;          /* Light grey right border separating sidebar from content */
+}
+
+.sidebar-section-header {
+    -fx-background-color: -wl-nav-secondary-bg; /* Keeps section headers the same teal as the sidebar */
+    -fx-border-color: -wl-state-border;          /* Separator line below section headers */
+}
+
+.sidebar-section-header .label {
+    -fx-text-fill: -wl-text-on-sidebar;     /* Dark text on the teal sidebar header */
+}
+
+.sidebar-section-count {
+    -fx-text-fill: -wl-text-on-sidebar;     /* Dark count label on the teal sidebar */
+}
+
+.sidebar-export-section {
+    -fx-background-color: -wl-bg-surface;   /* White export section so it stands out from the teal sidebar */
+    -fx-border-color: -wl-state-border;     /* Top border separating export from the document list */
+}
+
+.sidebar-export-section .label {
+    -fx-text-fill: -wl-text-primary;        /* Dark text inside the white export section */
+}
+
+.sidebar-export-title {
+    -fx-text-fill: -wl-text-primary;        /* Dark "EXPORT" heading */
+}
+
+.sidebar-export-value {
+    -fx-text-fill: -wl-text-secondary;      /* Muted colour for dynamic values like "No Box" */
+}
+
+
+/* ============================================================
+   NAVIGATION BUTTONS – LIGHT MODE
+   Dark navy buttons on the teal sidebar.
+   ============================================================ */
+.nav-btn {
+    -fx-background-color: -wl-nav-secondary-btn; /* Dark navy button on teal sidebar */
+    -fx-text-fill: -wl-text-on-dark;             /* White button label */
+}
+
+.nav-btn:hover {
+    -fx-background-color: -wl-nav-primary-btn;   /* Slightly lighter navy on hover */
+}
+
+.nav-btn:selected,
+.nav-btn-active {
+    -fx-border-color: -wl-text-on-dark;          /* White active indicator stripe */
+}
+
+.nav-btn:armed {
+    -fx-background-color: -wl-action-primary;    /* Standard primary colour while being pressed */
+}
+
+.nav-btn:focused {
+    -fx-border-color: -wl-text-on-dark;          /* White focus ring visible on the teal sidebar */
+}
+
+
+/* ============================================================
+   DOCUMENT CARD – LIGHT MODE
+   White cards inside the teal sidebar document list.
+   ============================================================ */
+.document-card {
+    -fx-background-color: -wl-bg-surface;   /* White card that stands out against the teal sidebar */
+    -fx-border-color: -wl-state-border;     /* Light grey card border */
+}
+
+.document-card:hover {
+    -fx-background-color: -wl-state-hover;  /* Very light blue-grey on hover */
+}
+
+.document-card-active {
+    -fx-border-color: -wl-action-primary;   /* Dark navy border on the active/selected document */
+}
+
+
+/* ============================================================
+   TOOLBAR – LIGHT MODE
+   White card in the admin view above the table.
+   ============================================================ */
+.toolbar {
+    -fx-background-color: -wl-bg-surface;   /* White toolbar card */
+    -fx-border-color: -wl-state-border;     /* Light grey toolbar border */
+}
+
+
+/* ============================================================
+   SEARCH FIELD – LIGHT MODE
+   ============================================================ */
+.search-field,
+#txtSearch {
+    -fx-background-color: -wl-bg-surface;   /* White input background */
+    -fx-border-color: -wl-state-border;     /* Light grey input border */
+    -fx-text-fill: -wl-text-primary;        /* Dark text for typed content */
+    -fx-prompt-text-fill: -wl-state-placeholder; /* Medium grey placeholder text */
+}
+
+.search-field:focused,
+#txtSearch:focused {
+    -fx-border-color: -wl-focus-ring;       /* Dark navy focus ring on the search field */
+}
+
+
+/* ============================================================
+   COMBOBOX – LIGHT MODE
+   ============================================================ */
+.combo-box {
+    -fx-background-color: -wl-bg-surface;   /* White combo box background */
+    -fx-border-color: -wl-state-border;     /* Light grey combo box border */
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -wl-text-primary;        /* Dark text for the selected value */
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-bg-surface;   /* White dropdown list background */
+    -fx-border-color: -wl-state-border;     /* Light grey dropdown border */
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: -wl-text-primary;        /* Dark text for each dropdown option */
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: -wl-state-hover;  /* Very light blue-grey when hovering an option */
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -wl-action-primary; /* Dark navy on the selected option */
+    -fx-text-fill: -wl-text-on-dark;          /* White text on the dark selected option */
+}
+
+.combo-box:focused {
+    -fx-border-color: -wl-focus-ring;       /* Dark navy focus ring */
+}
+
+
+/* ============================================================
+   BUTTONS – LIGHT MODE
+   Colours applied to the button style classes defined
+   in the base stylesheet.
+   ============================================================ */
+
+/* Primary button */
+.btn-primary {
+    -fx-background-color: -wl-action-primary; /* Dark navy fill */
+    -fx-text-fill: -wl-text-on-dark;          /* White label */
+}
+.btn-primary:hover {
+    -fx-background-color: -wl-action-primary-hover; /* Darker navy on hover */
+}
+
+/* Secondary button */
+.btn-secondary {
+    -fx-background-color: -wl-action-secondary; /* Muted slate fill */
+    -fx-text-fill: -wl-text-on-dark;
+}
+.btn-secondary:hover {
+    -fx-background-color: -wl-action-secondary-hover; /* Darker slate on hover */
+}
+
+/* Tertiary button */
+.btn-tertiary {
+    -fx-background-color: -wl-action-tertiary-btn; /* White fill */
+    -fx-text-fill: -wl-text-primary;               /* Dark label */
+    -fx-border-color: -wl-state-border;            /* Light grey border defines the button */
+}
+.btn-tertiary:hover {
+    -fx-background-color: -wl-state-hover;         /* Light blue-grey on hover */
+}
+
+/* Destructive button – same in both modes */
+.btn-destructive {
+    -fx-background-color: -wl-action-destructive;  /* Red fill */
+    -fx-text-fill: -wl-text-on-dark;               /* White label */
+}
+
+/* Icon button */
+.btn-icon {
+    -fx-background-color: -wl-action-tertiary-btn; /* White fill */
+    -fx-border-color: -wl-state-border;            /* Light grey border */
+}
+.btn-icon:hover {
+    -fx-background-color: -wl-state-hover;         /* Light hover tint */
+}
+.btn-icon:armed {
+    -fx-background-color: -wl-state-border;        /* Slightly darker on press */
+}
+
+/* ID-based fallback for admin toolbar buttons defined in FXML */
+#btnAdd, #btnEdit, #btnDelete, #btnUpdate {
+    -fx-background-color: -wl-action-tertiary-btn; /* White fill */
+    -fx-border-color: -wl-state-border;
+}
+#btnAdd:hover, #btnEdit:hover, #btnDelete:hover, #btnUpdate:hover {
+    -fx-background-color: -wl-state-hover;
+}
+#btnAdd:armed, #btnEdit:armed, #btnDelete:armed, #btnUpdate:armed {
+    -fx-background-color: -wl-state-border;
+}
+#btnAdd:focused, #btnEdit:focused, #btnDelete:focused, #btnUpdate:focused {
+    -fx-border-color: -wl-focus-ring;
+}
+
+/* Format toggle button – unselected state */
+.btn-format {
+    -fx-background-color: -wl-action-tertiary-btn; /* White unselected fill */
+    -fx-text-fill: -wl-text-primary;
+    -fx-border-color: -wl-state-border;
+}
+.btn-format:hover {
+    -fx-background-color: -wl-state-hover;
+}
+
+/* Format toggle button – active/selected state */
+.btn-format-active {
+    -fx-background-color: -wl-action-primary;  /* Dark navy when this format is selected */
+    -fx-text-fill: -wl-text-on-dark;
+    -fx-border-color: -wl-action-primary;
+}
+
+/* Fetch buttons in the filmstrip area */
+.btn-fetch {
+    -fx-background-color: -wl-action-secondary; /* Muted slate fill */
+    -fx-text-fill: -wl-text-on-dark;
+}
+.btn-fetch:hover {
+    -fx-background-color: -wl-action-secondary-hover;
+}
+
+
+/* ============================================================
+   TABLE VIEW – LIGHT MODE
+   ============================================================ */
+.table-view {
+    -fx-background-color: -wl-bg-surface;              /* White table background */
+    -fx-border-color: -wl-state-border;                /* Light grey table border */
+    -fx-table-cell-border-color: -wl-state-border;     /* Light grey cell dividers */
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -wl-bg-card-content;         /* Slightly off-white header band */
+}
+
+.table-view .column-header {
+    -fx-border-color: -wl-state-border;                /* Light grey column header dividers */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -wl-text-primary;                   /* Dark navy column header labels */
+}
+
+.table-row-cell {
+    -fx-background-color: -wl-bg-surface;              /* White default row background */
+    -fx-border-color: -wl-state-border;                /* Light grey row dividers */
+}
+
+.table-row-cell:even {
+    -fx-background-color: -wl-bg-card-content;         /* Very slightly off-white even rows */
+}
+
+.table-row-cell:odd {
+    -fx-background-color: -wl-bg-surface;              /* White odd rows */
+}
+
+.table-row-cell:hover {
+    -fx-background-color: -wl-state-hover;             /* Light blue-grey on hovered row */
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -wl-action-primary;          /* Dark navy selected row */
+}
+
+.table-cell {
+    -fx-text-fill: -wl-text-primary;                   /* Dark navy cell text */
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -wl-text-on-dark;                   /* White text on the dark selected row */
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -wl-state-placeholder;              /* Muted grey empty state message */
+}
+
+.table-view .scroll-bar .thumb {
+    -fx-background-color: -wl-state-border;            /* Light grey scrollbar thumb */
+}
+
+.table-view .scroll-bar .thumb:hover {
+    -fx-background-color: -wl-action-secondary;        /* Darker on hover */
+}
+
+
+/* ============================================================
+   IMAGE VIEWER – LIGHT MODE
+   ============================================================ */
+.image-viewer-bg {
+    -fx-background-color: -wl-bg-image-area;   /* Neutral grey surrounding the page image */
+}
+
+.image-card {
+    -fx-background-color: -wl-bg-surface;      /* White page card */
+    -fx-border-color: -wl-state-border;        /* Light grey border around the page */
+}
+
+.image-action-bar {
+    -fx-background-color: -wl-bg-surface;      /* White action bar above the image */
+    -fx-border-color: -wl-state-border;        /* Light grey bottom border */
+}
+
+.image-page-position {
+    -fx-text-fill: -wl-text-primary;           /* Dark page position label */
+}
+
+
+/* ============================================================
+   FILMSTRIP – LIGHT MODE
+   ============================================================ */
+.filmstrip-bar {
+    -fx-background-color: -wl-bg-page;         /* Light grey background of the filmstrip area */
+    -fx-border-color: -wl-state-border;        /* Light grey top border */
+}
+
+.filmstrip-thumb {
+    -fx-border-color: -wl-state-border;        /* Light grey border around each thumbnail */
+}
+
+.filmstrip-thumb-active {
+    -fx-border-color: -wl-action-primary;      /* Dark navy border on the active thumbnail */
+}
+
+
+/* ============================================================
+   SEPARATOR – LIGHT MODE
+   ============================================================ */
+.separator .line {
+    -fx-border-color: -wl-state-border;        /* Light grey separator lines */
+}
+
+
+/* ============================================================
+   CARD UTILITY – LIGHT MODE
+   ============================================================ */
+.cBoarder {
+    -fx-background-color: -wl-bg-surface;      /* White card surface */
+    -fx-border-color: -wl-state-border;        /* Light grey card border */
+}
+
+
+/* ============================================================
+   FOCUS RING – LIGHT MODE
+   ============================================================ */
+.button:focused,
+.text-field:focused,
+.combo-box:focused,
+.table-view:focused {
+    -fx-border-color: -wl-focus-ring;          /* Dark navy focus ring */
+}
+
+
+/* ============================================================
+   END OF LIGHT MODE STYLESHEET
+   ============================================================ */
