@@ -16,9 +16,13 @@ public class ImageByteConverter {
 
     // ===== Byte conversion =====
 
-    public static byte[] bufferedImageToPngBytes(BufferedImage image) throws Exception {
+    public static byte[] bufferedImageToTiffBytes(BufferedImage image) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", baos);
+
+        if (!ImageIO.write(image, "TIFF", baos)) {
+            throw new Exception("No TIFF writer found.");
+        }
+
         return baos.toByteArray();
     }
 
@@ -42,10 +46,13 @@ public class ImageByteConverter {
         int targetWidth = swapDimensions ? source.getHeight() : source.getWidth();
         int targetHeight = swapDimensions ? source.getWidth() : source.getHeight();
 
-        BufferedImage rotated = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage rotated = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = rotated.createGraphics();
 
         try {
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(0, 0, targetWidth, targetHeight);
+
             // Bilinear interpolation makes rotated pages less jagged.
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 

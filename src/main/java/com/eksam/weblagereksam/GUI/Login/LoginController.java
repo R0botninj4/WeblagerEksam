@@ -82,6 +82,8 @@ public class LoginController {
 
             if (user.getRoleName().equalsIgnoreCase("User")) {
                 viewPath = "/com/eksam/weblagereksam/User-Scanning-view.fxml";
+            } else if (user.getRoleName().equalsIgnoreCase("Admin")) {
+                viewPath = "/com/eksam/weblagereksam/Admin-view.fxml";
             } else {
                 viewPath = "/com/eksam/weblagereksam/Main-view.fxml";
             }

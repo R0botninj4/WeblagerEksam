@@ -65,10 +65,12 @@ public class ScanWorkspaceManager {
     public boolean rotatePage(Page page, int deltaDegrees) throws Exception {
         BufferedImage source = ImageByteConverter.bytesToBufferedImage(page.getImageData());
         BufferedImage rotated = ImageByteConverter.rotate(source, deltaDegrees);
-        byte[] imageBytes = ImageByteConverter.bufferedImageToPngBytes(rotated);
+        byte[] imageBytes = ImageByteConverter.bufferedImageToTiffBytes(rotated);
 
         page.setImageData(imageBytes);
         page.setFileSize((long) imageBytes.length);
+        page.setFileName(ensureTiffFileName(page.getFileName()));
+        page.setMimeType("image/tiff");
         page.setWidth(rotated.getWidth());
         page.setHeight(rotated.getHeight());
         page.setRotation(normalizeRotation(page.getRotation() + deltaDegrees));
@@ -104,6 +106,19 @@ public class ScanWorkspaceManager {
     }
 
     // ===== Small helpers =====
+
+    private String ensureTiffFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "page.tiff";
+        }
+
+        int extensionIndex = fileName.lastIndexOf('.');
+        if (extensionIndex < 0) {
+            return fileName + ".tiff";
+        }
+
+        return fileName.substring(0, extensionIndex) + ".tiff";
+    }
 
     private int normalizeRotation(int rotation) {
         int normalized = rotation % 360;

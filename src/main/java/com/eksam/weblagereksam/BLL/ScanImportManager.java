@@ -118,7 +118,7 @@ public class ScanImportManager {
                         currentReferenceScanOrder,
                         currentUiOrder,
                         buildFileName(importBatchId, currentDocumentNumber - 1, currentReferenceScanOrder, isBarcodePage),
-                        "image/png",
+                        "image/tiff",
                         processedPage.pageBytes(),
                         (long) processedPage.pageBytes().length,
                         processedPage.checksum(),
@@ -165,7 +165,7 @@ public class ScanImportManager {
 
                 futures.add(executor.submit(() -> {
                     String barcodeValue = barcodeReaderService.readBarcode(image);
-                    byte[] pageBytes = ImageByteConverter.bufferedImageToPngBytes(image);
+                    byte[] pageBytes = ImageByteConverter.bufferedImageToTiffBytes(image);
 
                     return new ProcessedPage(
                             referenceScanOrder,
@@ -221,7 +221,7 @@ public class ScanImportManager {
 
     private String buildFileName(String importBatchId, int documentNumber, int referenceScanOrder, boolean isBarcodePage) {
         String prefix = isBarcodePage ? "barcode" : "page";
-        return prefix + "-" + importBatchId + "-doc-" + documentNumber + "-ref-" + referenceScanOrder + ".png";
+        return prefix + "-" + importBatchId + "-doc-" + documentNumber + "-ref-" + referenceScanOrder + ".tiff";
     }
 
     // Small internal data object used while pages are processed before they are saved.
