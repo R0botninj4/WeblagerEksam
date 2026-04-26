@@ -15,7 +15,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="567.0" prefWidth="765.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="567.0" prefWidth="765.0"
+            stylesheets="@Overall.css, @Dark-mode.css"
+            xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <top>
         <HBox prefHeight="49.0" prefWidth="972.0" styleClass="top-bar" BorderPane.alignment="CENTER">
             <children>
@@ -161,8 +163,4 @@
             </children>
         </VBox>
     </center>
-    <stylesheets>
-        <URL value="@Light-mode.css" />
-        <URL value="@Overall.css" />
-    </stylesheets>
 </BorderPane>
