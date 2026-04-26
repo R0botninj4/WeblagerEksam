@@ -2,6 +2,12 @@ package com.eksam.weblagereksam.BLL.Scanning;
 
 public class ScannedPage {
 
+    // This is a simple data object for one scanned page.
+    //
+    // After ScanFileProcessor has read a TIFF page, it puts the useful information
+    // into this class. That means the rest of the program can work with a simple
+    // object instead of dealing with BufferedImage and barcode reading directly.
+
     private final byte[] imageData;
     private final String checksum;
     private final String barcodeValue;
@@ -33,6 +39,9 @@ public class ScannedPage {
     }
 
     public boolean isBarcodePage() {
+        // If the page has a barcode value, we treat it as a split page.
+        // In the scanning flow that means:
+        // barcode page found = create/start a new document.
         return barcodeValue != null && !barcodeValue.isBlank();
     }
 
