@@ -1,7 +1,7 @@
 package com.eksam.weblagereksam.GUI.Login;
 
 import com.eksam.weblagereksam.BE.User;
-import com.eksam.weblagereksam.BLL.UserManager;
+import com.eksam.weblagereksam.BLL.Manager.UserManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

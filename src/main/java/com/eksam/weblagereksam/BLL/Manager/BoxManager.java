@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.BLL;
+package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Box;
 import com.eksam.weblagereksam.DAL.BoxDAO;
