@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -15,9 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="567.0" prefWidth="765.0"
-            stylesheets="@Overall.css, @Dark-mode.css"
-            xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <top>
         <HBox prefHeight="49.0" prefWidth="972.0" styleClass="top-bar" BorderPane.alignment="CENTER">
             <children>
@@ -135,7 +132,7 @@
                         <Insets bottom="10.0" top="10.0" />
                     </padding>
                     <VBox.margin>
-                        <Insets left="10.0" right="10.0" />
+                        <Insets left="10.0" right="10.0" top="10.0" />
                     </VBox.margin>
                 </HBox>
                 <VBox prefHeight="862.0" prefWidth="797.0" VBox.vgrow="ALWAYS">
