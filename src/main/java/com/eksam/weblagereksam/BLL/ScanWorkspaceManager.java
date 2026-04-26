@@ -12,12 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * BLL class for working with already scanned pages in the workspace.
- *
- * This keeps page editing rules out of the GUI controller:
- * loading documents/pages, rotating pages, deleting pages, and saving page order.
- */
 public class ScanWorkspaceManager {
 
     // ===== BLL managers =====
@@ -32,11 +26,6 @@ public class ScanWorkspaceManager {
 
     // ===== Loading screen data =====
 
-    /**
-     * Loads all documents and pages for a box as one snapshot.
-     *
-     * The GUI can then replace its screen state in one step instead of making many DAO calls.
-     */
     public BoxDataSnapshot loadBoxData(UUID boxId, UUID selectedDocumentId) {
         List<Document> documents = new ArrayList<>();
         Map<UUID, List<Page>> pagesByDocument = new HashMap<>();
@@ -59,9 +48,6 @@ public class ScanWorkspaceManager {
 
     // ===== Page editing =====
 
-    /**
-     * Rotates the stored image bytes and updates page metadata so the database matches the image.
-     */
     public boolean rotatePage(Page page, int deltaDegrees) throws Exception {
         BufferedImage source = ImageByteConverter.bytesToBufferedImage(page.getImageData());
         BufferedImage rotated = ImageByteConverter.rotate(source, deltaDegrees);
@@ -79,9 +65,6 @@ public class ScanWorkspaceManager {
         return pageManager.updatePage(page);
     }
 
-    /**
-     * Deletes a page. If it was the last page in the document, the empty document is deleted too.
-     */
     public boolean deletePage(Page page, UUID documentId, List<Page> remainingPages) throws Exception {
         if (!pageManager.deletePage(page.getId())) {
             return false;
@@ -94,9 +77,6 @@ public class ScanWorkspaceManager {
         return updatePageOrders(documentId, remainingPages);
     }
 
-    /**
-     * Saves the visual page order from the filmstrip as UiOrder values.
-     */
     public boolean updatePageOrders(UUID documentId, List<Page> pages) {
         for (int i = 0; i < pages.size(); i++) {
             pages.get(i).setUiOrder(i + 1);
@@ -130,7 +110,6 @@ public class ScanWorkspaceManager {
         return HexFormat.of().formatHex(digest.digest(data));
     }
 
-    // Immutable package of everything the GUI needs after loading a box.
     public record BoxDataSnapshot(
             List<Document> documents,
             Map<UUID, List<Page>> pagesByDocument,

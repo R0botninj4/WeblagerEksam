@@ -11,12 +11,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-/**
- * Controller for the login screen.
- *
- * This belongs to the GUI layer. It reads username/password from the form,
- * asks UserManager to validate login, and then opens the correct view.
- */
 public class LoginController {
 
     // ===== FXML controls =====
@@ -44,15 +38,14 @@ public class LoginController {
             e.printStackTrace();
         }
 
-        // Pressing Enter in either field should attempt login.
-        txtUsername.setOnAction(e -> handleLogin(new ActionEvent()));
-        txtPassword.setOnAction(e -> handleLogin(new ActionEvent()));
+        txtUsername.setOnAction(e -> handleLogin());
+        txtPassword.setOnAction(e -> handleLogin());
     }
 
     // ===== Login flow =====
 
     @FXML
-    private void handleLogin(ActionEvent event) {
+    private void handleLogin() {
 
         try {
             String username = txtUsername.getText().trim();
@@ -77,7 +70,6 @@ public class LoginController {
 
             Session.setUser(user);
 
-            // Normal users go straight to scanning; other roles go to the main/admin area.
             String viewPath;
 
             if (user.getRoleName().equalsIgnoreCase("User")) {
@@ -85,7 +77,7 @@ public class LoginController {
             } else if (user.getRoleName().equalsIgnoreCase("Admin")) {
                 viewPath = "/com/eksam/weblagereksam/Admin-view.fxml";
             } else {
-                viewPath = "/com/eksam/weblagereksam/Main-view.fxml";
+                viewPath = "/com/eksam/weblagereksam/Login-view.fxml";
             }
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
@@ -110,25 +102,23 @@ public class LoginController {
 
     @FXML
     public void Bypass(ActionEvent event) {
-        txtUsername.setText("admin");
-        txtPassword.setText("GOD12");
-
-        handleLogin(new ActionEvent());
+        bypassLogin("admin", "GOD12");
     }
 
     @FXML
     public void BypassUser(ActionEvent event) {
-        txtUsername.setText("user");
-        txtPassword.setText("User");
-
-        handleLogin(new ActionEvent());
+        bypassLogin("user", "User");
     }
+
     @FXML
     public void BypassQA(ActionEvent event) {
-        txtUsername.setText("QA");
-        txtPassword.setText("QA");
+        bypassLogin("QA", "QA");
+    }
 
-        handleLogin(new ActionEvent());
+    private void bypassLogin(String username, String password) {
+        txtUsername.setText(username);
+        txtPassword.setText(password);
+        handleLogin();
     }
 
     // ===== UI feedback =====

@@ -21,19 +21,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 
-/**
- * Builds the dynamic JavaFX nodes for the scanning screen.
- *
- * This is still GUI-layer code. It is separated from UserScanningController so the controller
- * can focus on state and actions instead of manually building every document card and thumbnail.
- */
 public class ScanViewRenderer {
 
     // ===== Document list =====
 
-    /**
-     * Rebuilds the left-side document cards from the current box data.
-     */
     public void renderDocumentCards(
             VBox documentsContainer,
             List<Document> documents,
@@ -55,9 +46,6 @@ public class ScanViewRenderer {
 
     // ===== Filmstrip =====
 
-    /**
-     * Rebuilds the bottom filmstrip for the selected document.
-     */
     public void renderFilmstrip(
             HBox filmstripBox,
             List<Page> pages,
@@ -86,9 +74,6 @@ public class ScanViewRenderer {
         }
     }
 
-    /**
-     * Updates only the thumbnail borders/backgrounds after the selected page changes.
-     */
     public void refreshFilmstripSelection(List<Page> pages, int currentPageIndex, Map<UUID, VBox> filmstripThumbs) {
         for (int i = 0; i < pages.size(); i++) {
             Page page = pages.get(i);
@@ -112,7 +97,6 @@ public class ScanViewRenderer {
                 ? "-fx-border-color: #333333; -fx-border-width: 2; -fx-padding: 8; -fx-background-color: #f1f1f1;"
                 : "-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;");
 
-        // Header shows the document number on the left and page count on the right.
         HBox header = new HBox(8);
         Label title = new Label("Document " + document.getDocumentNumber());
         title.setStyle("-fx-font-weight: bold;");
@@ -121,7 +105,6 @@ public class ScanViewRenderer {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         header.getChildren().addAll(title, spacer, fileCount);
 
-        // Small markers make barcode split pages visible in the document list.
         HBox pageMarkers = new HBox(4);
         for (int i = 0; i < pages.size(); i++) {
             String markerText = pages.get(i).isBarcodePage() ? "[B]" : "[" + (i + 1) + "]";
@@ -156,7 +139,6 @@ public class ScanViewRenderer {
         thumb.setAlignment(javafx.geometry.Pos.CENTER);
         applyThumbnailStyle(thumb, page, index == currentPageIndex);
 
-        // The real page image is loaded by the controller, so this renderer does not touch image bytes.
         ImageView preview = new ImageView(imageLoader.apply(page));
         preview.setFitWidth(50);
         preview.setFitHeight(66);
@@ -179,7 +161,6 @@ public class ScanViewRenderer {
         return thumb;
     }
 
-    // Drag/drop only tells the controller which positions changed; the BLL saves the new order.
     private void setupThumbnailDragAndDrop(
             VBox thumb,
             int index,

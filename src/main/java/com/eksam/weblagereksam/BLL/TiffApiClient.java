@@ -11,12 +11,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/**
- * BLL service for calling the external TIFF API.
- *
- * The API returns ZIP files, so this class also unpacks the ZIP and gives the rest
- * of the application plain TIFF byte arrays.
- */
 public class TiffApiClient {
 
     // ===== API setup =====
@@ -26,45 +20,30 @@ public class TiffApiClient {
 
     // ===== Public API methods =====
 
-    /**
-     * Fetches one random TIFF file from the API.
-     */
     public byte[] getRandomTiffBytes() throws Exception {
         byte[] zipData = getBytes("/getRandomFile");
+        List<byte[]> files = extractTiffFiles(zipData);
 
-        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipData));
-             ByteArrayOutputStream tiffOut = new ByteArrayOutputStream()) {
-
-            ZipEntry entry = zis.getNextEntry();
-
-            if (entry == null) {
-                throw new Exception("ZIP file is empty.");
-            }
-
-            // The API wraps the TIFF in a ZIP; copy the first file out as raw bytes.
-            byte[] buffer = new byte[4096];
-            int len;
-
-            while ((len = zis.read(buffer)) > 0) {
-                tiffOut.write(buffer, 0, len);
-            }
-
-            zis.closeEntry();
-            return tiffOut.toByteArray();
+        if (files.isEmpty()) {
+            throw new Exception("ZIP file is empty.");
         }
+
+        return files.get(0);
     }
 
-    /**
-     * Fetches multiple random TIFF files in one API call.
-     */
     public List<byte[]> getRandomTiffBatch(int amount) throws Exception {
         byte[] zipData = getBytes("/getFiles/" + amount);
+        return extractTiffFiles(zipData);
+    }
+
+    // ===== ZIP helper =====
+
+    private List<byte[]> extractTiffFiles(byte[] zipData) throws Exception {
         List<byte[]> files = new ArrayList<>();
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipData))) {
             ZipEntry entry;
 
-            // Each ZIP entry is one TIFF file.
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
                     continue;
@@ -84,27 +63,6 @@ public class TiffApiClient {
         }
 
         return files;
-    }
-
-    /**
-     * Gets the total number of files available in API memory.
-     */
-    public int getCount() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/getCount"))
-                .GET()
-                .build();
-
-        HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString()
-        );
-
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new Exception("TIFF API returned status " + response.statusCode() + " for /getCount");
-        }
-
-        return Integer.parseInt(response.body().trim());
     }
 
     // ===== HTTP helper =====

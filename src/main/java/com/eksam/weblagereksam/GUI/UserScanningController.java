@@ -32,43 +32,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Controller for the user scanning screen.
- *
- * This class belongs to the GUI layer. It should only coordinate the screen:
- * read user actions, call BLL managers, and update JavaFX controls.
- */
 public class UserScanningController {
 
     // ===== FXML: Top bar and status labels =====
 
-    @FXML private Label labelProfile;
-    @FXML private Label labelFilesCount;
-    @FXML private Label labelDocsCount;
-    @FXML private Label labelSessionTimer;
-    @FXML private Label labelUser;
-    @FXML private Label labelDocCount;
-    @FXML private Label labelOutputName;
-    @FXML private Label labelFormat;
-    @FXML private Label labelPagePosition;
-    @FXML private Label labelPageRef;
-    @FXML private Label labelConnected;
-    @FXML private Label labelRotationInfo;
-    @FXML private Label labelStatusUser;
+    @FXML private Label labelProfile, labelFilesCount, labelDocsCount, labelUser, labelDocCount;
+    @FXML private Label labelOutputName, labelFormat, labelPagePosition, labelPageRef;
+    @FXML private Label labelConnected, labelRotationInfo, labelStatusUser;
     @FXML private ComboBox<Box> comboBoxBoxes;
 
     // ===== FXML: Action buttons =====
 
-    @FXML private Button btnExport;
-    @FXML private Button btnRotateCCW;
-    @FXML private Button btnRotateCW;
-    @FXML private Button btnDelete;
-    @FXML private Button btnPrev;
-    @FXML private Button btnNext;
-    @FXML private Button btnNavLeft;
-    @FXML private Button btnNavRight;
-    @FXML private Button btnFetchNext;
-    @FXML private Button btnFetchTen;
+    @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDelete, btnPrev;
+    @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
 
     // ===== FXML: Main content containers =====
 
@@ -91,10 +67,7 @@ public class UserScanningController {
     private final List<Page> currentPages = new ArrayList<>();
     private final Map<UUID, List<Page>> pagesByDocument = new HashMap<>();
 
-    // Image conversion is expensive, so already converted pages are cached here.
     private final Map<UUID, Image> pageImageCache = new HashMap<>();
-
-    // Keeps track of thumbnail nodes so selection styling can be refreshed quickly.
     private final Map<UUID, VBox> filmstripThumbs = new HashMap<>();
 
     private int currentPageIndex = 0;
@@ -159,7 +132,6 @@ public class UserScanningController {
         loadCurrentBoxDataAsync(false);
     }
 
-    // Keyboard shortcuts are added after the scene exists, because the scene is not ready in FXML initialize yet.
     private void setupKeyboardShortcuts() {
         pageImageView.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene == null) {
@@ -167,32 +139,18 @@ public class UserScanningController {
             }
 
             newScene.setOnKeyPressed(event -> {
-                if (event.getCode() == KeyCode.RIGHT) {
-                    showNextPage();
-                } else if (event.getCode() == KeyCode.LEFT) {
-                    showPreviousPage();
-                } else if (event.getCode() == KeyCode.DELETE) {
-                    deleteCurrentPage();
-                } else if (event.getCode() == KeyCode.R) {
-                    if (event.isShiftDown()) {
-                        rotateCurrentPage(-90);
-                    } else {
-                        rotateCurrentPage(90);
-                    }
-                }
+                if (event.getCode() == KeyCode.RIGHT) showNextPage();
+                else if (event.getCode() == KeyCode.LEFT) showPreviousPage();
+                else if (event.getCode() == KeyCode.DELETE) deleteCurrentPage();
+                else if (event.getCode() == KeyCode.R) rotateCurrentPage(event.isShiftDown() ? -90 : 90);
             });
         });
     }
 
-    // Only boxes assigned to the current user are shown. Admin fallback is handled in the BLL/DAL.
     private void loadBoxesForCurrentUser() throws Exception {
-        List<Box> boxes;
-
-        if (Session.getUser() != null) {
-            boxes = boxManager.getBoxesByUserId(Session.getUser().getId());
-        } else {
-            boxes = boxManager.getAllBoxes();
-        }
+        List<Box> boxes = Session.getUser() != null
+                ? boxManager.getBoxesByUserId(Session.getUser().getId())
+                : boxManager.getAllBoxes();
 
         comboBoxBoxes.getItems().setAll(boxes);
 
@@ -212,51 +170,26 @@ public class UserScanningController {
         updateBoxHeader();
     }
 
-    // Keeps the top/export labels in sync with the selected box.
     private void updateBoxHeader() {
         labelProfile.setText(currentBox.getLabel() != null ? currentBox.getLabel() : "No profile");
         labelOutputName.setText(currentBox.getBoxNumber());
     }
 
-    @FXML
-    private void handleFetchNext() {
-        startImportTask(1);
-    }
+    @FXML private void handleFetchNext() { startImportTask(1); }
 
-    @FXML
-    private void handleFetchTen() {
-        startImportTask(10);
-    }
+    @FXML private void handleFetchTen() { startImportTask(10); }
 
-    @FXML
-    private void handleRotateLeft() {
-        rotateCurrentPage(-90);
-    }
+    @FXML private void handleRotateLeft() { rotateCurrentPage(-90); }
 
-    @FXML
-    private void handleRotateRight() {
-        rotateCurrentPage(90);
-    }
+    @FXML private void handleRotateRight() { rotateCurrentPage(90); }
 
-    @FXML
-    private void handleMultiPageFormat() {
-        labelFormat.setText("TIFF Multi-page");
-    }
+    @FXML private void handleMultiPageFormat() { labelFormat.setText("TIFF Multi-page"); }
 
-    @FXML
-    private void handleSinglePageFormat() {
-        labelFormat.setText("TIFF Single-page");
-    }
+    @FXML private void handleSinglePageFormat() { labelFormat.setText("TIFF Single-page"); }
 
-    @FXML
-    private void handleSlideshow() {
-        showStatus("Slideshow is not ready yet.");
-    }
+    @FXML private void handleSlideshow() { showStatus("Slideshow is not ready yet."); }
 
-    @FXML
-    private void handleExport() {
-        showStatus("Export is not ready yet.");
-    }
+    @FXML private void handleExport() { showStatus("Export is not ready yet."); }
 
     // ===== Import / scanning flow =====
 
@@ -277,7 +210,6 @@ public class UserScanningController {
                     return scanImportManager.importRandomTiffToBox(currentBox.getId());
                 }
 
-                // Batch scans report progress back to the popup while the BLL imports pages.
                 updateProgress(0, amount);
                 updateMessage("Fetching files from scanner...");
                 return scanImportManager.importRandomTiffBatchToBox(currentBox.getId(), amount, (completed, total, message) -> {
@@ -289,8 +221,7 @@ public class UserScanningController {
 
         importTask.setOnRunning(event -> {
             importInProgress = true;
-            btnFetchNext.setDisable(true);
-            btnFetchTen.setDisable(true);
+            setDisabled(true, btnFetchNext, btnFetchTen);
             showStatus("Fetching " + amount + " scans...");
             if (amount > 1) {
                 showProgressPopup(importTask, amount);
@@ -298,19 +229,13 @@ public class UserScanningController {
         });
 
         importTask.setOnSucceeded(event -> {
-            importInProgress = false;
-            btnFetchNext.setDisable(false);
-            btnFetchTen.setDisable(false);
-            closeProgressPopup();
+            finishImportTask();
             showStatus("Done. " + importTask.getValue() + " documents updated.");
             loadCurrentBoxDataAsync(false);
         });
 
         importTask.setOnFailed(event -> {
-            importInProgress = false;
-            btnFetchNext.setDisable(false);
-            btnFetchTen.setDisable(false);
-            closeProgressPopup();
+            finishImportTask();
             Throwable error = importTask.getException();
             showStatus("Scan failed.");
             if (error != null) {
@@ -321,6 +246,12 @@ public class UserScanningController {
         Thread importThread = new Thread(importTask, "scan-import-thread");
         importThread.setDaemon(true);
         importThread.start();
+    }
+
+    private void finishImportTask() {
+        importInProgress = false;
+        setDisabled(false, btnFetchNext, btnFetchTen);
+        closeProgressPopup();
     }
 
     // ===== Progress popup =====
@@ -355,7 +286,6 @@ public class UserScanningController {
         progressPopup.show();
     }
 
-    // Always unbind properties before closing the popup, otherwise old tasks can stay referenced.
     private void closeProgressPopup() {
         if (progressDialogController != null) {
             progressDialogController.unbind();
@@ -414,7 +344,6 @@ public class UserScanningController {
         loadThread.start();
     }
 
-    // The actual database read is delegated to BLL so the controller does not know DAO details.
     private BoxDataSnapshot fetchBoxDataSnapshot() {
         if (currentBox == null) {
             return new BoxDataSnapshot(List.of(), Map.of(), null, 0);
@@ -424,7 +353,6 @@ public class UserScanningController {
         return scanWorkspaceManager.loadBoxData(currentBox.getId(), selectedDocumentId);
     }
 
-    // Applies a fresh BLL snapshot to the screen state and then redraws the UI.
     private void applyBoxDataSnapshot(BoxDataSnapshot snapshot) {
         currentDocuments.clear();
         currentPages.clear();
@@ -464,18 +392,16 @@ public class UserScanningController {
         showCurrentPage();
     }
 
-    // Prevents the user from editing while a background load is replacing the current state.
     private void setNavigationDisabled(boolean disabled) {
-        btnPrev.setDisable(disabled);
-        btnNext.setDisable(disabled);
-        btnNavLeft.setDisable(disabled);
-        btnNavRight.setDisable(disabled);
-        btnRotateCCW.setDisable(disabled);
-        btnRotateCW.setDisable(disabled);
-        btnDelete.setDisable(disabled);
+        setDisabled(disabled, btnPrev, btnNext, btnNavLeft, btnNavRight, btnRotateCCW, btnRotateCW, btnDelete);
     }
 
-    // Avoids mutating the same list instance that is stored in the document/page map.
+    private void setDisabled(boolean disabled, Button... buttons) {
+        for (Button button : buttons) {
+            button.setDisable(disabled);
+        }
+    }
+
     private List<Page> copyPages(List<Page> pages) {
         return pages == null ? new ArrayList<>() : new ArrayList<>(pages);
     }
@@ -492,7 +418,6 @@ public class UserScanningController {
         );
     }
 
-    // Updates selected document/page state when the user clicks a document card.
     private void selectDocument(UUID documentId, int pageIndex) {
         selectedDocument = currentDocuments.stream()
                 .filter(document -> document.getId().equals(documentId))
@@ -510,7 +435,6 @@ public class UserScanningController {
         showCurrentPage();
     }
 
-    // The renderer builds the dynamic thumbnail nodes; this controller only provides callbacks.
     private void renderFilmstrip() {
         scanViewRenderer.renderFilmstrip(
                 filmstripBox,
@@ -532,7 +456,6 @@ public class UserScanningController {
         scanViewRenderer.refreshFilmstripSelection(currentPages, currentPageIndex, filmstripThumbs);
     }
 
-    // Converts page bytes to a JavaFX image once and then reuses it while the page stays loaded.
     private Image getCachedPageImage(Page page) {
         return pageImageCache.computeIfAbsent(page.getId(), ignored -> FxImageConverter.bytesToFxImage(page.getImageData()));
     }
@@ -562,27 +485,18 @@ public class UserScanningController {
 
     // ===== Page navigation =====
 
-    @FXML
-    private void showNextPage() {
+    @FXML private void showNextPage() { movePage(1); }
+
+    @FXML private void showPreviousPage() { movePage(-1); }
+
+    private void movePage(int direction) {
         if (currentPages.isEmpty()) {
             return;
         }
 
-        if (currentPageIndex < currentPages.size() - 1) {
-            currentPageIndex++;
-            refreshFilmstripSelection();
-            showCurrentPage();
-        }
-    }
-
-    @FXML
-    private void showPreviousPage() {
-        if (currentPages.isEmpty()) {
-            return;
-        }
-
-        if (currentPageIndex > 0) {
-            currentPageIndex--;
+        int nextIndex = currentPageIndex + direction;
+        if (nextIndex >= 0 && nextIndex < currentPages.size()) {
+            currentPageIndex = nextIndex;
             refreshFilmstripSelection();
             showCurrentPage();
         }
@@ -612,7 +526,6 @@ public class UserScanningController {
         }
     }
 
-    // Deletes the selected page and lets BLL renumber the remaining pages.
     @FXML
     private void deleteCurrentPage() {
         if (selectedDocument == null || currentPages.isEmpty()) {
@@ -637,10 +550,8 @@ public class UserScanningController {
             if (currentPages.isEmpty()) {
                 selectedDocument = null;
                 currentPageIndex = 0;
-            } else {
-                if (currentPageIndex >= currentPages.size()) {
-                    currentPageIndex = currentPages.size() - 1;
-                }
+            } else if (currentPageIndex >= currentPages.size()) {
+                currentPageIndex = currentPages.size() - 1;
             }
 
             loadCurrentBoxDataAsync(true);
@@ -651,7 +562,6 @@ public class UserScanningController {
         }
     }
 
-    // Called by drag/drop in the filmstrip. BLL persists the new UiOrder values.
     private boolean reorderPage(int fromIndex, int toIndex) {
         if (selectedDocument == null || fromIndex == toIndex || fromIndex < 0 || toIndex < 0
                 || fromIndex >= currentPages.size() || toIndex >= currentPages.size()) {

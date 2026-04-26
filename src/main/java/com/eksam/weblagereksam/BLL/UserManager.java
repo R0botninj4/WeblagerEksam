@@ -8,11 +8,6 @@ import com.eksam.weblagereksam.GUI.Login.PasswordHasher;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * BLL manager for user login and user CRUD.
- *
- * Password checks happen here so the GUI does not know how hashing works.
- */
 public class UserManager {
 
     // ===== DAL dependency =====
@@ -54,7 +49,6 @@ public class UserManager {
                            String fullName,
                            UUID roleId) {
 
-        // Store only the password hash, never the plain password.
         String hash = PasswordHasher.hash(password);
 
         return userDAO.addUser(

@@ -2,11 +2,6 @@ package com.eksam.weblagereksam.GUI.Login;
 
 import com.eksam.weblagereksam.BE.User;
 
-/**
- * Stores the currently logged-in user for the running application.
- *
- * Controllers use this to know who is logged in, for example when loading assigned boxes.
- */
 public class Session {
 
     // ===== Current login state =====

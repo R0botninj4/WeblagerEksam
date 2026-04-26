@@ -6,18 +6,8 @@ import com.google.zxing.common.HybridBinarizer;
 
 import java.awt.image.BufferedImage;
 
-/**
- * BLL service for detecting barcodes in scanned pages.
- *
- * A barcode means that scanning should start a new document.
- */
 public class BarcodeReaderService {
 
-    /**
-     * Tries to read a barcode from the image.
-     *
-     * The scanner/API can return rotated pages, so the same image is tested in four orientations.
-     */
     public String readBarcode(BufferedImage image) {
         int[] rotations = {0, 90, 180, 270};
 
