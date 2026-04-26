@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.BLL.Util;
+package com.eksam.weblagereksam.BLL.Security;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;

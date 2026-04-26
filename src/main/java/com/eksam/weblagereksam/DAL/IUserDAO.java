@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.DAL;
 
 import com.eksam.weblagereksam.BE.User;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -12,12 +13,9 @@ public interface IUserDAO {
 
     List<User> getAllUsers();
 
-    boolean deleteUser(UUID id);
+    UUID addUser(String username, String passwordHash, String fullName, UUID roleId);
 
     boolean updateUser(User user);
 
-    UUID addUser(String username,
-                 String passwordHash,
-                 String fullName,
-                 UUID roleId);
+    boolean deleteUser(UUID id);
 }

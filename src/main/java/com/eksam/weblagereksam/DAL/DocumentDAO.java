@@ -16,8 +16,6 @@ public class DocumentDAO implements IDocumentDAO {
     public DocumentDAO() throws Exception {
         dbConnector = new DBConnector();
     }
-
-    @Override
     public UUID addDocument(Document document) {
         String sql = """
                 INSERT INTO Documents (BoxId, DocumentNumber, BarcodeValue, Status)
@@ -44,8 +42,6 @@ public class DocumentDAO implements IDocumentDAO {
 
         return null;
     }
-
-    @Override
     public List<Document> getDocumentsByBoxId(UUID boxId) {
         List<Document> documents = new ArrayList<>();
 
@@ -83,8 +79,6 @@ public class DocumentDAO implements IDocumentDAO {
 
         return documents;
     }
-
-    @Override
     public Document getLatestDocumentByBoxId(UUID boxId) {
         String sql = """
                 SELECT TOP 1 *
@@ -120,8 +114,6 @@ public class DocumentDAO implements IDocumentDAO {
 
         return null;
     }
-
-    @Override
     public int getNextDocumentNumber(UUID boxId) {
         String sql = """
                 SELECT ISNULL(MAX(DocumentNumber), 0) + 1 AS NextNumber
@@ -146,8 +138,6 @@ public class DocumentDAO implements IDocumentDAO {
 
         return 1;
     }
-
-    @Override
     public boolean updateDocumentStatus(UUID documentId, String status) {
         String sql = """
                 UPDATE Documents
@@ -168,8 +158,6 @@ public class DocumentDAO implements IDocumentDAO {
 
         return false;
     }
-
-    @Override
     public boolean deleteDocument(UUID documentId) {
         String sql = "DELETE FROM Documents WHERE Id = ?";
 

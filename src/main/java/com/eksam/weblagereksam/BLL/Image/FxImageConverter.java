@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.BLL.Util;
+package com.eksam.weblagereksam.BLL.Image;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;

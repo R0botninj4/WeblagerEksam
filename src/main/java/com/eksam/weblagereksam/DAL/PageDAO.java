@@ -16,8 +16,6 @@ public class PageDAO implements IPageDAO {
     public PageDAO() throws Exception {
         dbConnector = new DBConnector();
     }
-
-    @Override
     public UUID addPage(Page page) {
         String sql = """
                 INSERT INTO Pages
@@ -72,8 +70,6 @@ public class PageDAO implements IPageDAO {
 
         return null;
     }
-
-    @Override
     public List<Page> getPagesByDocumentId(UUID documentId) {
         List<Page> pages = new ArrayList<>();
 
@@ -123,8 +119,6 @@ public class PageDAO implements IPageDAO {
 
         return pages;
     }
-
-    @Override
     public int getNextReferenceScanOrder(UUID documentId) {
         String sql = """
                 SELECT ISNULL(MAX(ReferenceScanOrder), 0) + 1 AS NextReferenceScanOrder
@@ -148,8 +142,6 @@ public class PageDAO implements IPageDAO {
 
         return 1;
     }
-
-    @Override
     public int getNextUiOrder(UUID documentId) {
         String sql = """
                 SELECT ISNULL(MAX(UiOrder), 0) + 1 AS NextUiOrder
@@ -173,8 +165,6 @@ public class PageDAO implements IPageDAO {
 
         return 1;
     }
-
-    @Override
     public boolean updatePage(Page page) {
         String sql = """
                 UPDATE Pages
@@ -234,8 +224,6 @@ public class PageDAO implements IPageDAO {
 
         return false;
     }
-
-    @Override
     public boolean deletePage(UUID pageId) {
         String sql = "DELETE FROM Pages WHERE Id = ?";
 
@@ -251,8 +239,6 @@ public class PageDAO implements IPageDAO {
 
         return false;
     }
-
-    @Override
     public boolean updatePageOrders(UUID documentId, List<Page> pages) {
         String sql = """
                 UPDATE Pages

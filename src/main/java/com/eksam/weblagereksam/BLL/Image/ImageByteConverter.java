@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.BLL.Util;
+package com.eksam.weblagereksam.BLL.Image;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

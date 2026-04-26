@@ -1,9 +1,9 @@
 package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.User;
+import com.eksam.weblagereksam.BLL.Security.PasswordHasher;
 import com.eksam.weblagereksam.DAL.IUserDAO;
 import com.eksam.weblagereksam.DAL.UserDAO;
-import com.eksam.weblagereksam.BLL.Util.PasswordHasher;
 
 import java.util.List;
 import java.util.UUID;

@@ -18,8 +18,6 @@ public class UserDAO implements IUserDAO {
 
 
     // BLVDSIONVEFW
-
-    @Override
     public User getUserByUsername(String username) {
 
         String sql = """
@@ -46,8 +44,6 @@ public class UserDAO implements IUserDAO {
 
         return null;
     }
-
-    @Override
     public User getUserById(UUID id) {
 
         String sql = """
@@ -74,8 +70,6 @@ public class UserDAO implements IUserDAO {
 
         return null;
     }
-
-    @Override
     public List<User> getAllUsers() {
 
         List<User> users = new ArrayList<>();
@@ -101,8 +95,6 @@ public class UserDAO implements IUserDAO {
 
         return users;
     }
-
-    @Override
     public UUID addUser(String username,
                         String passwordHash,
                         String fullName,
@@ -135,8 +127,6 @@ public class UserDAO implements IUserDAO {
 
         return null;
     }
-
-    @Override
     public boolean updateUser(User user) {
 
         String sql = """
@@ -165,8 +155,6 @@ public class UserDAO implements IUserDAO {
 
         return false;
     }
-
-    @Override
     public boolean deleteUser(UUID id) {
 
         String sql = "DELETE FROM Users WHERE Id = ?";

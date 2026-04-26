@@ -2,7 +2,7 @@ package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
-import com.eksam.weblagereksam.BLL.Util.ImageByteConverter;
+import com.eksam.weblagereksam.BLL.Image.ImageByteConverter;
 
 import java.awt.image.BufferedImage;
 import java.security.MessageDigest;

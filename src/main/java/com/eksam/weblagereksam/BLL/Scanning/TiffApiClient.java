@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.BLL.Service;
+package com.eksam.weblagereksam.BLL.Scanning;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -2,6 +2,7 @@ package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.DAL.DocumentDAO;
+import com.eksam.weblagereksam.DAL.IDocumentDAO;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +11,7 @@ public class DocumentManager {
 
     // ===== DAL dependency =====
 
-    private final DocumentDAO documentDAO;
+    private final IDocumentDAO documentDAO;
 
     public DocumentManager() throws Exception {
         documentDAO = new DocumentDAO();

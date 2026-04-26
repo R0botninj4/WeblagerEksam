@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Page;
+import com.eksam.weblagereksam.DAL.IPageDAO;
 import com.eksam.weblagereksam.DAL.PageDAO;
 
 import java.util.List;
@@ -10,7 +11,7 @@ public class PageManager {
 
     // ===== DAL dependency =====
 
-    private final PageDAO pageDAO;
+    private final IPageDAO pageDAO;
 
     public PageManager() throws Exception {
         pageDAO = new PageDAO();

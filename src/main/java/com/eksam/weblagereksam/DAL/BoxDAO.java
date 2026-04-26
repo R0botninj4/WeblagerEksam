@@ -16,8 +16,6 @@ public class BoxDAO implements IBoxDAO {
     public BoxDAO() throws Exception {
         dbConnector = new DBConnector();
     }
-
-    @Override
     public List<Box> getAllBoxes() {
         List<Box> boxes = new ArrayList<>();
 
@@ -41,8 +39,6 @@ public class BoxDAO implements IBoxDAO {
 
         return boxes;
     }
-
-    @Override
     public List<Box> getBoxesByUserId(UUID userId) {
         List<Box> boxes = new ArrayList<>();
 
@@ -71,8 +67,6 @@ public class BoxDAO implements IBoxDAO {
 
         return boxes;
     }
-
-    @Override
     public Box getBoxById(UUID id) {
         String sql = """
                 SELECT *
@@ -97,8 +91,6 @@ public class BoxDAO implements IBoxDAO {
 
         return null;
     }
-
-    @Override
     public Box getBoxByBoxNumber(String boxNumber) {
         String sql = """
                 SELECT *
@@ -123,8 +115,6 @@ public class BoxDAO implements IBoxDAO {
 
         return null;
     }
-
-    @Override
     public UUID addBox(Box box) {
         String sql = """
                 INSERT INTO Boxes (ClientId, ProfileId, BoxNumber, Label, Status)
@@ -159,8 +149,6 @@ public class BoxDAO implements IBoxDAO {
 
         return null;
     }
-
-    @Override
     public boolean updateBox(Box box) {
         String sql = """
                 UPDATE Boxes
@@ -196,8 +184,6 @@ public class BoxDAO implements IBoxDAO {
 
         return false;
     }
-
-    @Override
     public boolean deleteBox(UUID id) {
         String sql = "DELETE FROM Boxes WHERE Id = ?";
 

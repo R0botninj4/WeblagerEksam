@@ -1,6 +1,6 @@
-package com.eksam.weblagereksam.BLL.Service;
+package com.eksam.weblagereksam.BLL.Scanning;
 
-import com.eksam.weblagereksam.BLL.Util.ImageByteConverter;
+import com.eksam.weblagereksam.BLL.Image.ImageByteConverter;
 import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;

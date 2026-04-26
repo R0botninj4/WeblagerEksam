@@ -2,17 +2,15 @@ package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
-import com.eksam.weblagereksam.BLL.Service.BarcodeReaderService;
-import com.eksam.weblagereksam.BLL.Service.TiffApiClient;
-import com.eksam.weblagereksam.BLL.Service.TiffPageReader;
-import com.eksam.weblagereksam.BLL.Util.ImageByteConverter;
+import com.eksam.weblagereksam.BLL.Scanning.ScanFileProcessor;
+import com.eksam.weblagereksam.BLL.Scanning.ScannedPage;
+import com.eksam.weblagereksam.BLL.Scanning.TiffApiClient;
 import com.eksam.weblagereksam.DAL.DocumentDAO;
+import com.eksam.weblagereksam.DAL.IDocumentDAO;
+import com.eksam.weblagereksam.DAL.IPageDAO;
 import com.eksam.weblagereksam.DAL.PageDAO;
 
-import java.awt.image.BufferedImage;
-import java.security.MessageDigest;
 import java.time.LocalDateTime;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,25 +18,23 @@ public class ScanImportManager {
 
     // ===== DAL and processing services =====
 
-    private final DocumentDAO documentDAO;
-    private final PageDAO pageDAO;
+    private final IDocumentDAO documentDAO;
+    private final IPageDAO pageDAO;
     private final TiffApiClient tiffApiClient;
-    private final TiffPageReader tiffPageReader;
-    private final BarcodeReaderService barcodeReaderService;
+    private final ScanFileProcessor scanFileProcessor;
 
     public ScanImportManager() throws Exception {
         documentDAO = new DocumentDAO();
         pageDAO = new PageDAO();
         tiffApiClient = new TiffApiClient();
-        tiffPageReader = new TiffPageReader();
-        barcodeReaderService = new BarcodeReaderService();
+        scanFileProcessor = new ScanFileProcessor();
     }
 
     // ===== Public import methods =====
 
     public int importRandomTiffToBox(UUID boxId) throws Exception {
         byte[] tiffBytes = tiffApiClient.getRandomTiffBytes();
-        return importTiffBytesToBox(boxId, List.of(tiffBytes));
+        return importTiffBytesToBox(boxId, List.of(tiffBytes), null);
     }
 
     public int importRandomTiffBatchToBox(UUID boxId, int amount, ProgressListener progressListener) throws Exception {
@@ -47,10 +43,6 @@ public class ScanImportManager {
     }
 
     // ===== Import pipeline =====
-
-    private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles) throws Exception {
-        return importTiffBytesToBox(boxId, tiffFiles, null);
-    }
 
     private int importTiffBytesToBox(UUID boxId, List<byte[]> tiffFiles, ProgressListener progressListener) throws Exception {
         if (progressListener != null) {
@@ -67,14 +59,10 @@ public class ScanImportManager {
 
         for (int fileIndex = 0; fileIndex < tiffFiles.size(); fileIndex++) {
             byte[] tiffBytes = tiffFiles.get(fileIndex);
-            List<BufferedImage> images = tiffPageReader.readAllPages(tiffBytes);
 
-            for (BufferedImage image : images) {
-                String barcodeValue = barcodeReaderService.readBarcode(image);
-                boolean isBarcodePage = barcodeValue != null && !barcodeValue.isBlank();
-
-                if (isBarcodePage) {
-                    currentDocumentId = createDocument(boxId, currentDocumentNumber, barcodeValue);
+            for (ScannedPage scannedPage : scanFileProcessor.process(tiffBytes)) {
+                if (scannedPage.isBarcodePage()) {
+                    currentDocumentId = createDocument(boxId, currentDocumentNumber, scannedPage.getBarcodeValue());
                     currentDocumentNumber++;
                     importedDocuments++;
                     currentReferenceScanOrder = pageDAO.getNextReferenceScanOrder(currentDocumentId);
@@ -89,22 +77,20 @@ public class ScanImportManager {
                     importedDocuments++;
                 }
 
-                byte[] pageBytes = ImageByteConverter.bufferedImageToTiffBytes(image);
-
                 Page page = new Page(
                         null,
                         currentDocumentId,
                         currentReferenceScanOrder,
                         currentUiOrder,
-                        buildFileName(importBatchId, currentDocumentNumber - 1, currentReferenceScanOrder, isBarcodePage),
+                        buildFileName(importBatchId, currentDocumentNumber - 1, currentReferenceScanOrder, scannedPage.isBarcodePage()),
                         "image/tiff",
-                        pageBytes,
-                        (long) pageBytes.length,
-                        sha256(pageBytes),
+                        scannedPage.getImageData(),
+                        scannedPage.getFileSize(),
+                        scannedPage.getChecksum(),
                         0,
-                        image.getWidth(),
-                        image.getHeight(),
-                        isBarcodePage,
+                        scannedPage.getWidth(),
+                        scannedPage.getHeight(),
+                        scannedPage.isBarcodePage(),
                         LocalDateTime.now()
                 );
 
@@ -147,11 +133,6 @@ public class ScanImportManager {
     }
 
     // ===== Metadata helpers =====
-
-    private String sha256(byte[] data) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        return HexFormat.of().formatHex(digest.digest(data));
-    }
 
     private String buildFileName(String importBatchId, int documentNumber, int referenceScanOrder, boolean isBarcodePage) {
         String prefix = isBarcodePage ? "barcode" : "page";
