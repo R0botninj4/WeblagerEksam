@@ -101,7 +101,7 @@
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../../../../../Event-Tickets-EASV/src/main/resources/Icons/icon_edit.png" />
+                                        <Image url="@../../../Icons/icon_edit.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -110,7 +110,7 @@
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../../../../../Event-Tickets-EASV/src/main/resources/Icons/icon_delete.png" />
+                                        <Image url="@../../../Icons/icon_delete.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -122,7 +122,7 @@
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../../../../../Event-Tickets-EASV/src/main/resources/Icons/icon_save.png" />
+                                        <Image url="@../../../Icons/icon_save.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
