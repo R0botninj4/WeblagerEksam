@@ -11,6 +11,7 @@ import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer;
 import com.eksam.weblagereksam.GUI.Util.BoxDisplayConverter;
+import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.concurrent.Task;
@@ -63,6 +64,7 @@ public class UserScanningController {
     private ScanImportManager scanImportManager;
     private ScanWorkspaceManager scanWorkspaceManager;
     private ScanViewRenderer scanViewRenderer;
+    private ThemeSwitcher themeSwitcher;
 
     // ===== Current screen state =====
 
@@ -78,7 +80,6 @@ public class UserScanningController {
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
     private boolean loadingBoxData = false;
-    private boolean darkMode = true;
 
     // ===== Progress popup state =====
 
@@ -94,6 +95,7 @@ public class UserScanningController {
             scanImportManager = new ScanImportManager();
             scanWorkspaceManager = new ScanWorkspaceManager();
             scanViewRenderer = new ScanViewRenderer();
+            themeSwitcher = new ThemeSwitcher();
 
             setupUserInfo();
             setupBoxDropdown();
@@ -199,20 +201,8 @@ public class UserScanningController {
 
     @FXML
     private void handleThemeToggle() {
-        darkMode = !darkMode;
-        applyTheme();
-    }
-
-    private void applyTheme() {
-        String darkCss = getClass().getResource("/com/eksam/weblagereksam/Dark-mode.css").toExternalForm();
-        String lightCss = getClass().getResource("/com/eksam/weblagereksam/Light-mode.css").toExternalForm();
-
-        scanRoot.getStylesheets().remove(darkCss);
-        scanRoot.getStylesheets().remove(lightCss);
-        scanRoot.getStylesheets().add(darkMode ? darkCss : lightCss);
-
-        btnThemeToggle.setText(darkMode ? "Light mode" : "Dark mode");
-        showStatus(darkMode ? "Dark mode enabled." : "Light mode enabled.");
+        themeSwitcher.toggleTheme(scanRoot, btnThemeToggle);
+        showStatus(themeSwitcher.isDarkMode() ? "Dark mode enabled." : "Light mode enabled.");
     }
 
     // ===== Import / scanning flow =====
