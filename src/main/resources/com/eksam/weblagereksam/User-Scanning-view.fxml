@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.UserScanningController">
+<BorderPane fx:id="scanRoot" prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.UserScanningController">
 
     <top>
         <HBox styleClass="top-bar" BorderPane.alignment="CENTER">
@@ -29,6 +29,8 @@
             <Label fx:id="labelDocsCount" styleClass="top-bar-label" text="Docs 0" />
             <Separator orientation="VERTICAL" />
             <Label fx:id="labelSessionTimer" styleClass="top-bar-label" text="00:00" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="btnThemeToggle" onAction="#handleThemeToggle" styleClass="btn-secondary" text="Light mode" />
             <Separator orientation="VERTICAL" />
             <Label fx:id="labelUser" styleClass="top-bar-username" text="Username" />
         </HBox>

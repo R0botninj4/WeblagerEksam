@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -42,11 +43,13 @@ public class UserScanningController {
     @FXML private Label labelOutputName, labelFormat, labelPagePosition, labelPageRef;
     @FXML private Label labelConnected, labelRotationInfo, labelStatusUser;
     @FXML private ComboBox<Box> comboBoxBoxes;
+    @FXML private BorderPane scanRoot;
 
     // ===== FXML: Action buttons =====
 
     @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDelete, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
+    @FXML private Button btnThemeToggle;
 
     // ===== FXML: Main content containers =====
 
@@ -75,6 +78,7 @@ public class UserScanningController {
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
     private boolean loadingBoxData = false;
+    private boolean darkMode = true;
 
     // ===== Progress popup state =====
 
@@ -192,6 +196,24 @@ public class UserScanningController {
     @FXML private void handleSlideshow() { showStatus("Slideshow is not ready yet."); }
 
     @FXML private void handleExport() { showStatus("Export is not ready yet."); }
+
+    @FXML
+    private void handleThemeToggle() {
+        darkMode = !darkMode;
+        applyTheme();
+    }
+
+    private void applyTheme() {
+        String darkCss = getClass().getResource("/com/eksam/weblagereksam/Dark-mode.css").toExternalForm();
+        String lightCss = getClass().getResource("/com/eksam/weblagereksam/Light-mode.css").toExternalForm();
+
+        scanRoot.getStylesheets().remove(darkCss);
+        scanRoot.getStylesheets().remove(lightCss);
+        scanRoot.getStylesheets().add(darkMode ? darkCss : lightCss);
+
+        btnThemeToggle.setText(darkMode ? "Light mode" : "Dark mode");
+        showStatus(darkMode ? "Dark mode enabled." : "Light mode enabled.");
+    }
 
     // ===== Import / scanning flow =====
 
