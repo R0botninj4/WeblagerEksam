@@ -8,20 +8,20 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="177.0" prefWidth="300" spacing="10" styleClass="cBoarder" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
-   <padding>
-      <Insets bottom="10" left="10" right="10" top="10" />
-   </padding>
-   <children>
-      <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Profile creation" />
-      <TextField promptText="Name" />
-      <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Client" />
-      <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Boxes" />
-      <Separator prefWidth="200.0" />
-      <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" text="Add">
-         <VBox.margin>
-            <Insets top="10.0" />
-         </VBox.margin>
-      </Button>
-   </children>
+<VBox prefHeight="177.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets bottom="10" left="10" right="10" top="10" />
+    </padding>
+    <children>
+        <Label styleClass="h3" text="Profile creation" />
+        <TextField promptText="Name" styleClass="search-field" />
+        <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Client" styleClass="combo-box" />
+        <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Boxes" styleClass="combo-box" />
+        <Separator prefWidth="200.0" />
+        <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
+            <VBox.margin>
+                <Insets top="10.0" />
+            </VBox.margin>
+        </Button>
+    </children>
 </VBox>

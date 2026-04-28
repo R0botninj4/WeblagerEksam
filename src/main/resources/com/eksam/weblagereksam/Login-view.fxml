@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -8,23 +9,23 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="381.0" prefWidth="413.0" spacing="15" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Login.LoginController">
-   <children>
-      <ImageView fitHeight="138.0" fitWidth="270.0" pickOnBounds="true" preserveRatio="true">
-         <image>
-            <Image url="@../../../Logos/Weblagerlogo.png" />
-         </image>
-      </ImageView>
-      <VBox alignment="CENTER" prefHeight="124.0" prefWidth="413.0" spacing="20.0">
-         <children>
-            <TextField fx:id="txtUsername" maxWidth="250" promptText="Brugernavn" />
-            <PasswordField fx:id="txtPassword" maxWidth="250" promptText="Adgangskode" />
-         </children>
-      </VBox>
-      <Button maxWidth="250" onAction="#handleLogin" text="Login" />
-      <Label fx:id="lblMessage" style="-fx-text-fill: red;" text="" />
-      <Button maxWidth="250" onAction="#Bypass" text="Bypass Admin" />
-      <Button maxWidth="250" onAction="#BypassUser" text="Bypass User" />
-      <Button maxWidth="250" onAction="#BypassQA" text="Bypass QA" />
-   </children>
+<VBox alignment="CENTER" prefHeight="381.0" prefWidth="413.0" spacing="15" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Login.LoginController">
+    <children>
+        <ImageView fitHeight="138.0" fitWidth="270.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../../Logos/Weblagerlogo.png" />
+            </image>
+        </ImageView>
+        <VBox alignment="CENTER" prefHeight="124.0" prefWidth="413.0" spacing="20.0">
+            <children>
+                <TextField fx:id="txtUsername" maxWidth="250" promptText="Brugernavn" styleClass="search-field" />
+                <PasswordField fx:id="txtPassword" maxWidth="250" promptText="Adgangskode" styleClass="search-field" />
+            </children>
+        </VBox>
+        <Button maxWidth="250" onAction="#handleLogin" styleClass="btn-primary" text="Login" />
+        <Label fx:id="lblMessage" styleClass="helper-text" style="-fx-text-fill: -wl-state-error;" text="" />
+        <Button maxWidth="250" onAction="#Bypass" styleClass="btn-secondary" text="Bypass Admin" />
+        <Button maxWidth="250" onAction="#BypassUser" styleClass="btn-secondary" text="Bypass User" />
+        <Button maxWidth="250" onAction="#BypassQA" styleClass="btn-secondary" text="Bypass QA" />
+    </children>
 </VBox>

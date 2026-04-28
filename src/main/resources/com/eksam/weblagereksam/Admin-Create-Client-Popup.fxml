@@ -10,36 +10,37 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="177.0" prefWidth="300" spacing="10" styleClass="cBoarder" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
-   <padding>
-      <Insets bottom="10" left="10" right="10" top="10" />
-   </padding>
-   <children>
-      <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Client creation" />
-      <TextField promptText="Name" />
-      <Separator prefWidth="200.0" />
-      <Label text="Boxes:" />
-      <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0" VBox.vgrow="ALWAYS">
-         <children>
-            <TextField promptText="Box" />
-            <Button fx:id="btnAdd" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#addUser" text="">
-               <graphic>
-                  <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
-                     <image>
-                        <Image url="@../../../../../../../Event-Tickets-EASV/src/main/resources/Icons/icon_add.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-         </children>
-      </HBox>
-      <Label text="BOX1" />
-      <Label text="BOX2" />
-      <Separator prefWidth="200.0" />
-      <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" text="Add">
-         <VBox.margin>
-            <Insets top="10.0" />
-         </VBox.margin>
-      </Button>
-   </children>
+<VBox prefHeight="177.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets bottom="10" left="10" right="10" top="10" />
+    </padding>
+    <children>
+        <Label styleClass="h3" text="Client creation" />
+        <TextField promptText="Name" styleClass="search-field" />
+        <Separator prefWidth="200.0" />
+        <Label styleClass="top-bar-label" text="Boxes:" />
+        <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <TextField promptText="Box" styleClass="search-field" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#addUser" text="">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <image>
+                                <Image url="@../../../../../../../Event-Tickets-EASV/src/main/resources/Icons/icon_add.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <Label text="BOX1" />
+        <Label text="BOX2" />
+        <Separator prefWidth="200.0" />
+        <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
+            <VBox.margin>
+                <Insets top="10.0" />
+            </VBox.margin>
+        </Button>
+    </children>
 </VBox>
+
