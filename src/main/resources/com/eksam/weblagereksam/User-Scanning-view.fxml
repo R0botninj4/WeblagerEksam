@@ -76,27 +76,35 @@
                 <top>
                     <HBox alignment="CENTER_LEFT" spacing="8" styleClass="image-action-bar">
 
-                        <Button fx:id="btnRotateCCW" onAction="#handleRotateLeft" styleClass="btn-secondary" text="">
+                        <Button fx:id="btnRotateCCW" onAction="#handleRotateLeft" styleClass="btn-secondary" text="Left">
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../Icons/icon_edit.png" />
+                                        <Image url="@../../../Icons/icon_rotate_left.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
                         </Button>
 
-                        <Button fx:id="btnRotateCW" onAction="#handleRotateRight" styleClass="btn-secondary" text="">
+                        <Button fx:id="btnRotateCW" onAction="#handleRotateRight" styleClass="btn-secondary" text="Right">
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../Icons/icon_print.png" />
+                                        <Image url="@../../../Icons/icon_rotate_right.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
                         </Button>
 
-                        <Button fx:id="btnDelete" onAction="#deleteCurrentPage" styleClass="btn-destructive" text="Delete" />
+                        <Button fx:id="btnDelete" onAction="#deleteCurrentPage" styleClass="btn-destructive" text="Delete" >
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../../Icons/icon_delete.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
                         <Region HBox.hgrow="ALWAYS" />
                         <Button fx:id="btnPrev" onAction="#showPreviousPage" styleClass="btn-secondary" text="Previous" />
                         <Label fx:id="labelPagePosition" styleClass="image-page-position" text="0 / 0" />
