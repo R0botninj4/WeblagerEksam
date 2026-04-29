@@ -16,10 +16,11 @@ module com.eksam.weblagereksam {
 
     opens com.eksam.weblagereksam to javafx.fxml;
     opens com.eksam.weblagereksam.GUI.Login to javafx.fxml;
+    opens com.eksam.weblagereksam.GUI.Admin to javafx.fxml;
+    opens com.eksam.weblagereksam.GUI.Scanning to javafx.fxml;
     exports com.eksam.weblagereksam.GUI.Login;
+    exports com.eksam.weblagereksam.GUI.Admin;
+    exports com.eksam.weblagereksam.GUI.Scanning;
     exports com.eksam.weblagereksam;
-    exports com.eksam.weblagereksam.GUI;
-    opens com.eksam.weblagereksam.GUI to javafx.fxml;
 
 }
-
