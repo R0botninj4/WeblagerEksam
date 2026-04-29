@@ -26,12 +26,13 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class AdminController {
 
-    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnBoxes;
+    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnBoxes,btnLogged;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
 
@@ -43,6 +44,8 @@ public class AdminController {
 
     @FXML
     public void initialize() {
+        btnLogged.setDisable(true);
+        btnLogged.setVisible(false);
         try {
             userManager = new UserManager();
             profileManager = new ProfileManager();
@@ -284,7 +287,15 @@ public class AdminController {
     }
 
     private boolean isLoggedInNow(User user) {
-        return Session.getUser() != null && Session.getUser().getId().equals(user.getId());
+        if (Session.getUser() != null && Session.getUser().getId().equals(user.getId())) {
+            return true;
+        }
+
+        if (user.getLastLogin() == null) {
+            return false;
+        }
+
+        return Duration.between(user.getLastLogin(), LocalDateTime.now()).toMinutes() < 30;
     }
 
     private void setActiveButton(Button activeButton) {
