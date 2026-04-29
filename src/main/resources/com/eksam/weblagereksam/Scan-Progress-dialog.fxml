@@ -9,7 +9,7 @@
       prefWidth="330"
       spacing="12"
       styleClass="cBoarder"
-      stylesheets="@Overall.css, @Dark-mode.css"
+      stylesheets="@Overall.css, @Light-mode.css"
       xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.eksam.weblagereksam.GUI.ScanProgressDialogController">

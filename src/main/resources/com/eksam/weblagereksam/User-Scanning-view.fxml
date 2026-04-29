@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <?import javafx.scene.image.Image?>
-<BorderPane fx:id="scanRoot" prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.UserScanningController">
+<BorderPane fx:id="scanRoot" prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.UserScanningController">
 
     <top>
         <HBox styleClass="top-bar" BorderPane.alignment="CENTER">
@@ -22,9 +22,9 @@
             <Separator orientation="VERTICAL" />
             <Label styleClass="top-bar-label" text="Box" />
             <ComboBox fx:id="comboBoxBoxes" onAction="#handleBoxSelected" prefWidth="190" />
-            <Label styleClass="top-bar-label" text="Client" />
+            <Label styleClass="top-bar-label" text="Client:" />
             <Label fx:id="labelClient" styleClass="top-bar-label" text="No client" />
-            <Label styleClass="top-bar-label" text="Profile" />
+            <Label styleClass="top-bar-label" text="Profile:" />
             <Label fx:id="labelProfile" styleClass="top-bar-label" text="No profile" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="labelFilesCount" styleClass="top-bar-label" text="Files 0" />

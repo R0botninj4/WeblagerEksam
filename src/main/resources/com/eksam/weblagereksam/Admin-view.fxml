@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.AdminController">
+<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.AdminController">
     <top>
         <HBox prefHeight="49.0" prefWidth="972.0" styleClass="top-bar" BorderPane.alignment="CENTER">
             <children>
@@ -51,11 +51,6 @@
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>
                         </Button>
-                        <Button fx:id="btnLogged" mnemonicParsing="false" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Logged activity">
-                            <VBox.margin>
-                                <Insets left="10.0" right="10.0" />
-                            </VBox.margin>
-                        </Button>
                         <Button fx:id="btnProfiles" mnemonicParsing="false" onAction="#showProfiles" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Profiles">
                             <VBox.margin>
                                 <Insets left="10.0" right="10.0" />
@@ -67,6 +62,11 @@
                             </VBox.margin>
                         </Button>
                         <Button fx:id="btnBoxes" mnemonicParsing="false" onAction="#showBoxes" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Boxes">
+                            <VBox.margin>
+                                <Insets left="10.0" right="10.0" />
+                            </VBox.margin>
+                        </Button>
+                        <Button fx:id="btnLogged" mnemonicParsing="false" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Logged activity">
                             <VBox.margin>
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>
