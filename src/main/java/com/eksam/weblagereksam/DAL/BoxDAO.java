@@ -19,10 +19,8 @@ public class BoxDAO implements IBoxDAO {
     public List<Box> getAllBoxes() {
         List<Box> boxes = new ArrayList<>();
 
-        String sql = """
-                SELECT *
-                FROM Boxes
-                ORDER BY BoxNumber
+        String sql = selectBoxesSql() + """
+                ORDER BY b.BoxNumber
                 """;
 
         try (Connection conn = dbConnector.getConnection();
@@ -43,8 +41,7 @@ public class BoxDAO implements IBoxDAO {
         List<Box> boxes = new ArrayList<>();
 
         String sql = """
-                SELECT b.*
-                FROM Boxes b
+                """ + selectBoxesSql() + """
                 INNER JOIN UserBoxes ub ON ub.BoxId = b.Id
                 WHERE ub.UserId = ?
                 ORDER BY b.BoxNumber
@@ -68,10 +65,8 @@ public class BoxDAO implements IBoxDAO {
         return boxes;
     }
     public Box getBoxById(UUID id) {
-        String sql = """
-                SELECT *
-                FROM Boxes
-                WHERE Id = ?
+        String sql = selectBoxesSql() + """
+                WHERE b.Id = ?
                 """;
 
         try (Connection conn = dbConnector.getConnection();
@@ -92,10 +87,8 @@ public class BoxDAO implements IBoxDAO {
         return null;
     }
     public Box getBoxByBoxNumber(String boxNumber) {
-        String sql = """
-                SELECT *
-                FROM Boxes
-                WHERE BoxNumber = ?
+        String sql = selectBoxesSql() + """
+                WHERE b.BoxNumber = ?
                 """;
 
         try (Connection conn = dbConnector.getConnection();
@@ -212,10 +205,21 @@ public class BoxDAO implements IBoxDAO {
                 UUID.fromString(rs.getString("Id")),
                 UUID.fromString(rs.getString("ClientId")),
                 profileId,
+                rs.getString("ClientName"),
+                rs.getString("ProfileName"),
                 rs.getString("BoxNumber"),
                 rs.getString("Label"),
                 rs.getString("Status"),
                 createdAt
         );
+    }
+
+    private String selectBoxesSql() {
+        return """
+                SELECT b.*, c.Name AS ClientName, p.Name AS ProfileName
+                FROM Boxes b
+                INNER JOIN Clients c ON b.ClientId = c.Id
+                LEFT JOIN Profiles p ON b.ProfileId = p.Id
+                """;
     }
 }

@@ -40,7 +40,7 @@ public class UserScanningController {
 
     // ===== FXML: Top bar and status labels =====
 
-    @FXML private Label labelProfile, labelFilesCount, labelDocsCount, labelUser, labelDocCount;
+    @FXML private Label labelClient, labelProfile, labelFilesCount, labelDocsCount, labelUser, labelDocCount;
     @FXML private Label labelOutputName, labelFormat, labelPagePosition, labelPageRef;
     @FXML private Label labelConnected, labelRotationInfo, labelStatusUser;
     @FXML private ComboBox<Box> comboBoxBoxes;
@@ -168,6 +168,7 @@ public class UserScanningController {
         }
 
         if (currentBox == null) {
+            labelClient.setText("No Client");
             labelProfile.setText("No Profile");
             labelOutputName.setText("No Box");
             comboBoxBoxes.setPromptText("No boxes");
@@ -179,7 +180,8 @@ public class UserScanningController {
     }
 
     private void updateBoxHeader() {
-        labelProfile.setText(currentBox.getLabel() != null ? currentBox.getLabel() : "No profile");
+        labelClient.setText(currentBox.getClientName() != null ? currentBox.getClientName() : "No client");
+        labelProfile.setText(currentBox.getProfileName() != null ? currentBox.getProfileName() : "No profile");
         labelOutputName.setText(currentBox.getBoxNumber());
     }
 

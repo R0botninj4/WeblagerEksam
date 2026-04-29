@@ -22,8 +22,10 @@
             <Separator orientation="VERTICAL" />
             <Label styleClass="top-bar-label" text="Box" />
             <ComboBox fx:id="comboBoxBoxes" onAction="#handleBoxSelected" prefWidth="190" />
+            <Label styleClass="top-bar-label" text="Client" />
+            <Label fx:id="labelClient" styleClass="top-bar-label" text="No client" />
             <Label styleClass="top-bar-label" text="Profile" />
-            <Label fx:id="labelProfile" styleClass="top-bar-label" text="Archive: Name" />
+            <Label fx:id="labelProfile" styleClass="top-bar-label" text="No profile" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="labelFilesCount" styleClass="top-bar-label" text="Files 0" />
             <Separator orientation="VERTICAL" />
