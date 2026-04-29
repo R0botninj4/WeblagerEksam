@@ -15,7 +15,7 @@
         <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
     <children>
-        <Label styleClass="h3" text="Client creation" />
+        <Label styleClass="top-bar-label" text="Client creation" />
         <TextField promptText="Name" styleClass="search-field" />
         <Separator prefWidth="200.0" />
         <Label styleClass="top-bar-label" text="Boxes:" />
@@ -26,7 +26,7 @@
                     <graphic>
                         <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                             <image>
-                                <Image url="@../../../../../../../Event-Tickets-EASV/src/main/resources/Icons/icon_add.png" />
+                                <Image url="@../../../Icons/icon_add.png" />
                             </image>
                         </ImageView>
                     </graphic>

@@ -13,7 +13,7 @@
         <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
     <children>
-        <Label styleClass="h3" text="Profile creation" />
+        <Label styleClass="top-bar-label" text="Profile creation" />
         <TextField promptText="Name" styleClass="search-field" />
         <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Client" styleClass="combo-box" />
         <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Boxes" styleClass="combo-box" />

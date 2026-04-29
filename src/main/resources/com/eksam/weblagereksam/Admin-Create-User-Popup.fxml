@@ -12,7 +12,7 @@
         <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
     <children>
-        <Label styleClass="h3" text="User creation" />
+        <Label styleClass="top-bar-label" text="User creation" />
         <TextField promptText="Full name" styleClass="search-field" />
         <TextField promptText="Username" styleClass="search-field" />
         <TextField promptText="Password" styleClass="search-field" />
