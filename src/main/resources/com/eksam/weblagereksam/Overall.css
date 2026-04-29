@@ -69,6 +69,11 @@
     -fx-font-weight: 400;                   /* Keeps helper text regular weight so it stays subtle */
 }
 
+/* Small text used for page markers, barcode labels, and thumbnail captions */
+.small-text {
+    -fx-font-size: 10px;
+}
+
 
 /* ============================================================
    SPACING SCALE REFERENCE
@@ -799,6 +804,7 @@
 /* Each individual thumbnail image inside the filmstrip */
 .filmstrip-thumb {
     -fx-cursor: hand;                       /* Shows a pointer to indicate thumbnails are clickable */
+    -fx-padding: 4;
     -fx-border-width: 1;                    /* Adds a border around each thumbnail */
     -fx-border-color: -wl-state-border;     /* Colours the thumbnail border */
 }
@@ -807,6 +813,12 @@
 .filmstrip-thumb-active {
     -fx-border-color: -wl-action-primary;   /* Changes the border to the primary colour to show the active page */
     -fx-border-width: 2;                    /* Makes the active thumbnail border thicker */
+}
+
+/* Barcode pages are shown with a special colour so they are easy to spot */
+.filmstrip-thumb-barcode {
+    -fx-border-color: -wl-barcode-border;
+    -fx-background-color: -wl-barcode-bg;
 }
 
 

@@ -56,6 +56,10 @@
 
     /* Focus ring */
     -wl-focus-ring:         #008FF7;        /* The border colour shown on any focused interactive element */
+
+    /* Barcode page markers */
+    -wl-barcode-border:     #F472B6;
+    -wl-barcode-bg:         #4A2438;
 }
 
 
@@ -175,12 +179,21 @@
     -fx-border-color: -wl-state-border;     /* Dark border around document cards */
 }
 
+.document-card .label {
+    -fx-text-fill: #FFFFFF;                 /* Light text so normal document cards are readable in dark mode */
+}
+
 .document-card:hover {
     -fx-background-color: -wl-state-hover;  /* Darker hover state */
 }
 
 .document-card-active {
+    -fx-background-color: #FFFFFF;          /* White selected card so it is easy to see in dark mode */
     -fx-border-color: -wl-action-primary;   /* Bright blue border on the active document card */
+}
+
+.document-card-active .label {
+    -fx-text-fill: #2D3D4F;                 /* Dark text so labels stay readable on the white card */
 }
 
 

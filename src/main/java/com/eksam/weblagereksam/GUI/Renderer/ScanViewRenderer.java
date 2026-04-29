@@ -23,12 +23,12 @@ import java.util.function.IntConsumer;
 
 public class ScanViewRenderer {
 
-    private static final String CARD_SELECTED = "-fx-border-color: #333333; -fx-border-width: 2; -fx-padding: 8; -fx-background-color: #f1f1f1;";
-    private static final String CARD_DEFAULT = "-fx-border-color: #aaaaaa; -fx-border-width: 1; -fx-padding: 8;";
-    private static final String THUMB_SELECTED = "-fx-padding: 4; -fx-border-color: #333333; -fx-border-width: 2; -fx-background-color: #dddddd;";
-    private static final String THUMB_SELECTED_BARCODE = "-fx-padding: 4; -fx-border-color: #b4004e; -fx-border-width: 2; -fx-background-color: #ffd7e8;";
-    private static final String THUMB_DEFAULT = "-fx-padding: 4;";
-    private static final String THUMB_DEFAULT_BARCODE = "-fx-padding: 4; -fx-border-color: #d9719d; -fx-border-width: 1; -fx-background-color: #fff0f6;";
+    private static final String DOCUMENT_CARD = "document-card";
+    private static final String DOCUMENT_CARD_ACTIVE = "document-card-active";
+    private static final String FILMSTRIP_THUMB = "filmstrip-thumb";
+    private static final String FILMSTRIP_THUMB_ACTIVE = "filmstrip-thumb-active";
+    private static final String FILMSTRIP_THUMB_BARCODE = "filmstrip-thumb-barcode";
+    private static final String SMALL_TEXT = "small-text";
 
     // ===== Document list =====
 
@@ -68,7 +68,7 @@ public class ScanViewRenderer {
 
         if (!hasSelectedDocument) {
             Label empty = new Label("No pages");
-            empty.setStyle("-fx-padding: 8;");
+            empty.getStyleClass().add(SMALL_TEXT);
             filmstripBox.getChildren().add(empty);
             return;
         }
@@ -100,11 +100,15 @@ public class ScanViewRenderer {
             Consumer<UUID> onDocumentSelected
     ) {
         VBox card = new VBox(4);
-        card.setStyle(selected ? CARD_SELECTED : CARD_DEFAULT);
+        card.getStyleClass().add(DOCUMENT_CARD);
+
+        if (selected) {
+            card.getStyleClass().add(DOCUMENT_CARD_ACTIVE);
+        }
 
         HBox header = new HBox(8);
         Label title = new Label("Document " + document.getDocumentNumber());
-        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("h3");
         Label fileCount = new Label(pages.size() + " pages");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -114,13 +118,13 @@ public class ScanViewRenderer {
         for (int i = 0; i < pages.size(); i++) {
             String markerText = pages.get(i).isBarcodePage() ? "[B]" : "[" + (i + 1) + "]";
             Label marker = new Label(markerText);
-            marker.setStyle("-fx-font-size: 10;");
+            marker.getStyleClass().add(SMALL_TEXT);
             pageMarkers.getChildren().add(marker);
         }
 
         if (document.getBarcodeValue() != null && !document.getBarcodeValue().isBlank()) {
             Label barcode = new Label("Split: " + document.getBarcodeValue());
-            barcode.setStyle("-fx-font-size: 10;");
+            barcode.getStyleClass().add(SMALL_TEXT);
             pageMarkers.getChildren().add(barcode);
         }
 
@@ -150,7 +154,7 @@ public class ScanViewRenderer {
         preview.setPreserveRatio(true);
 
         Label ref = new Label("REF-" + String.format("%03d", page.getReferenceScanOrder()));
-        ref.setStyle("-fx-font-size: 9;");
+        ref.getStyleClass().add(SMALL_TEXT);
 
         String indexText = page.isBarcodePage() ? "BARCODE" : "#" + page.getUiOrder();
         if (page.getRotation() != 0) {
@@ -158,7 +162,7 @@ public class ScanViewRenderer {
         }
 
         Label pageIndexLabel = new Label(indexText);
-        pageIndexLabel.setStyle("-fx-font-size: 9;");
+        pageIndexLabel.getStyleClass().add(SMALL_TEXT);
 
         thumb.getChildren().addAll(preview, ref, pageIndexLabel);
         thumb.setOnMouseClicked(event -> onPageSelected.accept(index));
@@ -202,10 +206,14 @@ public class ScanViewRenderer {
     // ===== Thumbnail styling =====
 
     private void applyThumbnailStyle(VBox thumb, Page page, boolean selected) {
+        thumb.getStyleClass().setAll(FILMSTRIP_THUMB);
+
+        if (page.isBarcodePage()) {
+            thumb.getStyleClass().add(FILMSTRIP_THUMB_BARCODE);
+        }
+
         if (selected) {
-            thumb.setStyle(page.isBarcodePage() ? THUMB_SELECTED_BARCODE : THUMB_SELECTED);
-        } else {
-            thumb.setStyle(page.isBarcodePage() ? THUMB_DEFAULT_BARCODE : THUMB_DEFAULT);
+            thumb.getStyleClass().add(FILMSTRIP_THUMB_ACTIVE);
         }
     }
 }

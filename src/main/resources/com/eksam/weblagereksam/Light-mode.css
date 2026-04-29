@@ -55,6 +55,10 @@
 
     /* Focus ring */
     -wl-focus-ring:         #2D3D4F;        /* The border colour shown on any focused interactive element */
+
+    /* Barcode page markers */
+    -wl-barcode-border:     #D9719D;
+    -wl-barcode-bg:         #FFF0F6;
 }
 
 

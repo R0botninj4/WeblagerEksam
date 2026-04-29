@@ -48,7 +48,7 @@ public class UserScanningController {
 
     // ===== FXML: Action buttons =====
 
-    @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDelete, btnPrev;
+    @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
     @FXML private Button btnThemeToggle;
 
@@ -407,7 +407,7 @@ public class UserScanningController {
     }
 
     private void setNavigationDisabled(boolean disabled) {
-        setDisabled(disabled, btnPrev, btnNext, btnNavLeft, btnNavRight, btnRotateCCW, btnRotateCW, btnDelete);
+        setDisabled(disabled, btnPrev, btnNext, btnNavLeft, btnNavRight, btnRotateCCW, btnRotateCW, btnDeletePage);
     }
 
     private void setDisabled(boolean disabled, Button... buttons) {

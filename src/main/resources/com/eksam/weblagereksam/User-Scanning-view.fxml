@@ -96,7 +96,7 @@
                             </graphic>
                         </Button>
 
-                        <Button fx:id="btnDelete" onAction="#deleteCurrentPage" styleClass="btn-destructive" text="Delete" >
+                        <Button fx:id="btnDeletePage" onAction="#deleteCurrentPage" styleClass="btn-destructive" text="Delete" >
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
