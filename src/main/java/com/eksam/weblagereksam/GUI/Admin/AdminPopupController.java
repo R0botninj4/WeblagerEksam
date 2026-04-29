@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.GUI;
+package com.eksam.weblagereksam.GUI.Admin;
 
 public interface AdminPopupController {
 

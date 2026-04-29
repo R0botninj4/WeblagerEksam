@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.GUI;
+package com.eksam.weblagereksam.GUI.Scanning;
 
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;

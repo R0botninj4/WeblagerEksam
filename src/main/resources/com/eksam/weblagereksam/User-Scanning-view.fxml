@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <?import javafx.scene.image.Image?>
-<BorderPane fx:id="scanRoot" prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.UserScanningController">
+<BorderPane fx:id="scanRoot" prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Scanning.UserScanningController">
 
     <top>
         <HBox styleClass="top-bar" BorderPane.alignment="CENTER">

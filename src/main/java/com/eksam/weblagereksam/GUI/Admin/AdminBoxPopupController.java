@@ -1,4 +1,4 @@
-package com.eksam.weblagereksam.GUI;
+package com.eksam.weblagereksam.GUI.Admin;
 
 import com.eksam.weblagereksam.BE.Box;
 import com.eksam.weblagereksam.BE.Client;

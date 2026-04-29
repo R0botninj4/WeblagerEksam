@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.AdminController">
+<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminController">
     <top>
         <HBox prefHeight="49.0" prefWidth="972.0" styleClass="top-bar" BorderPane.alignment="CENTER">
             <children>

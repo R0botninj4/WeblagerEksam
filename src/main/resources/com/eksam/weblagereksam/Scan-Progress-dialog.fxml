@@ -12,7 +12,7 @@
       stylesheets="@Overall.css, @Light-mode.css"
       xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.eksam.weblagereksam.GUI.ScanProgressDialogController">
+        fx:controller="com.eksam.weblagereksam.GUI.Scanning.ScanProgressDialogController">
     <padding>
         <Insets bottom="16" left="16" right="16" top="16" />
     </padding>
