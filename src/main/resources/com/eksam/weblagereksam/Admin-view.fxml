@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.AdminController">
     <top>
         <HBox prefHeight="49.0" prefWidth="972.0" styleClass="top-bar" BorderPane.alignment="CENTER">
             <children>
@@ -46,7 +46,7 @@
                                 <Insets left="10.0" right="10.0" top="10.0" />
                             </VBox.margin>
                         </Button>
-                        <Button mnemonicParsing="false" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Users">
+                        <Button fx:id="btnUsers" mnemonicParsing="false" onAction="#showUsers" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Users">
                             <VBox.margin>
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>
@@ -56,12 +56,12 @@
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>
                         </Button>
-                        <Button mnemonicParsing="false" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Profiles">
+                        <Button fx:id="btnProfiles" mnemonicParsing="false" onAction="#showProfiles" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Profiles">
                             <VBox.margin>
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>
                         </Button>
-                        <Button mnemonicParsing="false" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Client">
+                        <Button fx:id="btnClients" mnemonicParsing="false" onAction="#showClients" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Client">
                             <VBox.margin>
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>
@@ -137,7 +137,7 @@
                 </HBox>
                 <VBox prefHeight="862.0" prefWidth="797.0" VBox.vgrow="ALWAYS">
                     <children>
-                        <TableView prefHeight="536.0" prefWidth="809.0" VBox.vgrow="ALWAYS">
+                        <TableView fx:id="tableAdmin" prefHeight="536.0" prefWidth="809.0" VBox.vgrow="ALWAYS">
                             <columns>
                                 <TableColumn prefWidth="97.3333740234375" text="Username" />
                                 <TableColumn prefWidth="76.66668701171875" text="Fullname" />
