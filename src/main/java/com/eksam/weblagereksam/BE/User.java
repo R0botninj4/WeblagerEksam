@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.BE;
 
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 public class User {
 
@@ -11,6 +12,7 @@ public class User {
     private UUID roleId;
     private String roleName;
     private boolean active;
+    private LocalDateTime lastLogin;
 
     public User(UUID id,
                 String username,
@@ -19,6 +21,17 @@ public class User {
                 UUID roleId,
                 String roleName,
                 boolean active) {
+        this(id, username, passwordHash, fullName, roleId, roleName, active, null);
+    }
+
+    public User(UUID id,
+                String username,
+                String passwordHash,
+                String fullName,
+                UUID roleId,
+                String roleName,
+                boolean active,
+                LocalDateTime lastLogin) {
 
         this.id = id;
         this.username = username;
@@ -27,6 +40,7 @@ public class User {
         this.roleId = roleId;
         this.roleName = roleName;
         this.active = active;
+        this.lastLogin = lastLogin;
     }
 
     public UUID getId() { return id; }
@@ -42,6 +56,8 @@ public class User {
     public String getRoleName() { return roleName; }
 
     public boolean isActive() { return active; }
+
+    public LocalDateTime getLastLogin() { return lastLogin; }
 
     public void setUsername(String username) {
         this.username = username;

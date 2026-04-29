@@ -5,6 +5,7 @@ import com.eksam.weblagereksam.DAL.IProfileDAO;
 import com.eksam.weblagereksam.DAL.ProfileDAO;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ProfileManager {
 
@@ -16,5 +17,17 @@ public class ProfileManager {
 
     public List<Profile> getAllProfiles() {
         return profileDAO.getAllProfiles();
+    }
+
+    public UUID createProfile(UUID clientId, String name, String barcodeRule, String metadataSchema) {
+        return profileDAO.addProfile(new Profile(null, clientId, null, name, barcodeRule, metadataSchema, null));
+    }
+
+    public boolean updateProfile(Profile profile) {
+        return profileDAO.updateProfile(profile);
+    }
+
+    public boolean deleteProfile(UUID id) {
+        return profileDAO.deleteProfile(id);
     }
 }

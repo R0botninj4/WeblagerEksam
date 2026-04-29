@@ -5,6 +5,7 @@ import com.eksam.weblagereksam.DAL.ClientDAO;
 import com.eksam.weblagereksam.DAL.IClientDAO;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ClientManager {
 
@@ -16,5 +17,17 @@ public class ClientManager {
 
     public List<Client> getAllClients() {
         return clientDAO.getAllClients();
+    }
+
+    public UUID createClient(String name, String code) {
+        return clientDAO.addClient(new Client(null, name, code, null));
+    }
+
+    public boolean updateClient(Client client) {
+        return clientDAO.updateClient(client);
+    }
+
+    public boolean deleteClient(UUID id) {
+        return clientDAO.deleteClient(id);
     }
 }

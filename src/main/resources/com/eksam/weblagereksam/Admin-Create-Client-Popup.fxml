@@ -10,19 +10,19 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="177.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="260.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.AdminClientPopupController">
     <padding>
         <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
     <children>
-        <Label styleClass="top-bar-label" text="Client creation" />
-        <TextField promptText="Name" styleClass="search-field" />
+        <Label fx:id="labelTitle" styleClass="top-bar-label" text="Client creation" />
+        <TextField fx:id="txtName" promptText="Client name" styleClass="search-field" />
         <Separator prefWidth="200.0" />
         <Label styleClass="top-bar-label" text="Boxes:" />
-        <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0" VBox.vgrow="ALWAYS">
+        <HBox prefHeight="30.0" prefWidth="200.0" spacing="10.0" VBox.vgrow="ALWAYS">
             <children>
-                <TextField promptText="Box" styleClass="search-field" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#addUser" text="">
+                <TextField fx:id="txtBoxNumber" promptText="Box number" styleClass="search-field" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnAddBox" mnemonicParsing="false" onAction="#addBoxName" text="">
                     <graphic>
                         <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                             <image>
@@ -33,10 +33,9 @@
                 </Button>
             </children>
         </HBox>
-        <Label text="BOX1" />
-        <Label text="BOX2" />
+        <VBox fx:id="boxListContainer" spacing="4" />
         <Separator prefWidth="200.0" />
-        <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
+        <Button mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
             <VBox.margin>
                 <Insets top="10.0" />
             </VBox.margin>

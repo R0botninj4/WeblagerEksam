@@ -3,10 +3,7 @@ package com.eksam.weblagereksam.DAL;
 import com.eksam.weblagereksam.BE.Client;
 import com.eksam.weblagereksam.DAL.DB.DBConnector;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,5 +47,68 @@ public class ClientDAO implements IClientDAO {
         }
 
         return clients;
+    }
+
+    public UUID addClient(Client client) {
+        String sql = """
+                INSERT INTO Clients (Name, Code)
+                OUTPUT INSERTED.Id
+                VALUES (?, ?)
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, client.getName());
+            stmt.setString(2, client.getCode());
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return UUID.fromString(rs.getString(1));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean updateClient(Client client) {
+        String sql = """
+                UPDATE Clients
+                SET Name = ?, Code = ?
+                WHERE Id = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, client.getName());
+            stmt.setString(2, client.getCode());
+            stmt.setString(3, client.getId().toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean deleteClient(UUID id) {
+        String sql = "DELETE FROM Clients WHERE Id = ?";
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, id.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

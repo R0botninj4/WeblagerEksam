@@ -43,4 +43,14 @@ public class Profile {
     public String getMetadataSchema() { return metadataSchema; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void setClientId(UUID clientId) { this.clientId = clientId; }
+
+    public void setClientName(String clientName) { this.clientName = clientName; }
+
+    public void setName(String name) { this.name = name; }
+
+    public void setBarcodeSplitRule(String barcodeSplitRule) { this.barcodeSplitRule = barcodeSplitRule; }
+
+    public void setMetadataSchema(String metadataSchema) { this.metadataSchema = metadataSchema; }
 }

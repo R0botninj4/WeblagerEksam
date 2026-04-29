@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.User;
+import com.eksam.weblagereksam.BE.Role;
 import com.eksam.weblagereksam.BLL.Security.PasswordHasher;
 import com.eksam.weblagereksam.DAL.IUserDAO;
 import com.eksam.weblagereksam.DAL.UserDAO;
@@ -39,6 +40,8 @@ public class UserManager {
 
         if (!user.isActive()) return null;
 
+        userDAO.updateLastLogin(user.getId());
+
         return user;
     }
 
@@ -61,6 +64,10 @@ public class UserManager {
 
     public List<User> getAllUsers() {
         return userDAO.getAllUsers();
+    }
+
+    public List<Role> getAllRoles() {
+        return userDAO.getAllRoles();
     }
 
     public User getUser(UUID id) {

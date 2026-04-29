@@ -6,19 +6,36 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="177.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="280.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Dark-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.AdminProfilePopupController">
     <padding>
         <Insets bottom="10" left="10" right="10" top="10" />
     </padding>
     <children>
-        <Label styleClass="top-bar-label" text="Profile creation" />
-        <TextField promptText="Name" styleClass="search-field" />
-        <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Client" styleClass="combo-box" />
-        <ComboBox prefHeight="25.0" prefWidth="288.0" promptText="Boxes" styleClass="combo-box" />
+        <Label fx:id="labelTitle" styleClass="top-bar-label" text="Profile creation" />
+        <TextField fx:id="txtName" promptText="Profile name" styleClass="search-field" />
+        <ComboBox fx:id="comboClient" prefHeight="25.0" prefWidth="288.0" promptText="Client" styleClass="combo-box" />
+        <HBox prefHeight="30.0" prefWidth="200.0" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <ComboBox fx:id="comboBox" prefHeight="25.0" prefWidth="240.0" promptText="Boxes" styleClass="combo-box" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnAddBox" mnemonicParsing="false" onAction="#addSelectedBox" text="">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <image>
+                                <Image url="@../../../Icons/icon_add.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <VBox fx:id="selectedBoxesContainer" spacing="4" />
         <Separator prefWidth="200.0" />
-        <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
+        <Button mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
             <VBox.margin>
                 <Insets top="10.0" />
             </VBox.margin>

@@ -3,10 +3,7 @@ package com.eksam.weblagereksam.DAL;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.DAL.DB.DBConnector;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,5 +51,72 @@ public class ProfileDAO implements IProfileDAO {
         }
 
         return profiles;
+    }
+
+    public UUID addProfile(Profile profile) {
+        String sql = """
+                INSERT INTO Profiles (ClientId, Name, BarcodeSplitRule, MetadataSchema)
+                OUTPUT INSERTED.Id
+                VALUES (?, ?, ?, ?)
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, profile.getClientId().toString());
+            stmt.setString(2, profile.getName());
+            stmt.setString(3, profile.getBarcodeSplitRule());
+            stmt.setString(4, profile.getMetadataSchema());
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return UUID.fromString(rs.getString(1));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean updateProfile(Profile profile) {
+        String sql = """
+                UPDATE Profiles
+                SET ClientId = ?, Name = ?, BarcodeSplitRule = ?, MetadataSchema = ?
+                WHERE Id = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, profile.getClientId().toString());
+            stmt.setString(2, profile.getName());
+            stmt.setString(3, profile.getBarcodeSplitRule());
+            stmt.setString(4, profile.getMetadataSchema());
+            stmt.setString(5, profile.getId().toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean deleteProfile(UUID id) {
+        String sql = "DELETE FROM Profiles WHERE Id = ?";
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, id.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

@@ -24,4 +24,13 @@ public class Client {
     public String getCode() { return code; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void setName(String name) { this.name = name; }
+
+    public void setCode(String code) { this.code = code; }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

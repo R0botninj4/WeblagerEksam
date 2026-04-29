@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.DAL;
 
 import com.eksam.weblagereksam.BE.User;
+import com.eksam.weblagereksam.BE.Role;
 import com.eksam.weblagereksam.DAL.DB.DBConnector;
 
 import java.sql.*;
@@ -95,6 +96,33 @@ public class UserDAO implements IUserDAO {
 
         return users;
     }
+    public List<Role> getAllRoles() {
+
+        List<Role> roles = new ArrayList<>();
+
+        String sql = """
+            SELECT *
+            FROM Roles
+            ORDER BY Name
+        """;
+
+        try (Connection conn = dbConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                roles.add(new Role(
+                        UUID.fromString(rs.getString("Id")),
+                        rs.getString("Name")
+                ));
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return roles;
+    }
     public UUID addUser(String username,
                         String passwordHash,
                         String fullName,
@@ -173,7 +201,29 @@ public class UserDAO implements IUserDAO {
         return false;
     }
 
+    public boolean updateLastLogin(UUID id) {
+
+        String sql = """
+            UPDATE Users
+            SET LastLogin = GETDATE()
+            WHERE Id = ?
+        """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, id.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return false;
+    }
+
     private User mapUser(ResultSet rs) throws SQLException {
+        Timestamp lastLoginTimestamp = rs.getTimestamp("LastLogin");
 
         return new User(
                 UUID.fromString(rs.getString("Id")),
@@ -182,7 +232,8 @@ public class UserDAO implements IUserDAO {
                 rs.getString("FullName"),
                 UUID.fromString(rs.getString("RoleId")),
                 rs.getString("RoleName"),
-                rs.getBoolean("IsActive")
+                rs.getBoolean("IsActive"),
+                lastLoginTimestamp != null ? lastLoginTimestamp.toLocalDateTime() : null
         );
     }
 }
