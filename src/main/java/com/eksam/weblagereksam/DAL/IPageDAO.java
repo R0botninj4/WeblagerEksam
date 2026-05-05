@@ -11,6 +11,10 @@ public interface IPageDAO {
 
     List<Page> getPagesByDocumentId(UUID documentId);
 
+    Page getPageById(UUID pageId);
+
+    List<Page> getPageSummariesByBoxId(UUID boxId);
+
     int getNextReferenceScanOrder(UUID documentId);
 
     int getNextUiOrder(UUID documentId);

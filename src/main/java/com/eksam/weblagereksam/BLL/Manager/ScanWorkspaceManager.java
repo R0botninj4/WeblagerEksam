@@ -32,19 +32,33 @@ public class ScanWorkspaceManager {
         Map<UUID, List<Page>> pagesByDocument = new HashMap<>();
         int totalFiles = 0;
 
-        for (Document document : documentManager.getDocumentsByBoxId(boxId)) {
-            List<Page> pages = pageManager.getPagesByDocumentId(document.getId());
+        for (Page page : pageManager.getPageSummariesByBoxId(boxId)) {
+            pagesByDocument.computeIfAbsent(page.getDocumentId(), ignored -> new ArrayList<>()).add(page);
+            totalFiles++;
+        }
 
-            if (pages.isEmpty()) {
+        for (Document document : documentManager.getDocumentsByBoxId(boxId)) {
+            if (!pagesByDocument.containsKey(document.getId())) {
                 continue;
             }
 
             documents.add(document);
-            pagesByDocument.put(document.getId(), new ArrayList<>(pages));
-            totalFiles += pages.size();
         }
 
-        return new BoxDataSnapshot(documents, pagesByDocument, selectedDocumentId, totalFiles);
+        UUID documentIdToLoad = selectedDocumentId;
+        if (documentIdToLoad == null || !pagesByDocument.containsKey(documentIdToLoad)) {
+            documentIdToLoad = documents.isEmpty() ? null : documents.get(0).getId();
+        }
+
+        return new BoxDataSnapshot(documents, pagesByDocument, documentIdToLoad, totalFiles);
+    }
+
+    public List<Page> loadDocumentPages(UUID documentId) {
+        return pageManager.getPagesByDocumentId(documentId);
+    }
+
+    public Page loadPage(UUID pageId) {
+        return pageManager.getPageById(pageId);
     }
 
     // ===== Page editing =====

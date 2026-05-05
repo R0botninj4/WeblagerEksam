@@ -88,29 +88,59 @@ public class PageDAO implements IPageDAO {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                Timestamp ts = rs.getTimestamp("CreatedAt");
-                LocalDateTime createdAt = ts != null ? ts.toLocalDateTime() : null;
+                pages.add(mapPage(rs, true));
+            }
 
-                Long fileSize = rs.getObject("FileSize") != null ? rs.getLong("FileSize") : null;
-                Integer width = rs.getObject("Width") != null ? rs.getInt("Width") : null;
-                Integer height = rs.getObject("Height") != null ? rs.getInt("Height") : null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-                pages.add(new Page(
-                        UUID.fromString(rs.getString("Id")),
-                        UUID.fromString(rs.getString("DocumentId")),
-                        rs.getInt("ReferenceScanOrder"),
-                        rs.getInt("UiOrder"),
-                        rs.getString("FileName"),
-                        rs.getString("MimeType"),
-                        rs.getBytes("ImageData"),
-                        fileSize,
-                        rs.getString("Checksum"),
-                        rs.getInt("Rotation"),
-                        width,
-                        height,
-                        rs.getBoolean("IsBarcodePage"),
-                        createdAt
-                ));
+        return pages;
+    }
+    public Page getPageById(UUID pageId) {
+        String sql = """
+                SELECT *
+                FROM Pages
+                WHERE Id = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, pageId.toString());
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return mapPage(rs, true);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    public List<Page> getPageSummariesByBoxId(UUID boxId) {
+        List<Page> pages = new ArrayList<>();
+
+        String sql = """
+                SELECT p.Id, p.DocumentId, p.ReferenceScanOrder, p.UiOrder, p.FileName,
+                       p.MimeType, p.FileSize, p.Checksum, p.Rotation, p.Width, p.Height,
+                       p.IsBarcodePage, p.CreatedAt
+                FROM Pages p
+                INNER JOIN Documents d ON p.DocumentId = d.Id
+                WHERE d.BoxId = ?
+                ORDER BY d.DocumentNumber, p.UiOrder
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, boxId.toString());
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                pages.add(mapPage(rs, false));
             }
 
         } catch (Exception e) {
@@ -267,5 +297,31 @@ public class PageDAO implements IPageDAO {
         }
 
         return false;
+    }
+
+    private Page mapPage(ResultSet rs, boolean includeImageData) throws SQLException {
+        Timestamp ts = rs.getTimestamp("CreatedAt");
+        LocalDateTime createdAt = ts != null ? ts.toLocalDateTime() : null;
+
+        Long fileSize = rs.getObject("FileSize") != null ? rs.getLong("FileSize") : null;
+        Integer width = rs.getObject("Width") != null ? rs.getInt("Width") : null;
+        Integer height = rs.getObject("Height") != null ? rs.getInt("Height") : null;
+
+        return new Page(
+                UUID.fromString(rs.getString("Id")),
+                UUID.fromString(rs.getString("DocumentId")),
+                rs.getInt("ReferenceScanOrder"),
+                rs.getInt("UiOrder"),
+                rs.getString("FileName"),
+                rs.getString("MimeType"),
+                includeImageData ? rs.getBytes("ImageData") : null,
+                fileSize,
+                rs.getString("Checksum"),
+                rs.getInt("Rotation"),
+                width,
+                height,
+                rs.getBoolean("IsBarcodePage"),
+                createdAt
+        );
     }
 }

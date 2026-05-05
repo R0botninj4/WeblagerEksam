@@ -3,8 +3,6 @@ package com.eksam.weblagereksam.GUI.Renderer;
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -18,7 +16,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntConsumer;
 
 public class ScanViewRenderer {
@@ -58,7 +55,6 @@ public class ScanViewRenderer {
             List<Page> pages,
             boolean hasSelectedDocument,
             int currentPageIndex,
-            Function<Page, Image> imageLoader,
             IntConsumer onPageSelected,
             BiFunction<Integer, Integer, Boolean> onPageReordered,
             Map<UUID, VBox> filmstripThumbs
@@ -75,7 +71,7 @@ public class ScanViewRenderer {
 
         for (int i = 0; i < pages.size(); i++) {
             Page page = pages.get(i);
-            VBox thumb = createThumbnail(page, i, currentPageIndex, imageLoader, onPageSelected, onPageReordered);
+            VBox thumb = createThumbnail(page, i, currentPageIndex, onPageSelected, onPageReordered);
             filmstripThumbs.put(page.getId(), thumb);
             filmstripBox.getChildren().add(thumb);
         }
@@ -140,18 +136,12 @@ public class ScanViewRenderer {
             Page page,
             int index,
             int currentPageIndex,
-            Function<Page, Image> imageLoader,
             IntConsumer onPageSelected,
             BiFunction<Integer, Integer, Boolean> onPageReordered
     ) {
         VBox thumb = new VBox(2);
         thumb.setAlignment(javafx.geometry.Pos.CENTER);
         applyThumbnailStyle(thumb, page, index == currentPageIndex);
-
-        ImageView preview = new ImageView(imageLoader.apply(page));
-        preview.setFitWidth(50);
-        preview.setFitHeight(66);
-        preview.setPreserveRatio(true);
 
         Label ref = new Label("REF-" + String.format("%03d", page.getReferenceScanOrder()));
         ref.getStyleClass().add(SMALL_TEXT);
@@ -164,7 +154,7 @@ public class ScanViewRenderer {
         Label pageIndexLabel = new Label(indexText);
         pageIndexLabel.getStyleClass().add(SMALL_TEXT);
 
-        thumb.getChildren().addAll(preview, ref, pageIndexLabel);
+        thumb.getChildren().addAll(ref, pageIndexLabel);
         thumb.setOnMouseClicked(event -> onPageSelected.accept(index));
         setupThumbnailDragAndDrop(thumb, index, onPageReordered);
         return thumb;

@@ -35,9 +35,11 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class UserScanningController {
@@ -56,7 +58,7 @@ public class UserScanningController {
 
     @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
-    @FXML private Button btnThemeToggle, btnOpenSavedBox, btnDoneBox, btnRemoveBox;
+    @FXML private Button btnThemeToggle, btnOpenBox, btnOpenSavedBox, btnDoneBox, btnRemoveBox;
 
     // ===== FXML: Main content containers =====
 
@@ -84,6 +86,7 @@ public class UserScanningController {
 
     private final Map<UUID, Image> pageImageCache = new HashMap<>();
     private final Map<UUID, VBox> filmstripThumbs = new HashMap<>();
+    private final Set<UUID> loadingPageIds = new HashSet<>();
 
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
@@ -109,10 +112,9 @@ public class UserScanningController {
 
             setupUserInfo();
             setupKeyboardShortcuts();
-            loadProfiles();
             setupSavedBoxes();
-            loadSavedBoxesForCurrentUser();
             showNoBoxSelected();
+            loadStartupDataAsync();
         } catch (Exception e) {
             showStatus("Scanner could not start.");
             e.printStackTrace();
@@ -144,21 +146,55 @@ public class UserScanningController {
             return;
         }
 
-        try {
-            Box box = boxManager.getBoxByBoxNumber(boxNumber.trim());
+        openBoxAsync(boxNumber.trim(), selectedProfile);
+    }
 
-            if (box == null) {
-                box = createBoxForProfile(boxNumber.trim(), selectedProfile);
-            } else {
-                box = updateBoxProfile(box, selectedProfile);
+    private void openBoxAsync(String boxNumber, Profile selectedProfile) {
+        Task<Box> openTask = new Task<>() {
+            @Override
+            protected Box call() throws Exception {
+                Box box = boxManager.getBoxByBoxNumber(boxNumber);
+
+                if (box == null) {
+                    box = createBoxForProfile(boxNumber, selectedProfile);
+                } else {
+                    box = updateBoxProfile(box, selectedProfile);
+                }
+
+                UUID userId = getCurrentUserId();
+                if (userId != null) {
+                    boxManager.assignBoxToUser(userId, box.getId());
+                }
+
+                return box;
             }
+        };
 
-            rememberBoxForCurrentUser(box);
+        openTask.setOnRunning(event -> {
+            setDisabled(true, btnOpenSavedBox, btnOpenBox, btnDoneBox, btnRemoveBox);
+            showStatus("Opening box...");
+        });
+
+        openTask.setOnSucceeded(event -> {
+            setDisabled(false, btnOpenSavedBox, btnOpenBox, btnDoneBox, btnRemoveBox);
+            Box box = openTask.getValue();
+            loadSavedBoxesForCurrentUserAsync(box);
+            selectSavedBox(box);
             openBox(box);
-        } catch (Exception e) {
+        });
+
+        openTask.setOnFailed(event -> {
+            setDisabled(false, btnOpenSavedBox, btnOpenBox, btnDoneBox, btnRemoveBox);
             showStatus("Could not open box.");
-            e.printStackTrace();
-        }
+            Throwable error = openTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread openThread = new Thread(openTask, "scan-open-box-thread");
+        openThread.setDaemon(true);
+        openThread.start();
     }
 
     private Box createBoxForProfile(String boxNumber, Profile profile) throws Exception {
@@ -212,32 +248,67 @@ public class UserScanningController {
         comboSavedBoxes.setConverter(new BoxDisplayConverter());
     }
 
-    private void loadSavedBoxesForCurrentUser() {
-        UUID userId = getCurrentUserId();
+    private void loadSavedBoxesForCurrentUserAsync(Box boxToSelect) {
+        Task<List<Box>> loadTask = new Task<>() {
+            @Override
+            protected List<Box> call() {
+                UUID userId = getCurrentUserId();
+                return userId != null ? boxManager.getBoxesByUserId(userId) : List.of();
+            }
+        };
 
-        if (userId == null) {
-            comboSavedBoxes.getItems().clear();
-            return;
-        }
+        loadTask.setOnSucceeded(event -> {
+            comboSavedBoxes.getItems().setAll(loadTask.getValue());
+            selectSavedBox(boxToSelect);
+        });
 
-        comboSavedBoxes.getItems().setAll(boxManager.getBoxesByUserId(userId));
-        selectSavedBox(currentBox);
+        loadTask.setOnFailed(event -> {
+            Throwable error = loadTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread loadThread = new Thread(loadTask, "scan-saved-boxes-load-thread");
+        loadThread.setDaemon(true);
+        loadThread.start();
+    }
+
+    private void loadStartupDataAsync() {
+        Task<StartupData> startupTask = new Task<>() {
+            @Override
+            protected StartupData call() {
+                UUID userId = getCurrentUserId();
+                List<Box> savedBoxes = userId != null ? boxManager.getBoxesByUserId(userId) : List.of();
+                return new StartupData(profileManager.getAllProfiles(), savedBoxes);
+            }
+        };
+
+        startupTask.setOnRunning(event -> showStatus("Loading scanner data..."));
+
+        startupTask.setOnSucceeded(event -> {
+            StartupData data = startupTask.getValue();
+            comboProfile.getItems().setAll(data.profiles());
+            comboSavedBoxes.getItems().setAll(data.savedBoxes());
+            selectSavedBox(currentBox);
+            showStatus("Enter box number and select profile.");
+        });
+
+        startupTask.setOnFailed(event -> {
+            showStatus("Could not load scanner data.");
+            Throwable error = startupTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread startupThread = new Thread(startupTask, "scan-startup-load-thread");
+        startupThread.setDaemon(true);
+        startupThread.start();
     }
 
     private UUID getCurrentUserId() {
         return Session.getUser() != null ? Session.getUser().getId() : null;
-    }
-
-    private void rememberBoxForCurrentUser(Box box) {
-        UUID userId = getCurrentUserId();
-
-        if (userId == null || box == null) {
-            return;
-        }
-
-        boxManager.assignBoxToUser(userId, box.getId());
-        loadSavedBoxesForCurrentUser();
-        selectSavedBox(box);
     }
 
     private void selectSavedBox(Box box) {
@@ -277,10 +348,6 @@ public class UserScanningController {
                 else if (event.getCode() == KeyCode.R) rotateCurrentPage(event.isShiftDown() ? -90 : 90);
             });
         });
-    }
-
-    private void loadProfiles() {
-        comboProfile.getItems().setAll(profileManager.getAllProfiles());
     }
 
     private void updateBoxHeader() {
@@ -333,16 +400,52 @@ public class UserScanningController {
         }
 
         currentBox.setStatus("COMPLETED");
+        completeBoxAsync(currentBox);
+    }
 
-        if (!boxManager.updateBox(currentBox)) {
+    private void completeBoxAsync(Box box) {
+        Task<Boolean> completeTask = new Task<>() {
+            @Override
+            protected Boolean call() {
+                if (!boxManager.updateBox(box)) {
+                    return false;
+                }
+
+                removeBoxFromCurrentUser(box);
+                return true;
+            }
+        };
+
+        completeTask.setOnRunning(event -> {
+            setDisabled(true, btnDoneBox, btnRemoveBox);
+            showStatus("Marking box as done...");
+        });
+
+        completeTask.setOnSucceeded(event -> {
+            setDisabled(false, btnDoneBox, btnRemoveBox);
+
+            if (!completeTask.getValue()) {
+                showStatus("Could not mark box as done.");
+                return;
+            }
+
+            clearCurrentBox();
+            loadSavedBoxesForCurrentUserAsync(null);
+            showStatus("Box marked as done.");
+        });
+
+        completeTask.setOnFailed(event -> {
+            setDisabled(false, btnDoneBox, btnRemoveBox);
             showStatus("Could not mark box as done.");
-            return;
-        }
+            Throwable error = completeTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
 
-        removeBoxFromCurrentUser(currentBox);
-        clearCurrentBox();
-        loadSavedBoxesForCurrentUser();
-        showStatus("Box marked as done.");
+        Thread completeThread = new Thread(completeTask, "scan-complete-box-thread");
+        completeThread.setDaemon(true);
+        completeThread.start();
     }
 
     @FXML
@@ -355,14 +458,46 @@ public class UserScanningController {
             return;
         }
 
-        removeBoxFromCurrentUser(boxToRemove);
+        removeBoxAsync(boxToRemove);
+    }
 
-        if (currentBox != null && currentBox.getId().equals(boxToRemove.getId())) {
-            clearCurrentBox();
-        }
+    private void removeBoxAsync(Box boxToRemove) {
+        Task<Void> removeTask = new Task<>() {
+            @Override
+            protected Void call() {
+                removeBoxFromCurrentUser(boxToRemove);
+                return null;
+            }
+        };
 
-        loadSavedBoxesForCurrentUser();
-        showStatus("Box removed from your list.");
+        removeTask.setOnRunning(event -> {
+            setDisabled(true, btnDoneBox, btnRemoveBox);
+            showStatus("Removing box from your list...");
+        });
+
+        removeTask.setOnSucceeded(event -> {
+            setDisabled(false, btnDoneBox, btnRemoveBox);
+
+            if (currentBox != null && currentBox.getId().equals(boxToRemove.getId())) {
+                clearCurrentBox();
+            }
+
+            loadSavedBoxesForCurrentUserAsync(currentBox);
+            showStatus("Box removed from your list.");
+        });
+
+        removeTask.setOnFailed(event -> {
+            setDisabled(false, btnDoneBox, btnRemoveBox);
+            showStatus("Could not remove box.");
+            Throwable error = removeTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread removeThread = new Thread(removeTask, "scan-remove-box-thread");
+        removeThread.setDaemon(true);
+        removeThread.start();
     }
 
     @FXML
@@ -654,7 +789,6 @@ public class UserScanningController {
                 currentPages,
                 selectedDocument != null,
                 currentPageIndex,
-                this::getCachedPageImage,
                 index -> {
                     currentPageIndex = index;
                     refreshFilmstripSelection();
@@ -685,7 +819,6 @@ public class UserScanningController {
         }
 
         Page page = currentPages.get(currentPageIndex);
-        pageImageView.setImage(getCachedPageImage(page));
         labelPagePosition.setText((currentPageIndex + 1) + " / " + currentPages.size());
         labelPageRef.setText(
                 "Document " + selectedDocument.getDocumentNumber()
@@ -694,6 +827,89 @@ public class UserScanningController {
                         + (page.isBarcodePage() ? " | BARCODE" : "")
         );
         labelRotationInfo.setText("Rotation: " + page.getRotation() + " degrees");
+
+        Image cachedImage = pageImageCache.get(page.getId());
+        if (cachedImage != null) {
+            pageImageView.setImage(cachedImage);
+            return;
+        }
+
+        if (page.getImageData() == null) {
+            pageImageView.setImage(null);
+            showStatus("Loading page...");
+            loadPageImageAsync(page.getId());
+            return;
+        }
+
+        pageImageView.setImage(getCachedPageImage(page));
+    }
+
+    private void loadPageImageAsync(UUID pageId) {
+        if (loadingPageIds.contains(pageId)) {
+            return;
+        }
+
+        loadingPageIds.add(pageId);
+
+        Task<PageImageLoad> loadTask = new Task<>() {
+            @Override
+            protected PageImageLoad call() {
+                Page loadedPage = scanWorkspaceManager.loadPage(pageId);
+                Image image = loadedPage != null ? FxImageConverter.bytesToFxImage(loadedPage.getImageData()) : null;
+                return new PageImageLoad(loadedPage, image);
+            }
+        };
+
+        loadTask.setOnSucceeded(event -> {
+            loadingPageIds.remove(pageId);
+            PageImageLoad pageLoad = loadTask.getValue();
+
+            if (pageLoad.page() == null) {
+                showStatus("Could not load page.");
+                return;
+            }
+
+            replacePage(pageLoad.page());
+            if (pageLoad.image() != null) {
+                pageImageCache.put(pageId, pageLoad.image());
+            }
+
+            if (!currentPages.isEmpty() && currentPages.get(currentPageIndex).getId().equals(pageId)) {
+                pageImageView.setImage(pageLoad.image());
+                showStatus("Ready");
+            }
+        });
+
+        loadTask.setOnFailed(event -> {
+            loadingPageIds.remove(pageId);
+            showStatus("Could not load page.");
+            Throwable error = loadTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        Thread loadThread = new Thread(loadTask, "scan-page-load-thread");
+        loadThread.setDaemon(true);
+        loadThread.start();
+    }
+
+    private void replacePage(Page loadedPage) {
+        replacePageInList(currentPages, loadedPage);
+
+        List<Page> documentPages = pagesByDocument.get(loadedPage.getDocumentId());
+        if (documentPages != null) {
+            replacePageInList(documentPages, loadedPage);
+        }
+    }
+
+    private void replacePageInList(List<Page> pages, Page loadedPage) {
+        for (int i = 0; i < pages.size(); i++) {
+            if (pages.get(i).getId().equals(loadedPage.getId())) {
+                pages.set(i, loadedPage);
+                return;
+            }
+        }
     }
 
     // ===== Page navigation =====
@@ -724,6 +940,11 @@ public class UserScanningController {
 
         try {
             Page page = currentPages.get(currentPageIndex);
+            if (page.getImageData() == null) {
+                showStatus("Wait for the page to load first.");
+                return;
+            }
+
             if (scanWorkspaceManager.rotatePage(page, delta)) {
                 pageImageCache.remove(page.getId());
                 pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
@@ -808,4 +1029,8 @@ public class UserScanningController {
     private void showStatus(String message) {
         labelConnected.setText(message);
     }
+
+    private record StartupData(List<Profile> profiles, List<Box> savedBoxes) {}
+
+    private record PageImageLoad(Page page, Image image) {}
 }

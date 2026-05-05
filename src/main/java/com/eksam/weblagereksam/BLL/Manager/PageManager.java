@@ -23,6 +23,14 @@ public class PageManager {
         return pageDAO.getPagesByDocumentId(documentId);
     }
 
+    public Page getPageById(UUID pageId) {
+        return pageDAO.getPageById(pageId);
+    }
+
+    public List<Page> getPageSummariesByBoxId(UUID boxId) {
+        return pageDAO.getPageSummariesByBoxId(boxId);
+    }
+
     public boolean updatePage(Page page) {
         return pageDAO.updatePage(page);
     }
