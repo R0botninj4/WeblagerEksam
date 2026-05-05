@@ -31,6 +31,11 @@
                                 <Insets bottom="10.0" top="10.0" />
                             </HBox.margin>
                         </Label>
+                        <Button fx:id="btnLogout" mnemonicParsing="false" onAction="#handleLogout" styleClass="btn-secondary" text="Logout">
+                            <HBox.margin>
+                                <Insets bottom="10.0" right="10.0" top="10.0" />
+                            </HBox.margin>
+                        </Button>
                     </children>
                 </HBox>
             </children>
@@ -57,11 +62,6 @@
                             </VBox.margin>
                         </Button>
                         <Button fx:id="btnClients" mnemonicParsing="false" onAction="#showClients" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Client">
-                            <VBox.margin>
-                                <Insets left="10.0" right="10.0" />
-                            </VBox.margin>
-                        </Button>
-                        <Button fx:id="btnBoxes" mnemonicParsing="false" onAction="#showBoxes" prefHeight="53.0" prefWidth="148.0" styleClass="nav-btn" text="Boxes">
                             <VBox.margin>
                                 <Insets left="10.0" right="10.0" />
                             </VBox.margin>

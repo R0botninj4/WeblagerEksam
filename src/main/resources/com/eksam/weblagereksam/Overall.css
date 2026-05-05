@@ -142,6 +142,26 @@
     -fx-text-fill: -wl-text-primary;        /* Colours all top bar info labels with the primary text colour */
 }
 
+.top-bar-count {
+    -fx-min-width: 56px;
+}
+
+.scan-open-box-bar {
+    -fx-min-width: 520px;
+}
+
+.scan-info-bar {
+    -fx-padding: 6 16 6 16;
+    -fx-background-color: -wl-bg-surface;
+    -fx-border-color: -wl-state-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.scan-info-label {
+    -fx-text-fill: -wl-text-primary;
+    -fx-font-weight: 500;
+}
+
 /* The ADMIN role badge shown on the right of the admin top bar */
 .top-bar-role {
     -fx-font-weight: 500;                   /* Makes the role label medium weight so it is readable but not dominant */

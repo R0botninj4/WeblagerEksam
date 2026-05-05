@@ -27,6 +27,14 @@ public class BoxManager {
         return boxDAO.getBoxesByUserId(userId);
     }
 
+    public Box getBoxById(UUID id) {
+        return boxDAO.getBoxById(id);
+    }
+
+    public Box getBoxByBoxNumber(String boxNumber) {
+        return boxDAO.getBoxByBoxNumber(boxNumber);
+    }
+
     public List<Box> getBoxesByClientId(UUID clientId) {
         return boxDAO.getAllBoxes().stream()
                 .filter(box -> box.getClientId().equals(clientId))
@@ -45,6 +53,14 @@ public class BoxManager {
 
     public boolean updateBox(Box box) {
         return boxDAO.updateBox(box);
+    }
+
+    public boolean assignBoxToUser(UUID userId, UUID boxId) {
+        return boxDAO.assignBoxToUser(userId, boxId);
+    }
+
+    public boolean removeBoxFromUser(UUID userId, UUID boxId) {
+        return boxDAO.removeBoxFromUser(userId, boxId);
     }
 
     public boolean deleteBox(UUID id) {

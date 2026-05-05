@@ -177,6 +177,56 @@ public class BoxDAO implements IBoxDAO {
 
         return false;
     }
+    public boolean assignBoxToUser(UUID userId, UUID boxId) {
+        String sql = """
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM UserBoxes
+                    WHERE UserId = ? AND BoxId = ?
+                )
+                BEGIN
+                    INSERT INTO UserBoxes (UserId, BoxId)
+                    VALUES (?, ?)
+                END
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, userId.toString());
+            stmt.setString(2, boxId.toString());
+            stmt.setString(3, userId.toString());
+            stmt.setString(4, boxId.toString());
+
+            stmt.executeUpdate();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+    public boolean removeBoxFromUser(UUID userId, UUID boxId) {
+        String sql = """
+                DELETE FROM UserBoxes
+                WHERE UserId = ? AND BoxId = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, userId.toString());
+            stmt.setString(2, boxId.toString());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
     public boolean deleteBox(UUID id) {
         String sql = "DELETE FROM Boxes WHERE Id = ?";
 

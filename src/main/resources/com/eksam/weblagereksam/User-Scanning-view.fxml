@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -17,26 +18,34 @@
 <BorderPane fx:id="scanRoot" prefHeight="800" prefWidth="1280" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Scanning.UserScanningController">
 
     <top>
-        <HBox styleClass="top-bar" BorderPane.alignment="CENTER">
-            <Label styleClass="top-bar-title" text="Weblager" />
-            <Separator orientation="VERTICAL" />
-            <Label styleClass="top-bar-label" text="Box" />
-            <ComboBox fx:id="comboBoxBoxes" onAction="#handleBoxSelected" prefWidth="190" />
-            <Label styleClass="top-bar-label" text="Client:" />
-            <Label fx:id="labelClient" styleClass="top-bar-label" text="No client" />
-            <Label styleClass="top-bar-label" text="Profile:" />
-            <Label fx:id="labelProfile" styleClass="top-bar-label" text="No profile" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="labelFilesCount" styleClass="top-bar-label" text="Files 0" />
-            <Separator orientation="VERTICAL" />
-            <Label fx:id="labelDocsCount" styleClass="top-bar-label" text="Docs 0" />
-            <Separator orientation="VERTICAL" />
-            <Label fx:id="labelSessionTimer" styleClass="top-bar-label" text="00:00" />
-            <Separator orientation="VERTICAL" />
-            <Button fx:id="btnThemeToggle" onAction="#handleThemeToggle" styleClass="btn-secondary" text="Light mode" />
-            <Separator orientation="VERTICAL" />
-            <Label fx:id="labelUser" styleClass="top-bar-username" text="Username" />
-        </HBox>
+        <VBox>
+            <HBox styleClass="top-bar" BorderPane.alignment="CENTER">
+                <Label styleClass="top-bar-title" text="Weblager" />
+                <Separator orientation="VERTICAL" />
+                <HBox alignment="CENTER_LEFT" spacing="6" styleClass="scan-open-box-bar" HBox.hgrow="ALWAYS">
+                    <Label styleClass="top-bar-label" text="Box" />
+                    <TextField fx:id="txtBoxNumber" promptText="Box number" prefWidth="170" styleClass="search-field" />
+                    <Label styleClass="top-bar-label" text="Profile" />
+                    <ComboBox fx:id="comboProfile" maxWidth="Infinity" prefWidth="320" promptText="Select profile" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnOpenBox" onAction="#handleOpenBox" styleClass="btn-secondary" text="Open box" />
+                </HBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="labelFilesCount" styleClass="top-bar-label top-bar-count" text="Files 0" />
+                <Separator orientation="VERTICAL" />
+                <Label fx:id="labelDocsCount" styleClass="top-bar-label top-bar-count" text="Docs 0" />
+                <Separator orientation="VERTICAL" />
+                <Button fx:id="btnThemeToggle" onAction="#handleThemeToggle" styleClass="btn-secondary" text="Light mode" />
+                <Separator orientation="VERTICAL" />
+                <Label fx:id="labelUser" styleClass="top-bar-username" text="Username" />
+                <Button fx:id="btnLogout" onAction="#handleLogout" styleClass="btn-secondary" text="Logout" />
+            </HBox>
+            <HBox spacing="18" styleClass="scan-info-bar">
+                <Label fx:id="labelClient" styleClass="scan-info-label" text="Client: No client" />
+                <Label fx:id="labelProfile" styleClass="scan-info-label" text="Profile: No profile" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="labelConnected" styleClass="scan-info-label" text="Connected" />
+            </HBox>
+        </VBox>
     </top>
 
     <left>
@@ -46,6 +55,16 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelDocCount" styleClass="sidebar-section-count" text="0 docs" />
             </HBox>
+
+            <VBox spacing="8" styleClass="sidebar-export-section">
+                <Label styleClass="sidebar-export-title" text="MY BOXES" />
+                <ComboBox fx:id="comboSavedBoxes" maxWidth="Infinity" promptText="Saved boxes" />
+                <Button fx:id="btnOpenSavedBox" maxWidth="Infinity" onAction="#handleOpenSavedBox" styleClass="btn-secondary" text="Open saved" />
+                <HBox spacing="6">
+                    <Button fx:id="btnDoneBox" maxWidth="Infinity" onAction="#handleCompleteCurrentBox" styleClass="btn-primary" text="Done" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnRemoveBox" maxWidth="Infinity" onAction="#handleRemoveCurrentBox" styleClass="btn-destructive" text="Remove" HBox.hgrow="ALWAYS" />
+                </HBox>
+            </VBox>
 
             <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
                 <VBox fx:id="documentsContainer" spacing="6" style="-fx-padding: 8;" />
@@ -179,7 +198,6 @@
 
     <bottom>
         <HBox styleClass="status-bar">
-            <Label fx:id="labelConnected" styleClass="status-bar" text="Connected" />
             <Label fx:id="labelRotationInfo" styleClass="status-bar" text="Rotation: 0 degrees" />
             <Label fx:id="labelShortcuts" styleClass="status-bar" text="Shortcuts: Arrows=navigate  R=rotate  Del=delete" />
             <Region HBox.hgrow="ALWAYS" />

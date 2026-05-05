@@ -1,14 +1,13 @@
 package com.eksam.weblagereksam.GUI.Admin;
 
-import com.eksam.weblagereksam.BE.Box;
 import com.eksam.weblagereksam.BE.Client;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BE.User;
-import com.eksam.weblagereksam.BLL.Manager.BoxManager;
 import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
 import com.eksam.weblagereksam.GUI.Login.Session;
+import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -32,14 +31,14 @@ import java.util.Optional;
 
 public class AdminController {
 
-    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnBoxes,btnLogged;
+    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
 
     private UserManager userManager;
     private ProfileManager profileManager;
     private ClientManager clientManager;
-    private BoxManager boxManager;
+    private LogoutHelper logoutHelper;
     private AdminPage currentPage = AdminPage.USERS;
 
     @FXML
@@ -50,7 +49,7 @@ public class AdminController {
             userManager = new UserManager();
             profileManager = new ProfileManager();
             clientManager = new ClientManager();
-            boxManager = new BoxManager();
+            logoutHelper = new LogoutHelper();
 
             showUsers();
         } catch (Exception e) {
@@ -122,23 +121,6 @@ public class AdminController {
     }
 
     @FXML
-    private void showBoxes() {
-        txtSearch.setPromptText("Search box");
-        currentPage = AdminPage.BOXES;
-        setActiveButton(btnBoxes);
-
-        tableAdmin.getColumns().setAll(
-                textColumn("Box number", row -> ((Box) row).getBoxNumber()),
-                textColumn("Label", row -> ((Box) row).getLabel()),
-                textColumn("Client", row -> ((Box) row).getClientName()),
-                textColumn("Profile", row -> ((Box) row).getProfileName()),
-                textColumn("Status", row -> ((Box) row).getStatus())
-        );
-
-        tableAdmin.setItems(FXCollections.observableArrayList(boxManager.getAllBoxes()));
-    }
-
-    @FXML
     private void handleAdd() {
         if (currentPage == AdminPage.ATTENDANCE) {
             showInfo("Attendance is only for viewing login status.");
@@ -198,6 +180,11 @@ public class AdminController {
         refreshCurrentPage();
     }
 
+    @FXML
+    private void handleLogout() {
+        logoutHelper.logout(tableAdmin.getScene().getWindow());
+    }
+
     private void openCurrentPagePopup(String action) {
         String title = action + " " + currentPage.singularName;
         Object selectedRow = "Edit".equals(action) ? tableAdmin.getSelectionModel().getSelectedItem() : null;
@@ -240,7 +227,6 @@ public class AdminController {
             case USERS -> userManager.deleteUser(((User) selectedRow).getId());
             case PROFILES -> profileManager.deleteProfile(((Profile) selectedRow).getId());
             case CLIENTS -> clientManager.deleteClient(((Client) selectedRow).getId());
-            case BOXES -> boxManager.deleteBox(((Box) selectedRow).getId());
         };
 
         if (deleted) {
@@ -256,7 +242,6 @@ public class AdminController {
             case USERS -> showUsers();
             case PROFILES -> showProfiles();
             case CLIENTS -> showClients();
-            case BOXES -> showBoxes();
         }
     }
 
@@ -303,7 +288,6 @@ public class AdminController {
         btnUsers.getStyleClass().remove("nav-btn-active");
         btnProfiles.getStyleClass().remove("nav-btn-active");
         btnClients.getStyleClass().remove("nav-btn-active");
-        btnBoxes.getStyleClass().remove("nav-btn-active");
         activeButton.getStyleClass().add("nav-btn-active");
     }
 
@@ -316,8 +300,7 @@ public class AdminController {
         ATTENDANCE("Attendance", ""),
         USERS("User", "/com/eksam/weblagereksam/Admin-Create-User-Popup.fxml"),
         PROFILES("Profile", "/com/eksam/weblagereksam/Admin-Create-Profile-Popup.fxml"),
-        CLIENTS("Client", "/com/eksam/weblagereksam/Admin-Create-Client-Popup.fxml"),
-        BOXES("Box", "/com/eksam/weblagereksam/Admin-Create-Box-Popup.fxml");
+        CLIENTS("Client", "/com/eksam/weblagereksam/Admin-Create-Client-Popup.fxml");
 
         private final String singularName;
         private final String fxmlPath;

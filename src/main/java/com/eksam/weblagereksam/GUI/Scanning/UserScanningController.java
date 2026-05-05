@@ -3,14 +3,17 @@ package com.eksam.weblagereksam.GUI.Scanning;
 import com.eksam.weblagereksam.BE.Box;
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
+import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BLL.Image.FxImageConverter;
 import com.eksam.weblagereksam.BLL.Manager.BoxManager;
+import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanImportManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer;
 import com.eksam.weblagereksam.GUI.Util.BoxDisplayConverter;
+import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -19,6 +22,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -43,14 +47,16 @@ public class UserScanningController {
     @FXML private Label labelClient, labelProfile, labelFilesCount, labelDocsCount, labelUser, labelDocCount;
     @FXML private Label labelOutputName, labelFormat, labelPagePosition, labelPageRef;
     @FXML private Label labelConnected, labelRotationInfo, labelStatusUser;
-    @FXML private ComboBox<Box> comboBoxBoxes;
+    @FXML private TextField txtBoxNumber;
+    @FXML private ComboBox<Profile> comboProfile;
+    @FXML private ComboBox<Box> comboSavedBoxes;
     @FXML private BorderPane scanRoot;
 
     // ===== FXML: Action buttons =====
 
     @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
-    @FXML private Button btnThemeToggle;
+    @FXML private Button btnThemeToggle, btnOpenSavedBox, btnDoneBox, btnRemoveBox;
 
     // ===== FXML: Main content containers =====
 
@@ -61,10 +67,12 @@ public class UserScanningController {
     // ===== BLL / GUI helpers =====
 
     private BoxManager boxManager;
+    private ProfileManager profileManager;
     private ScanImportManager scanImportManager;
     private ScanWorkspaceManager scanWorkspaceManager;
     private ScanViewRenderer scanViewRenderer;
     private ThemeSwitcher themeSwitcher;
+    private LogoutHelper logoutHelper;
 
     // ===== Current screen state =====
 
@@ -92,16 +100,19 @@ public class UserScanningController {
     public void initialize() {
         try {
             boxManager = new BoxManager();
+            profileManager = new ProfileManager();
             scanImportManager = new ScanImportManager();
             scanWorkspaceManager = new ScanWorkspaceManager();
             scanViewRenderer = new ScanViewRenderer();
             themeSwitcher = new ThemeSwitcher();
+            logoutHelper = new LogoutHelper();
 
             setupUserInfo();
-            setupBoxDropdown();
             setupKeyboardShortcuts();
-            loadBoxesForCurrentUser();
-            loadCurrentBoxDataAsync(false);
+            loadProfiles();
+            setupSavedBoxes();
+            loadSavedBoxesForCurrentUser();
+            showNoBoxSelected();
         } catch (Exception e) {
             showStatus("Scanner could not start.");
             e.printStackTrace();
@@ -116,28 +127,141 @@ public class UserScanningController {
         labelStatusUser.setText(username + " | Scanning");
     }
 
-    private void setupBoxDropdown() {
-        comboBoxBoxes.setConverter(new BoxDisplayConverter());
-    }
-
     // ===== FXML actions: box and toolbar controls =====
 
     @FXML
-    private void handleBoxSelected() {
-        Box selectedBox = comboBoxBoxes.getSelectionModel().getSelectedItem();
-        if (selectedBox == null || selectedBox.equals(currentBox)) {
+    private void handleOpenBox() {
+        String boxNumber = txtBoxNumber.getText();
+        Profile selectedProfile = comboProfile.getSelectionModel().getSelectedItem();
+
+        if (boxNumber == null || boxNumber.isBlank()) {
+            showStatus("Enter a box number first.");
             return;
         }
 
-        currentBox = selectedBox;
+        if (selectedProfile == null) {
+            showStatus("Select a profile first.");
+            return;
+        }
+
+        try {
+            Box box = boxManager.getBoxByBoxNumber(boxNumber.trim());
+
+            if (box == null) {
+                box = createBoxForProfile(boxNumber.trim(), selectedProfile);
+            } else {
+                box = updateBoxProfile(box, selectedProfile);
+            }
+
+            rememberBoxForCurrentUser(box);
+            openBox(box);
+        } catch (Exception e) {
+            showStatus("Could not open box.");
+            e.printStackTrace();
+        }
+    }
+
+    private Box createBoxForProfile(String boxNumber, Profile profile) throws Exception {
+        Box box = new Box(
+                null,
+                profile.getClientId(),
+                profile.getId(),
+                profile.getClientName(),
+                profile.getName(),
+                boxNumber,
+                boxNumber,
+                "IN_PROGRESS",
+                null
+        );
+
+        UUID boxId = boxManager.createBox(box);
+
+        if (boxId == null) {
+            throw new Exception("Could not create box.");
+        }
+
+        return boxManager.getBoxById(boxId);
+    }
+
+    private Box updateBoxProfile(Box box, Profile profile) {
+        box.setClientId(profile.getClientId());
+        box.setProfileId(profile.getId());
+        box.setClientName(profile.getClientName());
+        box.setProfileName(profile.getName());
+        box.setStatus("IN_PROGRESS");
+        boxManager.updateBox(box);
+        return box;
+    }
+
+    private void openBox(Box box) {
+        currentBox = box;
         selectedDocument = null;
         currentPageIndex = 0;
         currentDocuments.clear();
         currentPages.clear();
         pagesByDocument.clear();
         filmstripThumbs.clear();
+        txtBoxNumber.setText(box.getBoxNumber());
+        selectProfileForBox(box);
+        selectSavedBox(box);
         updateBoxHeader();
         loadCurrentBoxDataAsync(false);
+    }
+
+    private void setupSavedBoxes() {
+        comboSavedBoxes.setConverter(new BoxDisplayConverter());
+    }
+
+    private void loadSavedBoxesForCurrentUser() {
+        UUID userId = getCurrentUserId();
+
+        if (userId == null) {
+            comboSavedBoxes.getItems().clear();
+            return;
+        }
+
+        comboSavedBoxes.getItems().setAll(boxManager.getBoxesByUserId(userId));
+        selectSavedBox(currentBox);
+    }
+
+    private UUID getCurrentUserId() {
+        return Session.getUser() != null ? Session.getUser().getId() : null;
+    }
+
+    private void rememberBoxForCurrentUser(Box box) {
+        UUID userId = getCurrentUserId();
+
+        if (userId == null || box == null) {
+            return;
+        }
+
+        boxManager.assignBoxToUser(userId, box.getId());
+        loadSavedBoxesForCurrentUser();
+        selectSavedBox(box);
+    }
+
+    private void selectSavedBox(Box box) {
+        if (box == null) {
+            comboSavedBoxes.getSelectionModel().clearSelection();
+            return;
+        }
+
+        comboSavedBoxes.getItems().stream()
+                .filter(savedBox -> savedBox.getId().equals(box.getId()))
+                .findFirst()
+                .ifPresent(savedBox -> comboSavedBoxes.getSelectionModel().select(savedBox));
+    }
+
+    private void selectProfileForBox(Box box) {
+        if (box.getProfileId() == null) {
+            comboProfile.getSelectionModel().clearSelection();
+            return;
+        }
+
+        comboProfile.getItems().stream()
+                .filter(profile -> box.getProfileId().equals(profile.getId()))
+                .findFirst()
+                .ifPresent(profile -> comboProfile.getSelectionModel().select(profile));
     }
 
     private void setupKeyboardShortcuts() {
@@ -155,34 +279,21 @@ public class UserScanningController {
         });
     }
 
-    private void loadBoxesForCurrentUser() throws Exception {
-        List<Box> boxes = Session.getUser() != null
-                ? boxManager.getBoxesByUserId(Session.getUser().getId())
-                : boxManager.getAllBoxes();
-
-        comboBoxBoxes.getItems().setAll(boxes);
-
-        if (!boxes.isEmpty()) {
-            currentBox = boxes.get(0);
-            comboBoxBoxes.getSelectionModel().select(currentBox);
-        }
-
-        if (currentBox == null) {
-            labelClient.setText("No Client");
-            labelProfile.setText("No Profile");
-            labelOutputName.setText("No Box");
-            comboBoxBoxes.setPromptText("No boxes");
-            showStatus("No boxes found.");
-            return;
-        }
-
-        updateBoxHeader();
+    private void loadProfiles() {
+        comboProfile.getItems().setAll(profileManager.getAllProfiles());
     }
 
     private void updateBoxHeader() {
-        labelClient.setText(currentBox.getClientName() != null ? currentBox.getClientName() : "No client");
-        labelProfile.setText(currentBox.getProfileName() != null ? currentBox.getProfileName() : "No profile");
+        labelClient.setText("Client: " + (currentBox.getClientName() != null ? currentBox.getClientName() : "No client"));
+        labelProfile.setText("Profile: " + (currentBox.getProfileName() != null ? currentBox.getProfileName() : "No profile"));
         labelOutputName.setText(currentBox.getBoxNumber());
+    }
+
+    private void showNoBoxSelected() {
+        labelClient.setText("Client: No client");
+        labelProfile.setText("Profile: No profile");
+        labelOutputName.setText("No box");
+        showStatus("Enter box number and select profile.");
     }
 
     @FXML private void handleFetchNext() { startImportTask(1); }
@@ -202,9 +313,95 @@ public class UserScanningController {
     @FXML private void handleExport() { showStatus("Export is not ready yet."); }
 
     @FXML
+    private void handleOpenSavedBox() {
+        Box selectedBox = comboSavedBoxes.getSelectionModel().getSelectedItem();
+
+        if (selectedBox == null) {
+            showStatus("Select a saved box first.");
+            return;
+        }
+
+        txtBoxNumber.setText(selectedBox.getBoxNumber());
+        openBox(selectedBox);
+    }
+
+    @FXML
+    private void handleCompleteCurrentBox() {
+        if (currentBox == null) {
+            showStatus("Open a box first.");
+            return;
+        }
+
+        currentBox.setStatus("COMPLETED");
+
+        if (!boxManager.updateBox(currentBox)) {
+            showStatus("Could not mark box as done.");
+            return;
+        }
+
+        removeBoxFromCurrentUser(currentBox);
+        clearCurrentBox();
+        loadSavedBoxesForCurrentUser();
+        showStatus("Box marked as done.");
+    }
+
+    @FXML
+    private void handleRemoveCurrentBox() {
+        Box selectedSavedBox = comboSavedBoxes.getSelectionModel().getSelectedItem();
+        Box boxToRemove = selectedSavedBox != null ? selectedSavedBox : currentBox;
+
+        if (boxToRemove == null) {
+            showStatus("Select a saved box first.");
+            return;
+        }
+
+        removeBoxFromCurrentUser(boxToRemove);
+
+        if (currentBox != null && currentBox.getId().equals(boxToRemove.getId())) {
+            clearCurrentBox();
+        }
+
+        loadSavedBoxesForCurrentUser();
+        showStatus("Box removed from your list.");
+    }
+
+    @FXML
     private void handleThemeToggle() {
         themeSwitcher.toggleTheme(scanRoot, btnThemeToggle);
         showStatus(themeSwitcher.isDarkMode() ? "Dark mode enabled." : "Light mode enabled.");
+    }
+
+    @FXML
+    private void handleLogout() {
+        logoutHelper.logout(scanRoot.getScene().getWindow());
+    }
+
+    private void removeBoxFromCurrentUser(Box box) {
+        UUID userId = getCurrentUserId();
+
+        if (userId != null && box != null) {
+            boxManager.removeBoxFromUser(userId, box.getId());
+        }
+    }
+
+    private void clearCurrentBox() {
+        currentBox = null;
+        selectedDocument = null;
+        currentPageIndex = 0;
+        currentDocuments.clear();
+        currentPages.clear();
+        pagesByDocument.clear();
+        filmstripThumbs.clear();
+        pageImageCache.clear();
+        txtBoxNumber.clear();
+        labelDocsCount.setText("Docs 0");
+        labelDocCount.setText("0 docs");
+        labelFilesCount.setText("Files 0");
+        btnExport.setText("Export (0 documents)");
+        renderDocumentCards();
+        renderFilmstrip();
+        showCurrentPage();
+        showNoBoxSelected();
     }
 
     // ===== Import / scanning flow =====

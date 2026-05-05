@@ -53,4 +53,11 @@ public class Profile {
     public void setBarcodeSplitRule(String barcodeSplitRule) { this.barcodeSplitRule = barcodeSplitRule; }
 
     public void setMetadataSchema(String metadataSchema) { this.metadataSchema = metadataSchema; }
+
+    @Override
+    public String toString() {
+        return clientName == null || clientName.isBlank()
+                ? name
+                : name + " (" + clientName + ")";
+    }
 }

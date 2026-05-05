@@ -19,5 +19,9 @@ public interface IBoxDAO {
 
     boolean updateBox(Box box);
 
+    boolean assignBoxToUser(UUID userId, UUID boxId);
+
+    boolean removeBoxFromUser(UUID userId, UUID boxId);
+
     boolean deleteBox(UUID id);
 }
