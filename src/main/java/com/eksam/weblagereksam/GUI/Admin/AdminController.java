@@ -17,6 +17,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -51,10 +53,33 @@ public class AdminController {
             clientManager = new ClientManager();
             logoutHelper = new LogoutHelper();
 
+            setupTableContextMenu();
             showUsers();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void setupTableContextMenu() {
+        MenuItem addItem = new MenuItem("Add");
+        MenuItem editItem = new MenuItem("Edit");
+        MenuItem deleteItem = new MenuItem("Delete");
+
+        addItem.setOnAction(event -> handleAdd());
+        editItem.setOnAction(event -> handleEdit());
+        deleteItem.setOnAction(event -> handleDelete());
+
+        ContextMenu contextMenu = new ContextMenu(addItem, editItem, deleteItem);
+        contextMenu.setOnShowing(event -> {
+            boolean attendancePage = currentPage == AdminPage.ATTENDANCE;
+            boolean rowSelected = tableAdmin.getSelectionModel().getSelectedItem() != null;
+
+            addItem.setDisable(attendancePage);
+            editItem.setDisable(attendancePage || !rowSelected);
+            deleteItem.setDisable(attendancePage || !rowSelected);
+        });
+
+        tableAdmin.setContextMenu(contextMenu);
     }
 
     @FXML
