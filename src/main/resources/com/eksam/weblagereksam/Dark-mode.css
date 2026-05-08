@@ -158,7 +158,13 @@
 
 .nav-btn:selected,
 .nav-btn-active {
+    -fx-background-color: -wl-bg-surface;        /* Dark card colour for the selected admin page */
+    -fx-text-fill: -wl-text-on-dark;             /* White text on the active button */
     -fx-border-color: -wl-text-on-dark;          /* White active indicator stripe */
+}
+
+.nav-btn-active:hover {
+    -fx-background-color: -wl-bg-surface;        /* Keeps active button stable even when hovered */
 }
 
 .nav-btn:armed {
@@ -167,6 +173,13 @@
 
 .nav-btn:focused {
     -fx-border-color: -wl-text-on-dark;          /* White focus ring visible on dark sidebar */
+}
+
+.nav-btn-active:focused {
+    -fx-background-color: -wl-bg-surface;        /* Keeps selected page visible after clicking */
+    -fx-text-fill: -wl-text-on-dark;
+    -fx-border-color: -wl-text-on-dark;
+    -fx-border-width: 0 0 0 4;
 }
 
 

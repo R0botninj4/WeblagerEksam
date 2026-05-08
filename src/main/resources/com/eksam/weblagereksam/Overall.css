@@ -325,8 +325,12 @@
 /* Nav button when it is the currently active/selected section */
 .nav-btn:selected,
 .nav-btn-active {
+    -fx-background-color: -wl-nav-secondary-btn; /* Keeps the active page button dark and clear */
+    -fx-text-fill: -wl-text-on-dark;        /* Keeps active button text white */
     -fx-border-color: -wl-text-on-dark;     /* Adds a visible border to show which section is currently active */
-    -fx-border-width: 0 0 0 3;             /* Only draws the border on the left side as an active indicator stripe */
+    -fx-border-width: 0 0 0 4;             /* Only draws the border on the left side as an active indicator stripe */
+    -fx-background-radius: 6;              /* Keeps the same rounded shape when active */
+    -fx-border-radius: 6;                  /* Rounds the active indicator with the button */
 }
 
 /* Nav button when it is being pressed */
@@ -338,6 +342,12 @@
 .nav-btn:focused {
     -fx-border-color: -wl-text-on-dark;     /* Shows a white focus ring so keyboard users can see which button is focused */
     -fx-border-width: 1.5;                  /* Makes the focus ring visible but not overpowering */
+}
+
+/* Active nav button must stay active-looking even after JavaFX gives it keyboard focus */
+.nav-btn-active:focused {
+    -fx-border-color: -wl-text-on-dark;
+    -fx-border-width: 0 0 0 4;
 }
 
 

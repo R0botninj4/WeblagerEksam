@@ -78,6 +78,17 @@ public class UserManager {
         return userDAO.updateUser(user);
     }
 
+    public boolean deactivateUser(UUID id) {
+        User user = userDAO.getUserById(id);
+
+        if (user == null) {
+            return false;
+        }
+
+        user.setActive(false);
+        return userDAO.updateUser(user);
+    }
+
     public boolean deleteUser(UUID id) {
         return userDAO.deleteUser(id);
     }

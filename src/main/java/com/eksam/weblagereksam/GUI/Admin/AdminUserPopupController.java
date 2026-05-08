@@ -4,6 +4,7 @@ import com.eksam.weblagereksam.BE.Role;
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -14,6 +15,7 @@ public class AdminUserPopupController implements AdminPopupController {
     @FXML private Label labelTitle;
     @FXML private TextField txtFullName, txtUsername, txtPassword;
     @FXML private ComboBox<Role> comboRole;
+    @FXML private CheckBox checkActive;
 
     private UserManager userManager;
     private User user;
@@ -35,6 +37,7 @@ public class AdminUserPopupController implements AdminPopupController {
             txtFullName.setText(user.getFullName());
             txtUsername.setText(user.getUsername());
             txtPassword.setPromptText("Leave empty to keep password");
+            checkActive.setSelected(user.isActive());
             comboRole.getSelectionModel().select(
                     comboRole.getItems().stream()
                             .filter(role -> role.getId().equals(user.getRoleId()))
@@ -56,6 +59,7 @@ public class AdminUserPopupController implements AdminPopupController {
             user.setUsername(txtUsername.getText());
             user.setFullName(txtFullName.getText());
             user.setRoleId(selectedRole.getId());
+            user.setActive(checkActive.isSelected());
             saved = userManager.updateUser(user);
         } else {
             if (txtPassword.getText().isBlank()) {

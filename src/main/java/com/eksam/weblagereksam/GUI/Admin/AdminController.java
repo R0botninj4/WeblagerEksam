@@ -29,9 +29,21 @@ import javafx.stage.Window;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class AdminController {
+
+    private static final String ACTIVE_NAV_STYLE = """
+            -fx-background-color: #2D3D4F;
+            -fx-text-fill: white;
+            -fx-border-color: white;
+            -fx-border-width: 0 0 0 4;
+            -fx-background-radius: 6;
+            -fx-border-radius: 6;
+            """;
 
     // FXML fields are connected to Admin-view.fxml.
     // That means JavaFX fills these variables when the view is loaded.
@@ -45,6 +57,7 @@ public class AdminController {
     private ProfileManager profileManager;
     private ClientManager clientManager;
     private LogoutHelper logoutHelper;
+    private List<Object> currentRows = new ArrayList<>();
 
     // Keeps track of which admin page/table is currently shown.
     // Example: USERS means Add/Edit/Delete should open the user popup.
@@ -61,10 +74,17 @@ public class AdminController {
             logoutHelper = new LogoutHelper();
 
             setupTableContextMenu();
+            setupSearchBar();
             showUsers();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void setupSearchBar() {
+        // Every time the admin types in the search field, the current table is filtered.
+        // The full list is kept in currentRows, so clearing search shows everything again.
+        txtSearch.textProperty().addListener((obs, oldText, newText) -> applySearchFilter());
     }
 
     private void setupTableContextMenu() {
@@ -103,12 +123,11 @@ public class AdminController {
 
         tableAdmin.getColumns().setAll(
                 textColumn("Username", row -> ((User) row).getUsername()),
-                textColumn("Full name", row -> ((User) row).getFullName()),
                 textColumn("Logged in now", row -> isLoggedInNow((User) row) ? "Yes" : "No"),
                 textColumn("Last login", row -> formatDateTime(((User) row).getLastLogin()))
         );
 
-        tableAdmin.setItems(FXCollections.observableArrayList(userManager.getAllUsers()));
+        setTableRows(userManager.getAllUsers());
     }
 
     @FXML
@@ -121,12 +140,11 @@ public class AdminController {
 
         tableAdmin.getColumns().setAll(
                 textColumn("Username", row -> ((User) row).getUsername()),
-                textColumn("Full name", row -> ((User) row).getFullName()),
                 textColumn("Role", row -> ((User) row).getRoleName()),
                 textColumn("Active", row -> ((User) row).isActive() ? "Yes" : "No")
         );
 
-        tableAdmin.setItems(FXCollections.observableArrayList(userManager.getAllUsers()));
+        setTableRows(userManager.getAllUsers());
     }
 
     @FXML
@@ -139,11 +157,10 @@ public class AdminController {
         tableAdmin.getColumns().setAll(
                 textColumn("Name", row -> ((Profile) row).getName()),
                 textColumn("Client", row -> ((Profile) row).getClientName()),
-                textColumn("Barcode rule", row -> ((Profile) row).getBarcodeSplitRule()),
                 textColumn("Created", row -> formatDate(((Profile) row).getCreatedAt()))
         );
 
-        tableAdmin.setItems(FXCollections.observableArrayList(profileManager.getAllProfiles()));
+        setTableRows(profileManager.getAllProfiles());
     }
 
     @FXML
@@ -155,11 +172,10 @@ public class AdminController {
 
         tableAdmin.getColumns().setAll(
                 textColumn("Name", row -> ((Client) row).getName()),
-                textColumn("Code", row -> ((Client) row).getCode()),
                 textColumn("Created", row -> formatDate(((Client) row).getCreatedAt()))
         );
 
-        tableAdmin.setItems(FXCollections.observableArrayList(clientManager.getAllClients()));
+        setTableRows(clientManager.getAllClients());
     }
 
     @FXML
@@ -202,9 +218,12 @@ public class AdminController {
         }
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete " + currentPage.singularName);
-        alert.setHeaderText("Delete selected " + currentPage.singularName.toLowerCase() + "?");
-        alert.setContentText("This opens the delete popup for the current admin page.");
+        boolean userPage = currentPage == AdminPage.USERS;
+        alert.setTitle((userPage ? "Deactivate " : "Delete ") + currentPage.singularName);
+        alert.setHeaderText((userPage ? "Deactivate selected " : "Delete selected ") + currentPage.singularName.toLowerCase() + "?");
+        alert.setContentText(userPage
+                ? "The user will stay in the database, but they can no longer log in."
+                : "This will delete the selected " + currentPage.singularName.toLowerCase() + ".");
 
         Window owner = tableAdmin.getScene() != null ? tableAdmin.getScene().getWindow() : null;
         if (owner != null) {
@@ -272,7 +291,7 @@ public class AdminController {
         // This keeps database access inside BLL/DAL instead of inside the GUI.
         boolean deleted = switch (currentPage) {
             case ATTENDANCE -> false;
-            case USERS -> userManager.deleteUser(((User) selectedRow).getId());
+            case USERS -> userManager.deactivateUser(((User) selectedRow).getId());
             case PROFILES -> profileManager.deleteProfile(((Profile) selectedRow).getId());
             case CLIENTS -> clientManager.deleteClient(((Client) selectedRow).getId());
         };
@@ -301,6 +320,60 @@ public class AdminController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void setTableRows(List<?> rows) {
+        // Saves the unfiltered rows first.
+        // Search uses this list so it can always go back to all rows.
+        currentRows = new ArrayList<>(rows);
+        applySearchFilter();
+    }
+
+    private void applySearchFilter() {
+        String searchText = txtSearch.getText();
+
+        if (searchText == null || searchText.isBlank()) {
+            tableAdmin.setItems(FXCollections.observableArrayList(currentRows));
+            return;
+        }
+
+        String search = searchText.toLowerCase(Locale.ROOT);
+        List<Object> filteredRows = currentRows.stream()
+                .filter(row -> rowMatchesSearch(row, search))
+                .toList();
+
+        tableAdmin.setItems(FXCollections.observableArrayList(filteredRows));
+    }
+
+    private boolean rowMatchesSearch(Object row, String search) {
+        return switch (currentPage) {
+            case ATTENDANCE, USERS -> userMatchesSearch((User) row, search);
+            case PROFILES -> profileMatchesSearch((Profile) row, search);
+            case CLIENTS -> clientMatchesSearch((Client) row, search);
+        };
+    }
+
+    private boolean userMatchesSearch(User user, String search) {
+        return containsSearch(user.getUsername(), search)
+                || containsSearch(user.getRoleName(), search)
+                || containsSearch(user.isActive() ? "Yes" : "No", search)
+                || containsSearch(isLoggedInNow(user) ? "Yes" : "No", search)
+                || containsSearch(formatDateTime(user.getLastLogin()), search);
+    }
+
+    private boolean profileMatchesSearch(Profile profile, String search) {
+        return containsSearch(profile.getName(), search)
+                || containsSearch(profile.getClientName(), search)
+                || containsSearch(formatDate(profile.getCreatedAt()), search);
+    }
+
+    private boolean clientMatchesSearch(Client client, String search) {
+        return containsSearch(client.getName(), search)
+                || containsSearch(formatDate(client.getCreatedAt()), search);
+    }
+
+    private boolean containsSearch(String value, String search) {
+        return safeText(value).toLowerCase(Locale.ROOT).contains(search);
     }
 
     private TableColumn<Object, String> textColumn(String title, TextGetter getter) {
@@ -338,11 +411,18 @@ public class AdminController {
     }
 
     private void setActiveButton(Button activeButton) {
-        btnAttendance.getStyleClass().remove("nav-btn-active");
-        btnUsers.getStyleClass().remove("nav-btn-active");
-        btnProfiles.getStyleClass().remove("nav-btn-active");
-        btnClients.getStyleClass().remove("nav-btn-active");
+        btnAttendance.getStyleClass().removeAll("nav-btn-active");
+        btnUsers.getStyleClass().removeAll("nav-btn-active");
+        btnProfiles.getStyleClass().removeAll("nav-btn-active");
+        btnClients.getStyleClass().removeAll("nav-btn-active");
+
+        btnAttendance.setStyle("");
+        btnUsers.setStyle("");
+        btnProfiles.setStyle("");
+        btnClients.setStyle("");
+
         activeButton.getStyleClass().add("nav-btn-active");
+        activeButton.setStyle(ACTIVE_NAV_STYLE);
     }
 
     @FunctionalInterface
