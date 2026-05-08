@@ -33,14 +33,21 @@ import java.util.Optional;
 
 public class AdminController {
 
+    // FXML fields are connected to Admin-view.fxml.
+    // That means JavaFX fills these variables when the view is loaded.
     @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
 
+    // Managers belong to the BLL layer.
+    // The controller asks managers for data instead of talking directly to the database.
     private UserManager userManager;
     private ProfileManager profileManager;
     private ClientManager clientManager;
     private LogoutHelper logoutHelper;
+
+    // Keeps track of which admin page/table is currently shown.
+    // Example: USERS means Add/Edit/Delete should open the user popup.
     private AdminPage currentPage = AdminPage.USERS;
 
     @FXML
@@ -61,6 +68,8 @@ public class AdminController {
     }
 
     private void setupTableContextMenu() {
+        // This is the menu shown when the admin right-clicks the table.
+        // It reuses the same methods as the toolbar buttons, so the logic only exists once.
         MenuItem addItem = new MenuItem("Add");
         MenuItem editItem = new MenuItem("Edit");
         MenuItem deleteItem = new MenuItem("Delete");
@@ -71,6 +80,8 @@ public class AdminController {
 
         ContextMenu contextMenu = new ContextMenu(addItem, editItem, deleteItem);
         contextMenu.setOnShowing(event -> {
+            // Attendance is read-only, so Add/Edit/Delete should not be clickable there.
+            // Edit/Delete also need a selected row before they make sense.
             boolean attendancePage = currentPage == AdminPage.ATTENDANCE;
             boolean rowSelected = tableAdmin.getSelectionModel().getSelectedItem() != null;
 
@@ -84,6 +95,8 @@ public class AdminController {
 
     @FXML
     private void showAttendance() {
+        // Attendance shows login information only.
+        // It uses User data, but it is not meant for editing users.
         txtSearch.setPromptText("Search attendance");
         currentPage = AdminPage.ATTENDANCE;
         setActiveButton(btnAttendance);
@@ -100,6 +113,8 @@ public class AdminController {
 
     @FXML
     private void showUsers() {
+        // Rebuilds the table so it fits the Users page.
+        // Each column tells JavaFX which value to show from a User object.
         txtSearch.setPromptText("Search user");
         currentPage = AdminPage.USERS;
         setActiveButton(btnUsers);
@@ -116,6 +131,7 @@ public class AdminController {
 
     @FXML
     private void showProfiles() {
+        // Rebuilds the table so it fits the Profiles page.
         txtSearch.setPromptText("Search profile");
         currentPage = AdminPage.PROFILES;
         setActiveButton(btnProfiles);
@@ -132,6 +148,7 @@ public class AdminController {
 
     @FXML
     private void showClients() {
+        // Rebuilds the table so it fits the Clients page.
         txtSearch.setPromptText("Search client");
         currentPage = AdminPage.CLIENTS;
         setActiveButton(btnClients);
@@ -211,6 +228,8 @@ public class AdminController {
     }
 
     private void openCurrentPagePopup(String action) {
+        // Opens the correct popup for the page we are currently on.
+        // Example: if currentPage is USERS, this opens Admin-Create-User-Popup.fxml.
         String title = action + " " + currentPage.singularName;
         Object selectedRow = "Edit".equals(action) ? tableAdmin.getSelectionModel().getSelectedItem() : null;
         Parent content;
@@ -228,6 +247,8 @@ public class AdminController {
 
         popupController.setup(action, selectedRow);
 
+        // Creates a small modal popup window.
+        // Modal means the admin must close this popup before using the main window again.
         Stage popup = new Stage();
         popup.setTitle(title);
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -247,6 +268,8 @@ public class AdminController {
     }
 
     private void deleteSelectedRow(Object selectedRow) {
+        // Deletes from the correct manager depending on which table is open.
+        // This keeps database access inside BLL/DAL instead of inside the GUI.
         boolean deleted = switch (currentPage) {
             case ATTENDANCE -> false;
             case USERS -> userManager.deleteUser(((User) selectedRow).getId());
@@ -262,6 +285,8 @@ public class AdminController {
     }
 
     private void refreshCurrentPage() {
+        // Reloads the table that is currently visible.
+        // This is used after Add/Edit/Delete and by the refresh button.
         switch (currentPage) {
             case ATTENDANCE -> showAttendance();
             case USERS -> showUsers();
@@ -279,6 +304,8 @@ public class AdminController {
     }
 
     private TableColumn<Object, String> textColumn(String title, TextGetter getter) {
+        // Small helper for creating text columns.
+        // The TextGetter decides what text each row should show in this column.
         TableColumn<Object, String> column = new TableColumn<>(title);
         column.setCellValueFactory(cell -> new SimpleStringProperty(safeText(getter.getText(cell.getValue()))));
         return column;
@@ -297,6 +324,8 @@ public class AdminController {
     }
 
     private boolean isLoggedInNow(User user) {
+        // The current user is always logged in.
+        // Other users count as logged in if their LastLogin is less than 30 minutes ago.
         if (Session.getUser() != null && Session.getUser().getId().equals(user.getId())) {
             return true;
         }
@@ -318,10 +347,14 @@ public class AdminController {
 
     @FunctionalInterface
     private interface TextGetter {
+        // This interface is used by textColumn().
+        // It lets each table column decide how to get text from a row object.
         String getText(Object row);
     }
 
     private enum AdminPage {
+        // Enum means a fixed list of possible admin pages.
+        // It is safer than using plain text like "USERS" because Java catches spelling mistakes.
         ATTENDANCE("Attendance", ""),
         USERS("User", "/com/eksam/weblagereksam/Admin-Create-User-Popup.fxml"),
         PROFILES("Profile", "/com/eksam/weblagereksam/Admin-Create-Profile-Popup.fxml"),
