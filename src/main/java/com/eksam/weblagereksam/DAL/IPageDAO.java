@@ -21,6 +21,8 @@ public interface IPageDAO {
 
     boolean updatePage(Page page);
 
+    boolean updatePageRotation(UUID pageId, int rotation);
+
     boolean deletePage(UUID pageId);
 
     boolean updatePageOrders(UUID documentId, List<Page> pages);

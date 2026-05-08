@@ -254,6 +254,27 @@ public class PageDAO implements IPageDAO {
 
         return false;
     }
+    public boolean updatePageRotation(UUID pageId, int rotation) {
+        String sql = """
+                UPDATE Pages
+                SET Rotation = ?
+                WHERE Id = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, rotation);
+            stmt.setString(2, pageId.toString());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
     public boolean deletePage(UUID pageId) {
         String sql = "DELETE FROM Pages WHERE Id = ?";
 

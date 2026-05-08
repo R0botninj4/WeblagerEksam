@@ -2,13 +2,9 @@ package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
-import com.eksam.weblagereksam.BLL.Image.ImageByteConverter;
 
-import java.awt.image.BufferedImage;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,21 +59,14 @@ public class ScanWorkspaceManager {
 
     // ===== Page editing =====
 
-    public boolean rotatePage(Page page, int deltaDegrees) throws Exception {
-        BufferedImage source = ImageByteConverter.bytesToBufferedImage(page.getImageData());
-        BufferedImage rotated = ImageByteConverter.rotate(source, deltaDegrees);
-        byte[] imageBytes = ImageByteConverter.bufferedImageToTiffBytes(rotated);
+    public boolean rotatePage(Page page, int deltaDegrees) {
+        return setPageRotation(page, page.getRotation() + deltaDegrees);
+    }
 
-        page.setImageData(imageBytes);
-        page.setFileSize((long) imageBytes.length);
-        page.setFileName(ensureTiffFileName(page.getFileName()));
-        page.setMimeType("image/tiff");
-        page.setWidth(rotated.getWidth());
-        page.setHeight(rotated.getHeight());
-        page.setRotation(normalizeRotation(page.getRotation() + deltaDegrees));
-        page.setChecksum(sha256(imageBytes));
-
-        return pageManager.updatePage(page);
+    public boolean setPageRotation(Page page, int rotation) {
+        int normalizedRotation = normalizeRotation(rotation);
+        page.setRotation(normalizedRotation);
+        return pageManager.updatePageRotation(page.getId(), normalizedRotation);
     }
 
     public boolean deletePage(Page page, UUID documentId, List<Page> remainingPages) throws Exception {
@@ -102,27 +91,9 @@ public class ScanWorkspaceManager {
 
     // ===== Small helpers =====
 
-    private String ensureTiffFileName(String fileName) {
-        if (fileName == null || fileName.isBlank()) {
-            return "page.tiff";
-        }
-
-        int extensionIndex = fileName.lastIndexOf('.');
-        if (extensionIndex < 0) {
-            return fileName + ".tiff";
-        }
-
-        return fileName.substring(0, extensionIndex) + ".tiff";
-    }
-
     private int normalizeRotation(int rotation) {
         int normalized = rotation % 360;
         return normalized < 0 ? normalized + 360 : normalized;
-    }
-
-    private String sha256(byte[] data) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        return HexFormat.of().formatHex(digest.digest(data));
     }
 
     public record BoxDataSnapshot(

@@ -35,6 +35,10 @@ public class PageManager {
         return pageDAO.updatePage(page);
     }
 
+    public boolean updatePageRotation(UUID pageId, int rotation) {
+        return pageDAO.updatePageRotation(pageId, rotation);
+    }
+
     public boolean deletePage(UUID pageId) {
         return pageDAO.deletePage(pageId);
     }

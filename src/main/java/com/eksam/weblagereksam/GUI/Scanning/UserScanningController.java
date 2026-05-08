@@ -28,7 +28,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -52,6 +54,7 @@ public class UserScanningController {
     @FXML private TextField txtBoxNumber;
     @FXML private ComboBox<Profile> comboProfile;
     @FXML private ComboBox<Box> comboSavedBoxes;
+    @FXML private ComboBox<Integer> comboRotationDegrees;
     @FXML private BorderPane scanRoot;
 
     // ===== FXML: Action buttons =====
@@ -64,6 +67,7 @@ public class UserScanningController {
 
     @FXML private VBox documentsContainer;
     @FXML private HBox filmstripBox;
+    @FXML private StackPane imageViewerPane;
     @FXML private ImageView pageImageView;
 
     // ===== BLL / GUI helpers =====
@@ -91,6 +95,7 @@ public class UserScanningController {
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
     private boolean loadingBoxData = false;
+    private boolean updatingRotationChoice = false;
 
     // ===== Progress popup state =====
 
@@ -112,6 +117,8 @@ public class UserScanningController {
 
             setupUserInfo();
             setupKeyboardShortcuts();
+            setupImageViewer();
+            setupRotationChoices();
             setupSavedBoxes();
             showNoBoxSelected();
             loadStartupDataAsync();
@@ -248,6 +255,27 @@ public class UserScanningController {
         comboSavedBoxes.setConverter(new BoxDisplayConverter());
     }
 
+    private void setupRotationChoices() {
+        comboRotationDegrees.getItems().setAll(0, 90, 180, 270);
+        comboRotationDegrees.getSelectionModel().select(Integer.valueOf(0));
+        comboRotationDegrees.getEditor().setOnAction(event -> handleRotationSelected());
+        comboRotationDegrees.getEditor().focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) {
+                handleRotationSelected();
+            }
+        });
+    }
+
+    private void setupImageViewer() {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(imageViewerPane.widthProperty());
+        clip.heightProperty().bind(imageViewerPane.heightProperty());
+        imageViewerPane.setClip(clip);
+
+        // The rotated image is only visual. It should never block clicks on toolbar buttons.
+        pageImageView.setMouseTransparent(true);
+    }
+
     private void loadSavedBoxesForCurrentUserAsync(Box boxToSelect) {
         Task<List<Box>> loadTask = new Task<>() {
             @Override
@@ -370,6 +398,22 @@ public class UserScanningController {
     @FXML private void handleRotateLeft() { rotateCurrentPage(-90); }
 
     @FXML private void handleRotateRight() { rotateCurrentPage(90); }
+
+    @FXML
+    private void handleRotationSelected() {
+        if (updatingRotationChoice) {
+            return;
+        }
+
+        Integer selectedRotation = parseRotationInput();
+
+        if (selectedRotation != null) {
+            setCurrentPageRotation(selectedRotation);
+        } else if (!currentPages.isEmpty()) {
+            setRotationChoice(currentPages.get(currentPageIndex).getRotation());
+            showStatus("Enter a number between 0 and 359.");
+        }
+    }
 
     @FXML private void handleMultiPageFormat() { labelFormat.setText("TIFF Multi-page"); }
 
@@ -812,9 +856,11 @@ public class UserScanningController {
     private void showCurrentPage() {
         if (selectedDocument == null || currentPages.isEmpty()) {
             pageImageView.setImage(null);
+            pageImageView.setRotate(0);
             labelPagePosition.setText("0 / 0");
             labelPageRef.setText("No page selected");
             labelRotationInfo.setText("Rotation: 0 degrees");
+            setRotationChoice(0);
             return;
         }
 
@@ -827,6 +873,8 @@ public class UserScanningController {
                         + (page.isBarcodePage() ? " | BARCODE" : "")
         );
         labelRotationInfo.setText("Rotation: " + page.getRotation() + " degrees");
+        pageImageView.setRotate(page.getRotation());
+        setRotationChoice(page.getRotation());
 
         Image cachedImage = pageImageCache.get(page.getId());
         if (cachedImage != null) {
@@ -876,6 +924,7 @@ public class UserScanningController {
 
             if (!currentPages.isEmpty() && currentPages.get(currentPageIndex).getId().equals(pageId)) {
                 pageImageView.setImage(pageLoad.image());
+                pageImageView.setRotate(pageLoad.page().getRotation());
                 showStatus("Ready");
             }
         });
@@ -938,26 +987,102 @@ public class UserScanningController {
             return;
         }
 
-        try {
-            Page page = currentPages.get(currentPageIndex);
-            if (page.getImageData() == null) {
-                showStatus("Wait for the page to load first.");
-                return;
-            }
+        Page page = currentPages.get(currentPageIndex);
+        setCurrentPageRotation(page.getRotation() + delta);
+    }
 
-            if (scanWorkspaceManager.rotatePage(page, delta)) {
-                pageImageCache.remove(page.getId());
-                pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
-                renderFilmstrip();
-                showCurrentPage();
-                showStatus("Rotation saved.");
-            } else {
-                showStatus("Could not save rotation.");
-            }
-        } catch (Exception e) {
-            showStatus("Rotation failed.");
-            e.printStackTrace();
+    private void setCurrentPageRotation(int rotation) {
+        if (selectedDocument == null || currentPages.isEmpty()) {
+            return;
         }
+
+        Page page = currentPages.get(currentPageIndex);
+        int oldRotation = page.getRotation();
+        int newRotation = normalizeRotation(rotation);
+
+        if (oldRotation == newRotation) {
+            return;
+        }
+
+        page.setRotation(newRotation);
+        pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
+        pageImageView.setRotate(newRotation);
+        labelRotationInfo.setText("Rotation: " + newRotation + " degrees");
+        setRotationChoice(newRotation);
+        renderFilmstrip();
+        if (isDatabaseAllowedRotation(newRotation)) {
+            showStatus("Rotation saved.");
+            saveRotationInBackground(page, oldRotation, newRotation);
+        } else {
+            showStatus("Custom rotation preview. Database only saves 0, 90, 180 and 270 until the constraint is updated.");
+        }
+    }
+
+    private void saveRotationInBackground(Page page, int oldRotation, int newRotation) {
+        Task<Boolean> rotationTask = new Task<>() {
+            @Override
+            protected Boolean call() {
+                return scanWorkspaceManager.setPageRotation(page, newRotation);
+            }
+        };
+
+        rotationTask.setOnFailed(event -> rollbackRotation(page, oldRotation, newRotation));
+        rotationTask.setOnSucceeded(event -> {
+            if (!rotationTask.getValue()) {
+                rollbackRotation(page, oldRotation, newRotation);
+            }
+        });
+
+        Thread rotationThread = new Thread(rotationTask, "scan-rotation-save-thread");
+        rotationThread.setDaemon(true);
+        rotationThread.start();
+    }
+
+    private void rollbackRotation(Page page, int oldRotation, int failedRotation) {
+        if (page.getRotation() != failedRotation) {
+            return;
+        }
+
+        page.setRotation(oldRotation);
+        if (!currentPages.isEmpty() && currentPages.get(currentPageIndex).getId().equals(page.getId())) {
+            pageImageView.setRotate(oldRotation);
+            labelRotationInfo.setText("Rotation: " + oldRotation + " degrees");
+            setRotationChoice(oldRotation);
+        }
+        showStatus("Could not save rotation.");
+    }
+
+    private void setRotationChoice(int rotation) {
+        updatingRotationChoice = true;
+        comboRotationDegrees.getSelectionModel().select(Integer.valueOf(normalizeRotation(rotation)));
+        updatingRotationChoice = false;
+    }
+
+    private Integer parseRotationInput() {
+        String text = comboRotationDegrees.getEditor().getText();
+
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+
+        try {
+            return normalizeRotation(Integer.parseInt(text.trim()));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private int normalizeRotation(int rotation) {
+        int normalized = rotation % 360;
+        return normalized < 0 ? normalized + 360 : normalized;
+    }
+
+    private boolean isDatabaseAllowedRotation(int rotation) {
+        int normalizedRotation = normalizeRotation(rotation);
+        return normalizedRotation == 0
+                || normalizedRotation == 90
+                || normalizedRotation == 180
+                || normalizedRotation == 270;
     }
 
     @FXML
