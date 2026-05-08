@@ -71,20 +71,24 @@ public class LoginController {
             Session.setUser(user);
 
             String viewPath;
+            String windowTitle;
 
             if (user.getRoleName().equalsIgnoreCase("User")) {
                 viewPath = "/com/eksam/weblagereksam/User-Scanning-view.fxml";
+                windowTitle = "Weblager Scan";
             } else if (user.getRoleName().equalsIgnoreCase("Admin")) {
                 viewPath = "/com/eksam/weblagereksam/Admin-view.fxml";
+                windowTitle = "Weblager Admin";
             } else {
                 viewPath = "/com/eksam/weblagereksam/Login-view.fxml";
+                windowTitle = "Weblager Login";
             }
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource(viewPath));
             Scene scene = new Scene(loader.load());
 
             Stage stage = new Stage();
-            stage.setTitle("Diamond Nova");
+            stage.setTitle(windowTitle);
             stage.setScene(scene);
             stage.setMaximized(true);
             stage.show();
