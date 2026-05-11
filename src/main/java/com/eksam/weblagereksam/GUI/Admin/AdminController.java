@@ -411,18 +411,17 @@ public class AdminController {
     }
 
     private void setActiveButton(Button activeButton) {
-        btnAttendance.getStyleClass().removeAll("nav-btn-active");
-        btnUsers.getStyleClass().removeAll("nav-btn-active");
-        btnProfiles.getStyleClass().removeAll("nav-btn-active");
-        btnClients.getStyleClass().removeAll("nav-btn-active");
-
-        btnAttendance.setStyle("");
-        btnUsers.setStyle("");
-        btnProfiles.setStyle("");
-        btnClients.setStyle("");
+        for (Button button : navButtons()) {
+            button.getStyleClass().removeAll("nav-btn-active");
+            button.setStyle("");
+        }
 
         activeButton.getStyleClass().add("nav-btn-active");
         activeButton.setStyle(ACTIVE_NAV_STYLE);
+    }
+
+    private List<Button> navButtons() {
+        return List.of(btnAttendance, btnUsers, btnProfiles, btnClients);
     }
 
     @FunctionalInterface

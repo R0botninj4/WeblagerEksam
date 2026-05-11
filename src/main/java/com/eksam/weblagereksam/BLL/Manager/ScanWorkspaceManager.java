@@ -49,10 +49,6 @@ public class ScanWorkspaceManager {
         return new BoxDataSnapshot(documents, pagesByDocument, documentIdToLoad, totalFiles);
     }
 
-    public List<Page> loadDocumentPages(UUID documentId) {
-        return pageManager.getPagesByDocumentId(documentId);
-    }
-
     public Page loadPage(UUID pageId) {
         return pageManager.getPageById(pageId);
     }

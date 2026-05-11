@@ -6,6 +6,8 @@ import com.eksam.weblagereksam.BE.Page;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BLL.Image.FxImageConverter;
 import com.eksam.weblagereksam.BLL.Manager.BoxManager;
+import com.eksam.weblagereksam.BLL.Manager.ExportManager;
+import com.eksam.weblagereksam.BLL.Manager.ExportManager.ExportFormat;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanImportManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager;
@@ -32,10 +34,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -62,6 +67,7 @@ public class UserScanningController {
     @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
     @FXML private Button btnThemeToggle, btnOpenBox, btnOpenSavedBox, btnDoneBox, btnRemoveBox;
+    @FXML private Button btnMultiPage, btnSinglePage;
 
     // ===== FXML: Main content containers =====
 
@@ -74,6 +80,7 @@ public class UserScanningController {
 
     private BoxManager boxManager;
     private ProfileManager profileManager;
+    private ExportManager exportManager;
     private ScanImportManager scanImportManager;
     private ScanWorkspaceManager scanWorkspaceManager;
     private ScanViewRenderer scanViewRenderer;
@@ -96,6 +103,7 @@ public class UserScanningController {
     private boolean importInProgress = false;
     private boolean loadingBoxData = false;
     private boolean updatingRotationChoice = false;
+    private ExportFormat selectedExportFormat = ExportFormat.MULTI_PAGE;
 
     // ===== Progress popup state =====
 
@@ -109,6 +117,7 @@ public class UserScanningController {
         try {
             boxManager = new BoxManager();
             profileManager = new ProfileManager();
+            exportManager = new ExportManager();
             scanImportManager = new ScanImportManager();
             scanWorkspaceManager = new ScanWorkspaceManager();
             scanViewRenderer = new ScanViewRenderer();
@@ -119,6 +128,7 @@ public class UserScanningController {
             setupKeyboardShortcuts();
             setupImageViewer();
             setupRotationChoices();
+            updateExportFormatButtons();
             setupSavedBoxes();
             showNoBoxSelected();
             loadStartupDataAsync();
@@ -199,9 +209,7 @@ public class UserScanningController {
             }
         });
 
-        Thread openThread = new Thread(openTask, "scan-open-box-thread");
-        openThread.setDaemon(true);
-        openThread.start();
+        runInBackground(openTask, "scan-open-box-thread");
     }
 
     private Box createBoxForProfile(String boxNumber, Profile profile) throws Exception {
@@ -297,9 +305,7 @@ public class UserScanningController {
             }
         });
 
-        Thread loadThread = new Thread(loadTask, "scan-saved-boxes-load-thread");
-        loadThread.setDaemon(true);
-        loadThread.start();
+        runInBackground(loadTask, "scan-saved-boxes-load-thread");
     }
 
     private void loadStartupDataAsync() {
@@ -330,9 +336,7 @@ public class UserScanningController {
             }
         });
 
-        Thread startupThread = new Thread(startupTask, "scan-startup-load-thread");
-        startupThread.setDaemon(true);
-        startupThread.start();
+        runInBackground(startupTask, "scan-startup-load-thread");
     }
 
     private UUID getCurrentUserId() {
@@ -415,13 +419,42 @@ public class UserScanningController {
         }
     }
 
-    @FXML private void handleMultiPageFormat() { labelFormat.setText("TIFF Multi-page"); }
+    @FXML
+    private void handleMultiPageFormat() {
+        selectedExportFormat = ExportFormat.MULTI_PAGE;
+        labelFormat.setText("TIFF Multi-page");
+        updateExportFormatButtons();
+    }
 
-    @FXML private void handleSinglePageFormat() { labelFormat.setText("TIFF Single-page"); }
+    @FXML
+    private void handleSinglePageFormat() {
+        selectedExportFormat = ExportFormat.SINGLE_PAGE;
+        labelFormat.setText("TIFF Single-page");
+        updateExportFormatButtons();
+    }
 
     @FXML private void handleSlideshow() { showStatus("Slideshow is not ready yet."); }
 
-    @FXML private void handleExport() { showStatus("Export is not ready yet."); }
+    @FXML
+    private void handleExport() {
+        if (currentBox == null) {
+            showStatus("Open a box before exporting.");
+            return;
+        }
+
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Choose export folder");
+
+        Window owner = scanRoot.getScene() != null ? scanRoot.getScene().getWindow() : null;
+        File selectedFolder = directoryChooser.showDialog(owner);
+
+        if (selectedFolder == null) {
+            showStatus("Export cancelled.");
+            return;
+        }
+
+        startExportTask(selectedFolder.toPath());
+    }
 
     @FXML
     private void handleOpenSavedBox() {
@@ -487,9 +520,7 @@ public class UserScanningController {
             }
         });
 
-        Thread completeThread = new Thread(completeTask, "scan-complete-box-thread");
-        completeThread.setDaemon(true);
-        completeThread.start();
+        runInBackground(completeTask, "scan-complete-box-thread");
     }
 
     @FXML
@@ -539,9 +570,7 @@ public class UserScanningController {
             }
         });
 
-        Thread removeThread = new Thread(removeTask, "scan-remove-box-thread");
-        removeThread.setDaemon(true);
-        removeThread.start();
+        runInBackground(removeTask, "scan-remove-box-thread");
     }
 
     @FXML
@@ -553,6 +582,49 @@ public class UserScanningController {
     @FXML
     private void handleLogout() {
         logoutHelper.logout(scanRoot.getScene().getWindow());
+    }
+
+    private void startExportTask(Path exportParentFolder) {
+        ExportFormat exportFormat = selectedExportFormat;
+
+        Task<Path> exportTask = new Task<>() {
+            @Override
+            protected Path call() throws Exception {
+                return exportManager.exportBox(currentBox, Session.getUser(), exportParentFolder, exportFormat);
+            }
+        };
+
+        exportTask.setOnRunning(event -> {
+            btnExport.setDisable(true);
+            showStatus("Exporting box...");
+        });
+
+        exportTask.setOnSucceeded(event -> {
+            btnExport.setDisable(false);
+            showStatus("Export completed: " + exportTask.getValue());
+        });
+
+        exportTask.setOnFailed(event -> {
+            btnExport.setDisable(false);
+            showStatus("Export failed.");
+            Throwable error = exportTask.getException();
+            if (error != null) {
+                error.printStackTrace();
+            }
+        });
+
+        runInBackground(exportTask, "scan-export-thread");
+    }
+
+    private void updateExportFormatButtons() {
+        btnMultiPage.getStyleClass().removeAll("btn-format-active");
+        btnSinglePage.getStyleClass().removeAll("btn-format-active");
+
+        if (selectedExportFormat == ExportFormat.MULTI_PAGE) {
+            btnMultiPage.getStyleClass().add("btn-format-active");
+        } else {
+            btnSinglePage.getStyleClass().add("btn-format-active");
+        }
     }
 
     private void removeBoxFromCurrentUser(Box box) {
@@ -635,9 +707,7 @@ public class UserScanningController {
             }
         });
 
-        Thread importThread = new Thread(importTask, "scan-import-thread");
-        importThread.setDaemon(true);
-        importThread.start();
+        runInBackground(importTask, "scan-import-thread");
     }
 
     private void finishImportTask() {
@@ -731,9 +801,7 @@ public class UserScanningController {
             }
         });
 
-        Thread loadThread = new Thread(loadTask, "scan-box-load-thread");
-        loadThread.setDaemon(true);
-        loadThread.start();
+        runInBackground(loadTask, "scan-box-load-thread");
     }
 
     private BoxDataSnapshot fetchBoxDataSnapshot() {
@@ -938,9 +1006,7 @@ public class UserScanningController {
             }
         });
 
-        Thread loadThread = new Thread(loadTask, "scan-page-load-thread");
-        loadThread.setDaemon(true);
-        loadThread.start();
+        runInBackground(loadTask, "scan-page-load-thread");
     }
 
     private void replacePage(Page loadedPage) {
@@ -1033,9 +1099,7 @@ public class UserScanningController {
             }
         });
 
-        Thread rotationThread = new Thread(rotationTask, "scan-rotation-save-thread");
-        rotationThread.setDaemon(true);
-        rotationThread.start();
+        runInBackground(rotationTask, "scan-rotation-save-thread");
     }
 
     private void rollbackRotation(Page page, int oldRotation, int failedRotation) {
@@ -1153,6 +1217,12 @@ public class UserScanningController {
 
     private void showStatus(String message) {
         labelConnected.setText(message);
+    }
+
+    private void runInBackground(Runnable task, String threadName) {
+        Thread thread = new Thread(task, threadName);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private record StartupData(List<Profile> profiles, List<Box> savedBoxes) {}
