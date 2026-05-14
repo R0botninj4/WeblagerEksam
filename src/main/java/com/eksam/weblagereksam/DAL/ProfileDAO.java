@@ -29,21 +29,36 @@ public class ProfileDAO implements IProfileDAO {
 
         try (Connection conn = dbConnector.getConnection();
              Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                profiles.add(mapProfile(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return profiles;
+    }
+
+    public List<Profile> getActiveProfiles() {
+        List<Profile> profiles = new ArrayList<>();
+
+        String sql = """
+                SELECT p.*, c.Name AS ClientName
+                FROM Profiles p
+                INNER JOIN Clients c ON p.ClientId = c.Id
+                WHERE p.IsActive = 1 AND c.IsActive = 1
+                ORDER BY c.Name, p.Name
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                Timestamp createdTimestamp = rs.getTimestamp("CreatedAt");
-                LocalDateTime createdAt = createdTimestamp != null ? createdTimestamp.toLocalDateTime() : null;
-
-                profiles.add(new Profile(
-                        UUID.fromString(rs.getString("Id")),
-                        UUID.fromString(rs.getString("ClientId")),
-                        rs.getString("ClientName"),
-                        rs.getString("Name"),
-                        rs.getString("BarcodeSplitRule"),
-                        rs.getString("MetadataSchema"),
-                        createdAt
-                ));
+                profiles.add(mapProfile(rs));
             }
 
         } catch (Exception e) {
@@ -83,7 +98,7 @@ public class ProfileDAO implements IProfileDAO {
     public boolean updateProfile(Profile profile) {
         String sql = """
                 UPDATE Profiles
-                SET ClientId = ?, Name = ?, BarcodeSplitRule = ?, MetadataSchema = ?
+                SET ClientId = ?, Name = ?, BarcodeSplitRule = ?, MetadataSchema = ?, IsActive = ?
                 WHERE Id = ?
                 """;
 
@@ -94,7 +109,8 @@ public class ProfileDAO implements IProfileDAO {
             stmt.setString(2, profile.getName());
             stmt.setString(3, profile.getBarcodeSplitRule());
             stmt.setString(4, profile.getMetadataSchema());
-            stmt.setString(5, profile.getId().toString());
+            stmt.setBoolean(5, profile.isActive());
+            stmt.setString(6, profile.getId().toString());
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
@@ -104,8 +120,8 @@ public class ProfileDAO implements IProfileDAO {
         return false;
     }
 
-    public boolean deleteProfile(UUID id) {
-        String sql = "DELETE FROM Profiles WHERE Id = ?";
+    public boolean deactivateProfile(UUID id) {
+        String sql = "UPDATE Profiles SET IsActive = 0 WHERE Id = ?";
 
         try (Connection conn = dbConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -117,6 +133,65 @@ public class ProfileDAO implements IProfileDAO {
             e.printStackTrace();
         }
 
+        return false;
+    }
+
+    public boolean deactivateProfilesByClientId(UUID clientId) {
+        String sql = "UPDATE Profiles SET IsActive = 0 WHERE ClientId = ?";
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, clientId.toString());
+            stmt.executeUpdate();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean activateProfile(UUID id) {
+        String sql = "UPDATE Profiles SET IsActive = 1 WHERE Id = ?";
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, id.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private Profile mapProfile(ResultSet rs) throws SQLException {
+        Timestamp createdTimestamp = rs.getTimestamp("CreatedAt");
+        LocalDateTime createdAt = createdTimestamp != null ? createdTimestamp.toLocalDateTime() : null;
+
+        return new Profile(
+                UUID.fromString(rs.getString("Id")),
+                UUID.fromString(rs.getString("ClientId")),
+                rs.getString("ClientName"),
+                rs.getString("Name"),
+                rs.getString("BarcodeSplitRule"),
+                rs.getString("MetadataSchema"),
+                hasColumn(rs, "IsActive") ? rs.getBoolean("IsActive") : true,
+                createdAt
+        );
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+            if (columnName.equalsIgnoreCase(metaData.getColumnName(i))) {
+                return true;
+            }
+        }
         return false;
     }
 }

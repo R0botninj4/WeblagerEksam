@@ -51,7 +51,7 @@ public class AdminController {
 
     // FXML fields are connected to Admin-view.fxml.
     // That means JavaFX fills these variables when the view is loaded.
-    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
+    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged, btnActivate;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
 
@@ -98,24 +98,24 @@ public class AdminController {
     private void setupTableContextMenu() {
         // This is the menu shown when the admin right-clicks the table.
         // It reuses the same methods as the toolbar buttons, so the logic only exists once.
-        MenuItem addItem = new MenuItem("Add");
         MenuItem editItem = new MenuItem("Edit");
         MenuItem deleteItem = new MenuItem("Delete");
+        MenuItem activateItem = new MenuItem("Activate");
 
-        addItem.setOnAction(event -> handleAdd());
         editItem.setOnAction(event -> handleEdit());
         deleteItem.setOnAction(event -> handleDelete());
+        activateItem.setOnAction(event -> handleActivate());
 
-        ContextMenu contextMenu = new ContextMenu(addItem, editItem, deleteItem);
+        ContextMenu contextMenu = new ContextMenu(editItem, deleteItem, activateItem);
         contextMenu.setOnShowing(event -> {
-            // Attendance is read-only, so Add/Edit/Delete should not be clickable there.
-            // Edit/Delete also need a selected row before they make sense.
+            // Attendance is read-only, so the edit actions should not be clickable there.
+            // Activate is only useful when the selected row is currently inactive.
             boolean attendancePage = currentPage == AdminPage.ATTENDANCE;
             boolean rowSelected = tableAdmin.getSelectionModel().getSelectedItem() != null;
 
-            addItem.setDisable(attendancePage);
             editItem.setDisable(attendancePage || !rowSelected);
             deleteItem.setDisable(attendancePage || !rowSelected);
+            activateItem.setDisable(attendancePage || !selectedRowIsInactive());
         });
 
         tableAdmin.setContextMenu(contextMenu);
@@ -167,6 +167,7 @@ public class AdminController {
         tableAdmin.getColumns().setAll(
                 textColumn("Name", row -> ((Profile) row).getName()),
                 textColumn("Client", row -> ((Profile) row).getClientName()),
+                textColumn("Active", row -> ((Profile) row).isActive() ? "Yes" : "No"),
                 textColumn("Created", row -> formatDate(((Profile) row).getCreatedAt()))
         );
 
@@ -182,6 +183,7 @@ public class AdminController {
 
         tableAdmin.getColumns().setAll(
                 textColumn("Name", row -> ((Client) row).getName()),
+                textColumn("Active", row -> ((Client) row).isActive() ? "Yes" : "No"),
                 textColumn("Created", row -> formatDate(((Client) row).getCreatedAt()))
         );
 
@@ -231,11 +233,12 @@ public class AdminController {
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         boolean userPage = currentPage == AdminPage.USERS;
-        alert.setTitle((userPage ? "Deactivate " : "Delete ") + currentPage.singularName);
-        alert.setHeaderText((userPage ? "Deactivate selected " : "Delete selected ") + currentPage.singularName.toLowerCase() + "?");
-        alert.setContentText(userPage
-                ? "The user will stay in the database, but they can no longer log in."
-                : "This will delete the selected " + currentPage.singularName.toLowerCase() + ".");
+        boolean clientPage = currentPage == AdminPage.CLIENTS;
+        alert.setTitle((userPage || clientPage ? "Deactivate " : "Deactivate ") + currentPage.singularName);
+        alert.setHeaderText("Deactivate selected " + currentPage.singularName.toLowerCase() + "?");
+        alert.setContentText(clientPage
+                ? "The client will stay in the database. All profiles for this client will also be deactivated."
+                : "The " + currentPage.singularName.toLowerCase() + " will stay in the database, but will no longer be active.");
 
         Window owner = tableAdmin.getScene() != null ? tableAdmin.getScene().getWindow() : null;
         if (owner != null) {
@@ -246,6 +249,28 @@ public class AdminController {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             deleteSelectedRow(selectedRow);
         }
+    }
+
+    @FXML
+    private void handleActivate() {
+        if (currentPage == AdminPage.ATTENDANCE) {
+            showInfo("Attendance is only for viewing login status.");
+            return;
+        }
+
+        Object selectedRow = tableAdmin.getSelectionModel().getSelectedItem();
+
+        if (selectedRow == null) {
+            showInfo("Select a row before activating.");
+            return;
+        }
+
+        if (!selectedRowIsInactive()) {
+            showInfo("This " + currentPage.singularName.toLowerCase() + " is already active.");
+            return;
+        }
+
+        activateSelectedRow(selectedRow);
     }
 
     @FXML
@@ -303,14 +328,31 @@ public class AdminController {
         boolean deleted = switch (currentPage) {
             case ATTENDANCE -> false;
             case USERS -> userManager.deactivateUser(((User) selectedRow).getId());
-            case PROFILES -> profileManager.deleteProfile(((Profile) selectedRow).getId());
-            case CLIENTS -> clientManager.deleteClient(((Client) selectedRow).getId());
+            case PROFILES -> profileManager.deactivateProfile(((Profile) selectedRow).getId());
+            case CLIENTS -> clientManager.deactivateClient(((Client) selectedRow).getId());
         };
 
         if (deleted) {
             refreshCurrentPage();
         } else {
-            showError("Could not delete selected " + currentPage.singularName.toLowerCase() + ".", null);
+            showError("Could not deactivate selected " + currentPage.singularName.toLowerCase() + ".", null);
+        }
+    }
+
+    private void activateSelectedRow(Object selectedRow) {
+        // Reactivation is also handled through the managers.
+        // The database row stays the same; only IsActive is changed back to true.
+        boolean activated = switch (currentPage) {
+            case ATTENDANCE -> false;
+            case USERS -> userManager.activateUser(((User) selectedRow).getId());
+            case PROFILES -> profileManager.activateProfile(((Profile) selectedRow).getId());
+            case CLIENTS -> clientManager.activateClient(((Client) selectedRow).getId());
+        };
+
+        if (activated) {
+            refreshCurrentPage();
+        } else {
+            showError("Could not activate selected " + currentPage.singularName.toLowerCase() + ".", null);
         }
     }
 
@@ -382,12 +424,29 @@ public class AdminController {
     private boolean profileMatchesSearch(Profile profile, String search) {
         return containsSearch(profile.getName(), search)
                 || containsSearch(profile.getClientName(), search)
+                || containsSearch(profile.isActive() ? "Yes" : "No", search)
                 || containsSearch(formatDate(profile.getCreatedAt()), search);
     }
 
     private boolean clientMatchesSearch(Client client, String search) {
         return containsSearch(client.getName(), search)
+                || containsSearch(client.isActive() ? "Yes" : "No", search)
                 || containsSearch(formatDate(client.getCreatedAt()), search);
+    }
+
+    private boolean selectedRowIsInactive() {
+        Object selectedRow = tableAdmin.getSelectionModel().getSelectedItem();
+
+        if (selectedRow == null) {
+            return false;
+        }
+
+        return switch (currentPage) {
+            case ATTENDANCE -> false;
+            case USERS -> !((User) selectedRow).isActive();
+            case PROFILES -> !((Profile) selectedRow).isActive();
+            case CLIENTS -> !((Client) selectedRow).isActive();
+        };
     }
 
     private boolean containsSearch(String value, String search) {

@@ -219,7 +219,7 @@ public class UserScanningController {
             protected StartupData call() {
                 UUID userId = getCurrentUserId();
                 List<Box> savedBoxes = userId != null ? boxManager.getBoxesByUserId(userId) : List.of();
-                return new StartupData(clientManager.getAllClients(), profileManager.getAllProfiles(), savedBoxes);
+                return new StartupData(clientManager.getActiveClients(), profileManager.getActiveProfiles(), savedBoxes);
             }
         };
         startupTask.setOnRunning(event -> showStatus("Loading scanner data..."));

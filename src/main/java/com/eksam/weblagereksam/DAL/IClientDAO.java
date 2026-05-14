@@ -9,9 +9,13 @@ public interface IClientDAO {
 
     List<Client> getAllClients();
 
+    List<Client> getActiveClients();
+
     UUID addClient(Client client);
 
     boolean updateClient(Client client);
 
-    boolean deleteClient(UUID id);
+    boolean deactivateClient(UUID id);
+
+    boolean activateClient(UUID id);
 }

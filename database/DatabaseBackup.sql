@@ -100,11 +100,17 @@ create table Pages
     FileSize           bigint,
     Checksum           nvarchar(128),
     Rotation           int              default 0
-        check ([Rotation] = 270 OR [Rotation] = 180 OR [Rotation] = 90 OR [Rotation] = 0),
-    Width              int,
-    Height             int,
-    IsBarcodePage      bit              default 0,
-    CreatedAt          datetime2        default getdate()
+        constraint CK_Pages_Rotation_0_359
+            check ([Rotation] >= 0 AND [Rotation] <= 359)
+    constraint CK_Pages_Rotation_0_359
+        check ([Rotation] >= 0 AND [Rotation] <= 359)
+    constraint CK_Pages_Rotation_0_359
+        check ([Rotation] >= 0 AND [Rotation] <= 359)
+    check ([Rotation] = 270 OR [Rotation] = 180 OR [Rotation] = 90 OR [Rotation] = 0),
+Width              int,
+Height             int,
+IsBarcodePage      bit              default 0,
+CreatedAt          datetime2        default getdate()
 )
     go
 

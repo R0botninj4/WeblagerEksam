@@ -19,6 +19,10 @@ public class ProfileManager {
         return profileDAO.getAllProfiles();
     }
 
+    public List<Profile> getActiveProfiles() {
+        return profileDAO.getActiveProfiles();
+    }
+
     public UUID createProfile(UUID clientId, String name, String barcodeRule, String metadataSchema) {
         return profileDAO.addProfile(new Profile(null, clientId, null, name, barcodeRule, metadataSchema, null));
     }
@@ -27,7 +31,11 @@ public class ProfileManager {
         return profileDAO.updateProfile(profile);
     }
 
-    public boolean deleteProfile(UUID id) {
-        return profileDAO.deleteProfile(id);
+    public boolean deactivateProfile(UUID id) {
+        return profileDAO.deactivateProfile(id);
+    }
+
+    public boolean activateProfile(UUID id) {
+        return profileDAO.activateProfile(id);
     }
 }

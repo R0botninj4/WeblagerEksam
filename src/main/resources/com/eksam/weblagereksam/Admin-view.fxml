@@ -120,6 +120,7 @@
                                 </ImageView>
                             </graphic>
                         </Button>
+                        <Button fx:id="btnActivate" mnemonicParsing="false" onAction="#handleActivate" text="Activate" />
                         <Button fx:id="btnUpdate" mnemonicParsing="false" onAction="#handleRefresh" text="">
                             <HBox.margin>
                                 <Insets right="10.0" />

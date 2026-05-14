@@ -28,18 +28,35 @@ public class ClientDAO implements IClientDAO {
 
         try (Connection conn = dbConnector.getConnection();
              Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                clients.add(mapClient(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return clients;
+    }
+
+    public List<Client> getActiveClients() {
+        List<Client> clients = new ArrayList<>();
+
+        String sql = """
+                SELECT *
+                FROM Clients
+                WHERE IsActive = 1
+                ORDER BY Name
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                Timestamp createdTimestamp = rs.getTimestamp("CreatedAt");
-                LocalDateTime createdAt = createdTimestamp != null ? createdTimestamp.toLocalDateTime() : null;
-
-                clients.add(new Client(
-                        UUID.fromString(rs.getString("Id")),
-                        rs.getString("Name"),
-                        rs.getString("Code"),
-                        createdAt
-                ));
+                clients.add(mapClient(rs));
             }
 
         } catch (Exception e) {
@@ -68,7 +85,7 @@ public class ClientDAO implements IClientDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Client could not be created in the database.", e);
         }
 
         return null;
@@ -77,7 +94,7 @@ public class ClientDAO implements IClientDAO {
     public boolean updateClient(Client client) {
         String sql = """
                 UPDATE Clients
-                SET Name = ?, Code = ?
+                SET Name = ?, Code = ?, IsActive = ?
                 WHERE Id = ?
                 """;
 
@@ -86,7 +103,8 @@ public class ClientDAO implements IClientDAO {
 
             stmt.setString(1, client.getName());
             stmt.setString(2, client.getCode());
-            stmt.setString(3, client.getId().toString());
+            stmt.setBoolean(3, client.isActive());
+            stmt.setString(4, client.getId().toString());
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
@@ -96,8 +114,8 @@ public class ClientDAO implements IClientDAO {
         return false;
     }
 
-    public boolean deleteClient(UUID id) {
-        String sql = "DELETE FROM Clients WHERE Id = ?";
+    public boolean deactivateClient(UUID id) {
+        String sql = "UPDATE Clients SET IsActive = 0 WHERE Id = ?";
 
         try (Connection conn = dbConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -109,6 +127,45 @@ public class ClientDAO implements IClientDAO {
             e.printStackTrace();
         }
 
+        return false;
+    }
+
+    public boolean activateClient(UUID id) {
+        String sql = "UPDATE Clients SET IsActive = 1 WHERE Id = ?";
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, id.toString());
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private Client mapClient(ResultSet rs) throws SQLException {
+        Timestamp createdTimestamp = rs.getTimestamp("CreatedAt");
+        LocalDateTime createdAt = createdTimestamp != null ? createdTimestamp.toLocalDateTime() : null;
+
+        return new Client(
+                UUID.fromString(rs.getString("Id")),
+                rs.getString("Name"),
+                rs.getString("Code"),
+                hasColumn(rs, "IsActive") ? rs.getBoolean("IsActive") : true,
+                createdAt
+        );
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+            if (columnName.equalsIgnoreCase(metaData.getColumnName(i))) {
+                return true;
+            }
+        }
         return false;
     }
 }

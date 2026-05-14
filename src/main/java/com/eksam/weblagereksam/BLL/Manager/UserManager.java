@@ -89,4 +89,15 @@ public class UserManager {
         return userDAO.updateUser(user);
     }
 
+    public boolean activateUser(UUID id) {
+        User user = userDAO.getUserById(id);
+
+        if (user == null) {
+            return false;
+        }
+
+        user.setActive(true);
+        return userDAO.updateUser(user);
+    }
+
 }

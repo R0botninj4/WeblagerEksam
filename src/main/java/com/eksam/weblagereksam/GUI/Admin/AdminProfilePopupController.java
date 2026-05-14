@@ -29,7 +29,7 @@ public class AdminProfilePopupController implements AdminPopupController {
     public void initialize() throws Exception {
         clientManager = new ClientManager();
         profileManager = new ProfileManager();
-        comboClient.getItems().setAll(clientManager.getAllClients());
+        comboClient.getItems().setAll(clientManager.getActiveClients());
     }
 
     public void setup(String action, Object selectedRow) {

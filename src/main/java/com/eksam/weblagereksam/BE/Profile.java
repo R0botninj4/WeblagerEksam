@@ -11,6 +11,7 @@ public class Profile {
     private String name;
     private String barcodeSplitRule;
     private String metadataSchema;
+    private boolean active;
     private LocalDateTime createdAt;
 
     public Profile(UUID id,
@@ -20,13 +21,24 @@ public class Profile {
                    String barcodeSplitRule,
                    String metadataSchema,
                    LocalDateTime createdAt) {
+        this(id, clientId, clientName, name, barcodeSplitRule, metadataSchema, true, createdAt);
+    }
 
+    public Profile(UUID id,
+                   UUID clientId,
+                   String clientName,
+                   String name,
+                   String barcodeSplitRule,
+                   String metadataSchema,
+                   boolean active,
+                   LocalDateTime createdAt) {
         this.id = id;
         this.clientId = clientId;
         this.clientName = clientName;
         this.name = name;
         this.barcodeSplitRule = barcodeSplitRule;
         this.metadataSchema = metadataSchema;
+        this.active = active;
         this.createdAt = createdAt;
     }
 
@@ -42,6 +54,8 @@ public class Profile {
 
     public String getMetadataSchema() { return metadataSchema; }
 
+    public boolean isActive() { return active; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setClientId(UUID clientId) { this.clientId = clientId; }
@@ -53,6 +67,8 @@ public class Profile {
     public void setBarcodeSplitRule(String barcodeSplitRule) { this.barcodeSplitRule = barcodeSplitRule; }
 
     public void setMetadataSchema(String metadataSchema) { this.metadataSchema = metadataSchema; }
+
+    public void setActive(boolean active) { this.active = active; }
 
     @Override
     public String toString() {

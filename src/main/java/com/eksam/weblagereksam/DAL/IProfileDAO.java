@@ -9,9 +9,15 @@ public interface IProfileDAO {
 
     List<Profile> getAllProfiles();
 
+    List<Profile> getActiveProfiles();
+
     UUID addProfile(Profile profile);
 
     boolean updateProfile(Profile profile);
 
-    boolean deleteProfile(UUID id);
+    boolean deactivateProfile(UUID id);
+
+    boolean deactivateProfilesByClientId(UUID clientId);
+
+    boolean activateProfile(UUID id);
 }
