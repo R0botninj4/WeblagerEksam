@@ -3,49 +3,82 @@ package com.eksam.weblagereksam.GUI.Renderer;
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public class ScanViewRenderer {
 
-    private static final String DOCUMENT_CARD = "document-card";
-    private static final String DOCUMENT_CARD_ACTIVE = "document-card-active";
     private static final String FILMSTRIP_THUMB = "filmstrip-thumb";
     private static final String FILMSTRIP_THUMB_ACTIVE = "filmstrip-thumb-active";
     private static final String FILMSTRIP_THUMB_BARCODE = "filmstrip-thumb-barcode";
     private static final String SMALL_TEXT = "small-text";
 
+    public record DocumentTreeNode(UUID documentId, int pageIndex, String text) {
+        public static DocumentTreeNode root() {
+            return new DocumentTreeNode(null, -1, "Documents");
+        }
+
+        public static DocumentTreeNode document(Document document, List<Page> pages) {
+            return new DocumentTreeNode(
+                    document.getId(),
+                    -1,
+                    "Document " + document.getDocumentNumber() + " (" + pages.size() + " pages)"
+            );
+        }
+
+        public static DocumentTreeNode page(Document document, Page page, int pageIndex) {
+            String text = page.isBarcodePage() ? "Barcode page" : "Page " + page.getUiOrder();
+
+            if (page.getRotation() != 0) {
+                text += " - " + page.getRotation() + " degrees";
+            }
+
+            return new DocumentTreeNode(document.getId(), pageIndex, text);
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
+    }
+
     // ===== Document list =====
 
-    public void renderDocumentCards(
-            VBox documentsContainer,
+    public void renderDocumentTree(
+            TreeView<DocumentTreeNode> documentTreeView,
             List<Document> documents,
             Map<UUID, List<Page>> pagesByDocument,
             Document selectedDocument,
-            Consumer<UUID> onDocumentSelected
+            int selectedPageIndex
     ) {
-        documentsContainer.getChildren().clear();
+        TreeItem<DocumentTreeNode> root = new TreeItem<>(DocumentTreeNode.root());
+        root.setExpanded(true);
 
         for (Document document : documents) {
-            documentsContainer.getChildren().add(createDocumentCard(
-                    document,
-                    pagesByDocument.getOrDefault(document.getId(), List.of()),
-                    document.equals(selectedDocument),
-                    onDocumentSelected
-            ));
+            List<Page> pages = pagesByDocument.getOrDefault(document.getId(), List.of());
+            TreeItem<DocumentTreeNode> documentItem = new TreeItem<>(DocumentTreeNode.document(document, pages));
+            documentItem.setExpanded(document.equals(selectedDocument));
+
+            for (int i = 0; i < pages.size(); i++) {
+                documentItem.getChildren().add(new TreeItem<>(DocumentTreeNode.page(document, pages.get(i), i)));
+            }
+
+            root.getChildren().add(documentItem);
         }
+
+        documentTreeView.setRoot(root);
+        selectCurrentTreeItem(documentTreeView, selectedDocument, selectedPageIndex);
     }
 
     // ===== Filmstrip =====
@@ -87,47 +120,25 @@ public class ScanViewRenderer {
         }
     }
 
-    // ===== Document card nodes =====
+    // ===== Document tree nodes =====
 
-    private VBox createDocumentCard(
-            Document document,
-            List<Page> pages,
-            boolean selected,
-            Consumer<UUID> onDocumentSelected
-    ) {
-        VBox card = new VBox(4);
-        card.getStyleClass().add(DOCUMENT_CARD);
-
-        if (selected) {
-            card.getStyleClass().add(DOCUMENT_CARD_ACTIVE);
+    private void selectCurrentTreeItem(TreeView<DocumentTreeNode> treeView, Document selectedDocument, int selectedPageIndex) {
+        if (selectedDocument == null) {
+            return;
         }
 
-        HBox header = new HBox(8);
-        Label title = new Label("Document " + document.getDocumentNumber());
-        title.getStyleClass().add("h3");
-        Label fileCount = new Label(pages.size() + " pages");
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(title, spacer, fileCount);
+        for (TreeItem<DocumentTreeNode> documentItem : treeView.getRoot().getChildren()) {
+            if (!selectedDocument.getId().equals(documentItem.getValue().documentId())) {
+                continue;
+            }
 
-        HBox pageMarkers = new HBox(4);
-        for (int i = 0; i < pages.size(); i++) {
-            String markerText = pages.get(i).isBarcodePage() ? "[B]" : "[" + (i + 1) + "]";
-            Label marker = new Label(markerText);
-            marker.getStyleClass().add(SMALL_TEXT);
-            pageMarkers.getChildren().add(marker);
+            if (selectedPageIndex >= 0 && selectedPageIndex < documentItem.getChildren().size()) {
+                treeView.getSelectionModel().select(documentItem.getChildren().get(selectedPageIndex));
+            } else {
+                treeView.getSelectionModel().select(documentItem);
+            }
+            return;
         }
-
-        if (document.getBarcodeValue() != null && !document.getBarcodeValue().isBlank()) {
-            Label barcode = new Label("Split: " + document.getBarcodeValue());
-            barcode.getStyleClass().add(SMALL_TEXT);
-            pageMarkers.getChildren().add(barcode);
-        }
-
-        Label status = new Label(document.getStatus());
-        card.getChildren().addAll(header, pageMarkers, status);
-        card.setOnMouseClicked(event -> onDocumentSelected.accept(document.getId()));
-        return card;
     }
 
     // ===== Thumbnail nodes =====

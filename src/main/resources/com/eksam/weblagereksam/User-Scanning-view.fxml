@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -50,7 +51,7 @@
                 <Label fx:id="labelDocCount" styleClass="sidebar-section-count" text="0 docs" />
             </HBox>
             <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
-                <VBox fx:id="documentsContainer" spacing="6" style="-fx-padding: 8;" />
+                <TreeView fx:id="documentTreeView" maxWidth="Infinity" showRoot="false" styleClass="document-tree" />
             </ScrollPane>
         </VBox>
     </left>

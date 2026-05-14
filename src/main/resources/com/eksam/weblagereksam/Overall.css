@@ -297,6 +297,33 @@
     -fx-border-width: 2;                    /* Makes the selected card border thicker for visibility */
 }
 
+/* Tree view version of the document list. */
+.document-tree {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 6;
+}
+
+.document-tree .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-text-primary;
+    -fx-padding: 6 8 6 8;
+    -fx-font-size: 13px;
+}
+
+.document-tree .tree-cell:hover {
+    -fx-background-color: -wl-state-hover;
+}
+
+.document-tree .tree-cell:selected {
+    -fx-background-color: -wl-action-primary;
+    -fx-text-fill: -wl-text-on-dark;
+}
+
+.document-tree .tree-disclosure-node .arrow {
+    -fx-background-color: -wl-text-primary;
+}
+
 
 /* ============================================================
    NAVIGATION BUTTONS (Admin sidebar)

@@ -14,6 +14,7 @@ import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer;
+import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer.DocumentTreeNode;
 import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
@@ -25,6 +26,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -56,7 +58,7 @@ public class UserScanningController {
     @FXML private Button btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
     @FXML private Button btnThemeToggle, btnStartScan, btnMyBoxes;
-    @FXML private VBox documentsContainer;
+    @FXML private TreeView<DocumentTreeNode> documentTreeView;
     @FXML private HBox filmstripBox;
     @FXML private StackPane imageViewerPane;
     @FXML private ImageView pageImageView;
@@ -90,6 +92,7 @@ public class UserScanningController {
     private int currentPageIndex = 0;
     private boolean importInProgress = false;
     private boolean loadingBoxData = false;
+    private boolean updatingDocumentTree = false;
     private boolean updatingRotationChoice = false;
     private ExportFormat selectedExportFormat = ExportFormat.MULTI_PAGE;
 
@@ -110,6 +113,7 @@ public class UserScanningController {
             scanExportHelper = new ScanExportHelper();
             setupUserInfo();
             setupKeyboardShortcuts();
+            setupDocumentTree();
             setupImageViewer();
             setupRotationChoices();
             showNoBoxSelected();
@@ -179,6 +183,17 @@ public class UserScanningController {
         imageViewerPane.setClip(clip);
         // The rotated image is only visual. It should never block clicks on toolbar buttons.
         pageImageView.setMouseTransparent(true);
+    }
+
+    private void setupDocumentTree() {
+        documentTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
+            if (updatingDocumentTree || newItem == null || newItem.getValue().documentId() == null) {
+                return;
+            }
+
+            DocumentTreeNode node = newItem.getValue();
+            selectDocument(node.documentId(), Math.max(0, node.pageIndex()));
+        });
     }
 
     // ===== Loading saved boxes and startup data =====
@@ -534,13 +549,9 @@ public class UserScanningController {
     // ===== Render document list and filmstrip =====
 
     private void renderDocumentCards() {
-        scanViewRenderer.renderDocumentCards(
-                documentsContainer,
-                currentDocuments,
-                pagesByDocument,
-                selectedDocument,
-                documentId -> selectDocument(documentId, 0)
-        );
+        updatingDocumentTree = true;
+        scanViewRenderer.renderDocumentTree(documentTreeView, currentDocuments, pagesByDocument, selectedDocument, currentPageIndex);
+        updatingDocumentTree = false;
     }
     private void selectDocument(UUID documentId, int pageIndex) {
         selectedDocument = currentDocuments.stream()
