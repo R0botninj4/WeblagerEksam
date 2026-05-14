@@ -1,5 +1,6 @@
 package com.eksam.weblagereksam.GUI.Scanning;
 
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -35,7 +36,7 @@ public class ScanProgressPopup {
             popup.show();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.show(owner, "Could not open progress window.", e);
             return false;
         }
     }

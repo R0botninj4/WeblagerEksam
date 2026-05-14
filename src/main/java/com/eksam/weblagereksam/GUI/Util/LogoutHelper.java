@@ -22,7 +22,7 @@ public class LogoutHelper {
                 currentStage.close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.show(currentWindow, "Logout failed.", e);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.eksam.weblagereksam.BE.Client;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -49,29 +50,36 @@ public class AdminProfilePopupController implements AdminPopupController {
 
     @FXML
     private void save() {
-        Client selectedClient = comboClient.getSelectionModel().getSelectedItem();
-        String name = txtName.getText();
+        try {
+            Client selectedClient = comboClient.getSelectionModel().getSelectedItem();
+            String name = txtName.getText();
 
-        if (selectedClient == null || name == null || name.isBlank()) {
-            return;
-        }
+            if (selectedClient == null || name == null || name.isBlank()) {
+                ErrorDialog.show(txtName.getScene().getWindow(), "Select a client and write a profile name.", null);
+                return;
+            }
 
-        if ("Edit".equals(action) && profile != null) {
-            profile.setClientId(selectedClient.getId());
-            profile.setName(name);
-            saved = profileManager.updateProfile(profile);
-        } else {
-            UUID profileId = profileManager.createProfile(
-                    selectedClient.getId(),
-                    name,
-                    null,
-                    null
-            );
-            saved = profileId != null;
-        }
+            if ("Edit".equals(action) && profile != null) {
+                profile.setClientId(selectedClient.getId());
+                profile.setName(name);
+                saved = profileManager.updateProfile(profile);
+            } else {
+                UUID profileId = profileManager.createProfile(
+                        selectedClient.getId(),
+                        name,
+                        null,
+                        null
+                );
+                saved = profileId != null;
+            }
 
-        if (saved) {
-            close();
+            if (saved) {
+                close();
+            } else {
+                ErrorDialog.show(txtName.getScene().getWindow(), "Profile could not be saved.", null);
+            }
+        } catch (Exception e) {
+            ErrorDialog.show(txtName.getScene().getWindow(), "Profile could not be saved.", e);
         }
     }
 

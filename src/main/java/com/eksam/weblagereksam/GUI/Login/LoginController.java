@@ -2,6 +2,7 @@ package com.eksam.weblagereksam.GUI.Login;
 
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -35,7 +36,7 @@ public class LoginController {
             userManager = new UserManager();
         } catch (Exception e) {
             lblMessage.setText("Database fejl.");
-            e.printStackTrace();
+            showException("Could not connect to the database.", e);
         }
 
         txtUsername.setOnAction(e -> handleLogin());
@@ -98,7 +99,7 @@ public class LoginController {
 
         } catch (Exception e) {
             showError("Login fejl.");
-            e.printStackTrace();
+            showException("Login failed.", e);
         }
     }
 
@@ -130,5 +131,12 @@ public class LoginController {
     private void showError(String text) {
         lblMessage.setText(text);
         lblMessage.setStyle("-fx-text-fill: red;");
+    }
+
+    private void showException(String message, Throwable error) {
+        Stage owner = txtUsername != null && txtUsername.getScene() != null
+                ? (Stage) txtUsername.getScene().getWindow()
+                : null;
+        ErrorDialog.show(owner, message, error);
     }
 }

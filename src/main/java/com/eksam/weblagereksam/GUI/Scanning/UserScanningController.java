@@ -14,6 +14,7 @@ import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
 import javafx.fxml.FXML;
@@ -115,7 +116,7 @@ public class UserScanningController {
             loadStartupDataAsync();
         } catch (Exception e) {
             showStatus("Scanner could not start.");
-            e.printStackTrace();
+            showError("Scanner could not start.", e);
         }
     }
     private void setupUserInfo() {
@@ -146,7 +147,7 @@ public class UserScanningController {
         openTask.setOnFailed(event -> {
             setDisabled(false, btnStartScan, btnMyBoxes);
             showStatus("Could not open box.");
-            printTaskError(openTask);
+            showTaskError("Could not open box.", openTask);
         });
         runInBackground(openTask, "scan-open-box-thread");
     }
@@ -194,7 +195,7 @@ public class UserScanningController {
             savedBoxes.clear();
             savedBoxes.addAll(loadTask.getValue());
         });
-        loadTask.setOnFailed(event -> printTaskError(loadTask));
+        loadTask.setOnFailed(event -> showTaskError("Could not load saved boxes.", loadTask));
         runInBackground(loadTask, "scan-saved-boxes-load-thread");
     }
     private void loadStartupDataAsync() {
@@ -219,7 +220,7 @@ public class UserScanningController {
         });
         startupTask.setOnFailed(event -> {
             showStatus("Could not load scanner data.");
-            printTaskError(startupTask);
+            showTaskError("Could not load scanner data.", startupTask);
         });
         runInBackground(startupTask, "scan-startup-load-thread");
     }
@@ -316,7 +317,7 @@ public class UserScanningController {
         completeTask.setOnFailed(event -> {
             setDisabled(false, btnMyBoxes);
             showStatus("Could not mark box as done.");
-            printTaskError(completeTask);
+            showTaskError("Could not mark box as done.", completeTask);
         });
         runInBackground(completeTask, "scan-complete-box-thread");
     }
@@ -351,7 +352,7 @@ public class UserScanningController {
         removeTask.setOnFailed(event -> {
             setDisabled(false, btnMyBoxes);
             showStatus("Could not remove box.");
-            printTaskError(removeTask);
+            showTaskError("Could not remove box.", removeTask);
         });
         runInBackground(removeTask, "scan-remove-box-thread");
     }
@@ -429,7 +430,7 @@ public class UserScanningController {
         importTask.setOnFailed(event -> {
             finishImportTask();
             showStatus("Scan failed.");
-            printTaskError(importTask);
+            showTaskError("Scan failed.", importTask);
         });
         runInBackground(importTask, "scan-import-thread");
     }
@@ -476,7 +477,7 @@ public class UserScanningController {
             loadingBoxData = false;
             setNavigationDisabled(false);
             showStatus("Could not load pages.");
-            printTaskError(loadTask);
+            showTaskError("Could not load pages.", loadTask);
         });
         runInBackground(loadTask, "scan-box-load-thread");
     }
@@ -646,7 +647,7 @@ public class UserScanningController {
         loadTask.setOnFailed(event -> {
             loadingPageIds.remove(pageId);
             showStatus("Could not load page.");
-            printTaskError(loadTask);
+            showTaskError("Could not load page.", loadTask);
         });
         runInBackground(loadTask, "scan-page-load-thread");
     }
@@ -717,7 +718,10 @@ public class UserScanningController {
                 return scanWorkspaceManager.setPageRotation(page, newRotation);
             }
         };
-        rotationTask.setOnFailed(event -> rollbackRotation(page, oldRotation, newRotation));
+        rotationTask.setOnFailed(event -> {
+            rollbackRotation(page, oldRotation, newRotation);
+            showTaskError("Could not save rotation.", rotationTask);
+        });
         rotationTask.setOnSucceeded(event -> {
             if (!rotationTask.getValue()) {
                 rollbackRotation(page, oldRotation, newRotation);
@@ -786,7 +790,7 @@ public class UserScanningController {
             showStatus("Page deleted.");
         } catch (Exception e) {
             showStatus("Delete failed.");
-            e.printStackTrace();
+            showError("Delete failed.", e);
         }
     }
     private boolean reorderPage(int fromIndex, int toIndex) {
@@ -809,7 +813,7 @@ public class UserScanningController {
             return true;
         } catch (Exception e) {
             showStatus("Could not save page order.");
-            e.printStackTrace();
+            showError("Could not save page order.", e);
             loadCurrentBoxDataAsync(true);
             return false;
         }
@@ -825,11 +829,12 @@ public class UserScanningController {
         thread.setDaemon(true);
         thread.start();
     }
-    private void printTaskError(Task<?> task) {
-        Throwable error = task.getException();
-        if (error != null) {
-            error.printStackTrace();
-        }
+    private void showTaskError(String message, Task<?> task) {
+        showError(message, task.getException());
+    }
+    private void showError(String message, Throwable error) {
+        Window owner = scanRoot != null && scanRoot.getScene() != null ? scanRoot.getScene().getWindow() : null;
+        ErrorDialog.show(owner, message, error);
     }
     private void openStartScanPopup() {
         try {
@@ -855,7 +860,7 @@ public class UserScanningController {
             }
         } catch (IOException e) {
             showStatus("Could not open start scan popup.");
-            e.printStackTrace();
+            showError("Could not open start scan popup.", e);
         }
     }
     private void openMyBoxesPopup() {
@@ -879,7 +884,7 @@ public class UserScanningController {
             handleMyBoxesAction(controller, owner);
         } catch (IOException e) {
             showStatus("Could not open my boxes popup.");
-            e.printStackTrace();
+            showError("Could not open my boxes popup.", e);
         }
     }
     private void handleMyBoxesAction(MyBoxesPopupController controller, Window owner) {

@@ -7,6 +7,7 @@ import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
 import com.eksam.weblagereksam.GUI.Login.Session;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -82,7 +83,7 @@ public class AdminController {
             setupSearchBar();
             showUsers();
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("Admin page could not start.", e);
         }
     }
 
@@ -270,8 +271,7 @@ public class AdminController {
             content = loader.load();
             popupController = loader.getController();
         } catch (IOException e) {
-            e.printStackTrace();
-            showInfo("Could not open " + currentPage.singularName.toLowerCase() + " popup.");
+            showError("Could not open " + currentPage.singularName.toLowerCase() + " popup.", e);
             return;
         }
 
@@ -310,7 +310,7 @@ public class AdminController {
         if (deleted) {
             refreshCurrentPage();
         } else {
-            showInfo("Could not delete selected " + currentPage.singularName.toLowerCase() + ".");
+            showError("Could not delete selected " + currentPage.singularName.toLowerCase() + ".", null);
         }
     }
 
@@ -333,6 +333,11 @@ public class AdminController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void showError(String message, Throwable error) {
+        Window owner = tableAdmin != null && tableAdmin.getScene() != null ? tableAdmin.getScene().getWindow() : null;
+        ErrorDialog.show(owner, message, error);
     }
 
     private void setTableRows(List<?> rows) {

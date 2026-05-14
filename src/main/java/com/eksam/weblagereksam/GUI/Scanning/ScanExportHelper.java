@@ -4,6 +4,7 @@ import com.eksam.weblagereksam.BE.Box;
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BLL.Manager.ExportManager;
 import com.eksam.weblagereksam.BLL.Manager.ExportManager.ExportFormat;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.concurrent.Task;
 import javafx.scene.control.Button;
 import javafx.stage.DirectoryChooser;
@@ -36,7 +37,7 @@ public class ScanExportHelper {
             return;
         }
 
-        startExport(box, user, format, folder.toPath(), exportButton, showStatus, afterExport);
+        startExport(box, user, format, folder.toPath(), owner, exportButton, showStatus, afterExport);
     }
 
     private File chooseExportFolder(Window owner) {
@@ -45,7 +46,7 @@ public class ScanExportHelper {
         return chooser.showDialog(owner);
     }
 
-    private void startExport(Box box, User user, ExportFormat format, Path folder, Button exportButton, Consumer<String> showStatus, Runnable afterExport) {
+    private void startExport(Box box, User user, ExportFormat format, Path folder, Window owner, Button exportButton, Consumer<String> showStatus, Runnable afterExport) {
         Task<Path> exportTask = new Task<>() {
             @Override
             protected Path call() throws Exception {
@@ -70,9 +71,7 @@ public class ScanExportHelper {
             exportButton.setDisable(false);
             showStatus.accept("Export failed.");
             Throwable error = exportTask.getException();
-            if (error != null) {
-                error.printStackTrace();
-            }
+            ErrorDialog.show(owner, "Export failed.", error);
         });
 
         Thread thread = new Thread(exportTask, "scan-export-thread");

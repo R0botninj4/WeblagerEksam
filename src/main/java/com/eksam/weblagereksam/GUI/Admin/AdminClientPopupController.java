@@ -2,6 +2,7 @@ package com.eksam.weblagereksam.GUI.Admin;
 
 import com.eksam.weblagereksam.BE.Client;
 import com.eksam.weblagereksam.BLL.Manager.ClientManager;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -36,22 +37,29 @@ public class AdminClientPopupController implements AdminPopupController {
 
     @FXML
     private void save() {
-        String name = txtName.getText();
+        try {
+            String name = txtName.getText();
 
-        if (name == null || name.isBlank()) {
-            return;
-        }
+            if (name == null || name.isBlank()) {
+                ErrorDialog.show(txtName.getScene().getWindow(), "Write a client name.", null);
+                return;
+            }
 
-        if ("Edit".equals(action) && client != null) {
-            client.setName(name);
-            saved = clientManager.updateClient(client);
-        } else {
-            UUID clientId = clientManager.createClient(name, null);
-            saved = clientId != null;
-        }
+            if ("Edit".equals(action) && client != null) {
+                client.setName(name);
+                saved = clientManager.updateClient(client);
+            } else {
+                UUID clientId = clientManager.createClient(name, null);
+                saved = clientId != null;
+            }
 
-        if (saved) {
-            close();
+            if (saved) {
+                close();
+            } else {
+                ErrorDialog.show(txtName.getScene().getWindow(), "Client could not be saved.", null);
+            }
+        } catch (Exception e) {
+            ErrorDialog.show(txtName.getScene().getWindow(), "Client could not be saved.", e);
         }
     }
 

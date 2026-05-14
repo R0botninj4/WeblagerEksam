@@ -3,6 +3,7 @@ package com.eksam.weblagereksam.GUI.Admin;
 import com.eksam.weblagereksam.BE.Role;
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
+import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -49,33 +50,41 @@ public class AdminUserPopupController implements AdminPopupController {
 
     @FXML
     private void save() {
-        Role selectedRole = comboRole.getSelectionModel().getSelectedItem();
+        try {
+            Role selectedRole = comboRole.getSelectionModel().getSelectedItem();
 
-        if (selectedRole == null || txtUsername.getText().isBlank()) {
-            return;
-        }
-
-        if ("Edit".equals(action) && user != null) {
-            user.setUsername(txtUsername.getText());
-            user.setFullName(txtFullName.getText());
-            user.setRoleId(selectedRole.getId());
-            user.setActive(checkActive.isSelected());
-            saved = userManager.updateUser(user);
-        } else {
-            if (txtPassword.getText().isBlank()) {
+            if (selectedRole == null || txtUsername.getText().isBlank()) {
+                ErrorDialog.show(txtUsername.getScene().getWindow(), "Select a role and write a username.", null);
                 return;
             }
 
-            saved = userManager.createUser(
-                    txtUsername.getText(),
-                    txtPassword.getText(),
-                    txtFullName.getText(),
-                    selectedRole.getId()
-            ) != null;
-        }
+            if ("Edit".equals(action) && user != null) {
+                user.setUsername(txtUsername.getText());
+                user.setFullName(txtFullName.getText());
+                user.setRoleId(selectedRole.getId());
+                user.setActive(checkActive.isSelected());
+                saved = userManager.updateUser(user);
+            } else {
+                if (txtPassword.getText().isBlank()) {
+                    ErrorDialog.show(txtUsername.getScene().getWindow(), "Write a password for the new user.", null);
+                    return;
+                }
 
-        if (saved) {
-            close();
+                saved = userManager.createUser(
+                        txtUsername.getText(),
+                        txtPassword.getText(),
+                        txtFullName.getText(),
+                        selectedRole.getId()
+                ) != null;
+            }
+
+            if (saved) {
+                close();
+            } else {
+                ErrorDialog.show(txtUsername.getScene().getWindow(), "User could not be saved.", null);
+            }
+        } catch (Exception e) {
+            ErrorDialog.show(txtUsername.getScene().getWindow(), "User could not be saved.", e);
         }
     }
 
