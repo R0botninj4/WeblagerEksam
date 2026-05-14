@@ -59,6 +59,12 @@
     /* Barcode page markers */
     -wl-barcode-border:     #D9719D;
     -wl-barcode-bg:         #FFF0F6;
+
+    /* Document tree */
+    -wl-document-tree-row-hover:     rgba(45,61,79,0.10);
+    -wl-document-tree-row-selected:  #FFFFFF;
+    -wl-document-tree-text:          #2D3D4F;
+    -wl-document-tree-selected-text: #2D3D4F;
 }
 
 

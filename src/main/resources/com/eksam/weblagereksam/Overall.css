@@ -301,27 +301,41 @@
 .document-tree {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-padding: 6;
+    -fx-padding: 8;
+}
+
+.document-tree .virtual-flow,
+.document-tree .clipped-container,
+.document-tree .sheet,
+.document-tree .viewport {
+    -fx-background-color: transparent;
 }
 
 .document-tree .tree-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: -wl-text-primary;
-    -fx-padding: 6 8 6 8;
+    -fx-text-fill: -wl-document-tree-text;
+    -fx-padding: 7 8 7 8;
     -fx-font-size: 13px;
+    -fx-font-weight: 600;
 }
 
 .document-tree .tree-cell:hover {
-    -fx-background-color: -wl-state-hover;
+    -fx-background-color: -wl-document-tree-row-hover;
+    -fx-background-radius: 5;
 }
 
 .document-tree .tree-cell:selected {
-    -fx-background-color: -wl-action-primary;
-    -fx-text-fill: -wl-text-on-dark;
+    -fx-background-color: -wl-document-tree-row-selected;
+    -fx-background-radius: 5;
+    -fx-text-fill: -wl-document-tree-selected-text;
 }
 
 .document-tree .tree-disclosure-node .arrow {
-    -fx-background-color: -wl-text-primary;
+    -fx-background-color: -wl-document-tree-text;
+}
+
+.document-tree .tree-cell:selected .tree-disclosure-node .arrow {
+    -fx-background-color: -wl-document-tree-selected-text;
 }
 
 
