@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.Box;
+import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.DAL.BoxDAO;
 import com.eksam.weblagereksam.DAL.IBoxDAO;
 
@@ -17,12 +18,6 @@ public class BoxManager {
         boxDAO = new BoxDAO();
     }
 
-    // ===== Read methods =====
-
-    public List<Box> getAllBoxes() {
-        return boxDAO.getAllBoxes();
-    }
-
     public List<Box> getBoxesByUserId(UUID userId) {
         return boxDAO.getBoxesByUserId(userId);
     }
@@ -31,32 +26,35 @@ public class BoxManager {
         return boxDAO.getBoxById(id);
     }
 
-    public Box getBoxByBoxNumber(String boxNumber) {
-        return boxDAO.getBoxByBoxNumber(boxNumber);
-    }
+    public Box openBoxForScanning(String boxNumber, Profile profile, UUID userId) throws Exception {
+        Box box = boxDAO.getBoxByBoxNumber(boxNumber);
 
-    public List<Box> getBoxesByClientId(UUID clientId) {
-        return boxDAO.getAllBoxes().stream()
-                .filter(box -> box.getClientId().equals(clientId))
-                .toList();
-    }
+        if (box == null) {
+            box = new Box(null, profile.getClientId(), profile.getId(), profile.getClientName(), profile.getName(),
+                    boxNumber, boxNumber, "IN_PROGRESS", null);
+            UUID boxId = boxDAO.addBox(box);
+            if (boxId == null) {
+                throw new Exception("Could not create box.");
+            }
+            box = getBoxById(boxId);
+        } else {
+            box.setClientId(profile.getClientId());
+            box.setProfileId(profile.getId());
+            box.setClientName(profile.getClientName());
+            box.setProfileName(profile.getName());
+            box.setStatus("IN_PROGRESS");
+            updateBox(box);
+        }
 
-    public List<Box> getBoxesByProfileId(UUID profileId) {
-        return boxDAO.getAllBoxes().stream()
-                .filter(box -> profileId.equals(box.getProfileId()))
-                .toList();
-    }
+        if (userId != null) {
+            boxDAO.assignBoxToUser(userId, box.getId());
+        }
 
-    public UUID createBox(Box box) {
-        return boxDAO.addBox(box);
+        return box;
     }
 
     public boolean updateBox(Box box) {
         return boxDAO.updateBox(box);
-    }
-
-    public boolean assignBoxToUser(UUID userId, UUID boxId) {
-        return boxDAO.assignBoxToUser(userId, boxId);
     }
 
     public boolean removeBoxFromUser(UUID userId, UUID boxId) {

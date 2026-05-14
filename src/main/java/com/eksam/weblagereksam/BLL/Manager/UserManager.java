@@ -89,7 +89,4 @@ public class UserManager {
         return userDAO.updateUser(user);
     }
 
-    public boolean deleteUser(UUID id) {
-        return userDAO.deleteUser(id);
-    }
 }

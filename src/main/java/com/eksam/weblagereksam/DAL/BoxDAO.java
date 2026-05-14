@@ -16,27 +16,6 @@ public class BoxDAO implements IBoxDAO {
     public BoxDAO() throws Exception {
         dbConnector = new DBConnector();
     }
-    public List<Box> getAllBoxes() {
-        List<Box> boxes = new ArrayList<>();
-
-        String sql = selectBoxesSql() + """
-                ORDER BY b.BoxNumber
-                """;
-
-        try (Connection conn = dbConnector.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                boxes.add(mapBox(rs));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return boxes;
-    }
     public List<Box> getBoxesByUserId(UUID userId) {
         List<Box> boxes = new ArrayList<>();
 

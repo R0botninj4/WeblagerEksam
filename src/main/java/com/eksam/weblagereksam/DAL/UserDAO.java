@@ -183,24 +183,6 @@ public class UserDAO implements IUserDAO {
 
         return false;
     }
-    public boolean deleteUser(UUID id) {
-
-        String sql = "DELETE FROM Users WHERE Id = ?";
-
-        try (Connection conn = dbConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, id.toString());
-
-            return stmt.executeUpdate() > 0;
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return false;
-    }
-
     public boolean updateLastLogin(UUID id) {
 
         String sql = """

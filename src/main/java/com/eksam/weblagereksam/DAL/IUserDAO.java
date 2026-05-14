@@ -20,7 +20,5 @@ public interface IUserDAO {
 
     boolean updateUser(User user);
 
-    boolean deleteUser(UUID id);
-
     boolean updateLastLogin(UUID id);
 }

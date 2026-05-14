@@ -33,8 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class AdminController {
+
+    // ===== Styling =====
 
     private static final String ACTIVE_NAV_STYLE = """
             -fx-background-color: #2D3D4F;
@@ -50,6 +53,8 @@ public class AdminController {
     @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
+
+    // ===== Managers and page state =====
 
     // Managers belong to the BLL layer.
     // The controller asks managers for data instead of talking directly to the database.
@@ -80,6 +85,8 @@ public class AdminController {
             e.printStackTrace();
         }
     }
+
+    // ===== Setup =====
 
     private void setupSearchBar() {
         // Every time the admin types in the search field, the current table is filtered.
@@ -129,6 +136,8 @@ public class AdminController {
 
         setTableRows(userManager.getAllUsers());
     }
+
+    // ===== Page buttons =====
 
     @FXML
     private void showUsers() {
@@ -187,6 +196,8 @@ public class AdminController {
 
         openCurrentPagePopup("Add");
     }
+
+    // ===== Add, edit and delete =====
 
     @FXML
     private void handleEdit() {
@@ -314,6 +325,8 @@ public class AdminController {
         }
     }
 
+    // ===== Search and table data =====
+
     private void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Admin");
@@ -376,13 +389,15 @@ public class AdminController {
         return safeText(value).toLowerCase(Locale.ROOT).contains(search);
     }
 
-    private TableColumn<Object, String> textColumn(String title, TextGetter getter) {
+    private TableColumn<Object, String> textColumn(String title, Function<Object, String> getter) {
         // Small helper for creating text columns.
-        // The TextGetter decides what text each row should show in this column.
+        // The function decides what text each row should show in this column.
         TableColumn<Object, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(cell -> new SimpleStringProperty(safeText(getter.getText(cell.getValue()))));
+        column.setCellValueFactory(cell -> new SimpleStringProperty(safeText(getter.apply(cell.getValue()))));
         return column;
     }
+
+    // ===== Text and date helpers =====
 
     private String safeText(String value) {
         return value == null || value.isBlank() ? "-" : value;
@@ -410,6 +425,8 @@ public class AdminController {
         return Duration.between(user.getLastLogin(), LocalDateTime.now()).toMinutes() < 30;
     }
 
+    // ===== Navigation styling =====
+
     private void setActiveButton(Button activeButton) {
         for (Button button : navButtons()) {
             button.getStyleClass().removeAll("nav-btn-active");
@@ -424,12 +441,7 @@ public class AdminController {
         return List.of(btnAttendance, btnUsers, btnProfiles, btnClients);
     }
 
-    @FunctionalInterface
-    private interface TextGetter {
-        // This interface is used by textColumn().
-        // It lets each table column decide how to get text from a row object.
-        String getText(Object row);
-    }
+    // ===== Admin pages =====
 
     private enum AdminPage {
         // Enum means a fixed list of possible admin pages.
