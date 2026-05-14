@@ -49,7 +49,7 @@ public class AdminClientPopupController implements AdminPopupController {
                 client.setName(name);
                 saved = clientManager.updateClient(client);
             } else {
-                UUID clientId = clientManager.createClient(name, null);
+                UUID clientId = clientManager.createClient(name);
                 saved = clientId != null;
             }
 

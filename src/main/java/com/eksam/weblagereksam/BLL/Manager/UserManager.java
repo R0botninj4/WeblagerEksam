@@ -49,7 +49,6 @@ public class UserManager {
 
     public UUID createUser(String username,
                            String password,
-                           String fullName,
                            UUID roleId) {
 
         String hash = PasswordHasher.hash(password);
@@ -57,7 +56,6 @@ public class UserManager {
         return userDAO.addUser(
                 username,
                 hash,
-                fullName,
                 roleId
         );
     }

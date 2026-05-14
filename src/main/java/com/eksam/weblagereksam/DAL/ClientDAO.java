@@ -68,16 +68,15 @@ public class ClientDAO implements IClientDAO {
 
     public UUID addClient(Client client) {
         String sql = """
-                INSERT INTO Clients (Name, Code)
+                INSERT INTO Clients (Name)
                 OUTPUT INSERTED.Id
-                VALUES (?, ?)
+                VALUES (?)
                 """;
 
         try (Connection conn = dbConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, client.getName());
-            stmt.setString(2, client.getCode());
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -94,7 +93,7 @@ public class ClientDAO implements IClientDAO {
     public boolean updateClient(Client client) {
         String sql = """
                 UPDATE Clients
-                SET Name = ?, Code = ?, IsActive = ?
+                SET Name = ?, IsActive = ?
                 WHERE Id = ?
                 """;
 
@@ -102,9 +101,8 @@ public class ClientDAO implements IClientDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, client.getName());
-            stmt.setString(2, client.getCode());
-            stmt.setBoolean(3, client.isActive());
-            stmt.setString(4, client.getId().toString());
+            stmt.setBoolean(2, client.isActive());
+            stmt.setString(3, client.getId().toString());
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
@@ -153,7 +151,6 @@ public class ClientDAO implements IClientDAO {
         return new Client(
                 UUID.fromString(rs.getString("Id")),
                 rs.getString("Name"),
-                rs.getString("Code"),
                 hasColumn(rs, "IsActive") ? rs.getBoolean("IsActive") : true,
                 createdAt
         );

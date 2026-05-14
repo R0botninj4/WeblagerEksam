@@ -16,7 +16,7 @@ public interface IUserDAO {
 
     List<Role> getAllRoles();
 
-    UUID addUser(String username, String passwordHash, String fullName, UUID roleId);
+    UUID addUser(String username, String passwordHash, UUID roleId);
 
     boolean updateUser(User user);
 

@@ -27,11 +27,8 @@ public class ClientManager {
         return clientDAO.getActiveClients();
     }
 
-    public UUID createClient(String name, String code) {
-        if (code == null || code.isBlank()) {
-            code = "CLIENT-" + UUID.randomUUID();
-        }
-        return clientDAO.addClient(new Client(null, name, code, null));
+    public UUID createClient(String name) {
+        return clientDAO.addClient(new Client(null, name, null));
     }
 
     public boolean updateClient(Client client) {

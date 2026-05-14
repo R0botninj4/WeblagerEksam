@@ -125,14 +125,13 @@ public class UserDAO implements IUserDAO {
     }
     public UUID addUser(String username,
                         String passwordHash,
-                        String fullName,
                         UUID roleId) {
 
         String sql = """
             INSERT INTO Users
-            (Username, PasswordHash, FullName, RoleId)
+            (Username, PasswordHash, RoleId)
             OUTPUT INSERTED.Id
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?)
         """;
 
         try (Connection conn = dbConnector.getConnection();
@@ -140,8 +139,7 @@ public class UserDAO implements IUserDAO {
 
             stmt.setString(1, username);
             stmt.setString(2, passwordHash);
-            stmt.setString(3, fullName);
-            stmt.setString(4, roleId.toString());
+            stmt.setString(3, roleId.toString());
 
             ResultSet rs = stmt.executeQuery();
 
@@ -160,7 +158,6 @@ public class UserDAO implements IUserDAO {
         String sql = """
             UPDATE Users
             SET Username = ?,
-                FullName = ?,
                 RoleId = ?,
                 IsActive = ?
             WHERE Id = ?
@@ -170,10 +167,9 @@ public class UserDAO implements IUserDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getFullName());
-            stmt.setString(3, user.getRoleId().toString());
-            stmt.setBoolean(4, user.isActive());
-            stmt.setString(5, user.getId().toString());
+            stmt.setString(2, user.getRoleId().toString());
+            stmt.setBoolean(3, user.isActive());
+            stmt.setString(4, user.getId().toString());
 
             return stmt.executeUpdate() > 0;
 
@@ -211,7 +207,6 @@ public class UserDAO implements IUserDAO {
                 UUID.fromString(rs.getString("Id")),
                 rs.getString("Username"),
                 rs.getString("PasswordHash"),
-                rs.getString("FullName"),
                 UUID.fromString(rs.getString("RoleId")),
                 rs.getString("RoleName"),
                 rs.getBoolean("IsActive"),
