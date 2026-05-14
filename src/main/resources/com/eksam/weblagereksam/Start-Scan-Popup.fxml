@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefWidth="360" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Scanning.StartScanPopupController">
+    <padding>
+        <Insets bottom="14" left="14" right="14" top="14" />
+    </padding>
+    <children>
+        <Label styleClass="top-bar-title" text="Start scan" />
+        <Label styleClass="top-bar-label" text="Box number" />
+        <TextField fx:id="txtBoxNumber" promptText="Box number" styleClass="search-field" />
+        <Label styleClass="top-bar-label" text="Client" />
+        <ComboBox fx:id="comboClient" maxWidth="Infinity" promptText="Select client" />
+        <Label styleClass="top-bar-label" text="Profile" />
+        <ComboBox fx:id="comboProfile" maxWidth="Infinity" promptText="Select profile" />
+        <Label fx:id="labelError" styleClass="scan-info-label" text="" />
+        <Button maxWidth="Infinity" onAction="#startScan" styleClass="btn-primary" text="Start" />
+    </children>
+</VBox>

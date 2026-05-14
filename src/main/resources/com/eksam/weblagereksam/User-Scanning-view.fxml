@@ -6,7 +6,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -22,13 +21,8 @@
             <HBox styleClass="top-bar" BorderPane.alignment="CENTER">
                 <Label styleClass="top-bar-title" text="Weblager" />
                 <Separator orientation="VERTICAL" />
-                <HBox alignment="CENTER_LEFT" spacing="6" styleClass="scan-open-box-bar" HBox.hgrow="ALWAYS">
-                    <Label styleClass="top-bar-label" text="Box" />
-                    <TextField fx:id="txtBoxNumber" promptText="Box number" prefWidth="170" styleClass="search-field" />
-                    <Label styleClass="top-bar-label" text="Profile" />
-                    <ComboBox fx:id="comboProfile" maxWidth="Infinity" prefWidth="320" promptText="Select profile" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnOpenBox" onAction="#handleOpenBox" styleClass="btn-secondary" text="Open box" />
-                </HBox>
+                <Button fx:id="btnStartScan" onAction="#handleStartScan" styleClass="btn-secondary" text="Start scan" />
+                <Button fx:id="btnMyBoxes" onAction="#handleMyBoxes" styleClass="btn-secondary" text="My boxes" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelFilesCount" styleClass="top-bar-label top-bar-count" text="Files 0" />
                 <Separator orientation="VERTICAL" />
@@ -55,39 +49,9 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelDocCount" styleClass="sidebar-section-count" text="0 docs" />
             </HBox>
-
-            <VBox spacing="8" styleClass="sidebar-export-section">
-                <Label styleClass="sidebar-export-title" text="MY BOXES" />
-                <ComboBox fx:id="comboSavedBoxes" maxWidth="Infinity" promptText="Saved boxes" />
-                <Button fx:id="btnOpenSavedBox" maxWidth="Infinity" onAction="#handleOpenSavedBox" styleClass="btn-secondary" text="Open saved" />
-                <HBox spacing="6">
-                    <Button fx:id="btnDoneBox" maxWidth="Infinity" onAction="#handleCompleteCurrentBox" styleClass="btn-primary" text="Done" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnRemoveBox" maxWidth="Infinity" onAction="#handleRemoveCurrentBox" styleClass="btn-destructive" text="Remove" HBox.hgrow="ALWAYS" />
-                </HBox>
-            </VBox>
-
             <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
                 <VBox fx:id="documentsContainer" spacing="6" style="-fx-padding: 8;" />
             </ScrollPane>
-
-            <VBox spacing="8" styleClass="sidebar-export-section">
-                <Label styleClass="sidebar-export-title" text="EXPORT" />
-                <HBox alignment="CENTER_LEFT" spacing="8">
-                    <Label styleClass="sidebar-export-value" text="Output" />
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="labelOutputName" styleClass="sidebar-export-value" text="No Box" />
-                </HBox>
-                <HBox alignment="CENTER_LEFT" spacing="8">
-                    <Label styleClass="sidebar-export-value" text="Format" />
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="labelFormat" styleClass="sidebar-export-value" text="TIFF Multi-page" />
-                </HBox>
-                <HBox spacing="0">
-                    <Button fx:id="btnMultiPage" maxWidth="Infinity" onAction="#handleMultiPageFormat" styleClass="btn-format" text="Multi-page" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnSinglePage" maxWidth="Infinity" onAction="#handleSinglePageFormat" styleClass="btn-format" text="Single-page" HBox.hgrow="ALWAYS" />
-                </HBox>
-                <Button fx:id="btnExport" maxWidth="Infinity" onAction="#handleExport" styleClass="btn-primary" text="Export (0 documents)" />
-            </VBox>
         </VBox>
     </left>
 

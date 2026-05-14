@@ -1,10 +1,12 @@
 package com.eksam.weblagereksam.GUI.Scanning;
 import com.eksam.weblagereksam.BE.Box;
+import com.eksam.weblagereksam.BE.Client;
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BLL.Image.FxImageConverter;
 import com.eksam.weblagereksam.BLL.Manager.BoxManager;
+import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.ExportManager.ExportFormat;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanImportManager;
@@ -12,15 +14,16 @@ import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer;
-import com.eksam.weblagereksam.GUI.Util.BoxDisplayConverter;
 import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.concurrent.Task;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -29,7 +32,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.stage.Window;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -42,17 +48,13 @@ public class UserScanningController {
     // ===== FXML fields =====
 
     @FXML private Label labelClient, labelProfile, labelFilesCount, labelDocsCount, labelUser, labelDocCount;
-    @FXML private Label labelOutputName, labelFormat, labelPagePosition, labelPageRef;
+    @FXML private Label labelPagePosition, labelPageRef;
     @FXML private Label labelConnected, labelRotationInfo, labelStatusUser;
-    @FXML private TextField txtBoxNumber;
-    @FXML private ComboBox<Profile> comboProfile;
-    @FXML private ComboBox<Box> comboSavedBoxes;
     @FXML private ComboBox<Integer> comboRotationDegrees;
     @FXML private BorderPane scanRoot;
-    @FXML private Button btnExport, btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
+    @FXML private Button btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
-    @FXML private Button btnThemeToggle, btnOpenBox, btnOpenSavedBox, btnDoneBox, btnRemoveBox;
-    @FXML private Button btnMultiPage, btnSinglePage;
+    @FXML private Button btnThemeToggle, btnStartScan, btnMyBoxes;
     @FXML private VBox documentsContainer;
     @FXML private HBox filmstripBox;
     @FXML private StackPane imageViewerPane;
@@ -61,6 +63,7 @@ public class UserScanningController {
     // ===== Managers and helpers =====
 
     private BoxManager boxManager;
+    private ClientManager clientManager;
     private ProfileManager profileManager;
     private ScanImportManager scanImportManager;
     private ScanWorkspaceManager scanWorkspaceManager;
@@ -74,6 +77,9 @@ public class UserScanningController {
 
     private Box currentBox;
     private Document selectedDocument;
+    private final List<Client> availableClients = new ArrayList<>();
+    private final List<Profile> availableProfiles = new ArrayList<>();
+    private final List<Box> savedBoxes = new ArrayList<>();
     private final List<Document> currentDocuments = new ArrayList<>();
     private final List<Page> currentPages = new ArrayList<>();
     private final Map<UUID, List<Page>> pagesByDocument = new HashMap<>();
@@ -92,6 +98,7 @@ public class UserScanningController {
     public void initialize() {
         try {
             boxManager = new BoxManager();
+            clientManager = new ClientManager();
             profileManager = new ProfileManager();
             scanImportManager = new ScanImportManager();
             scanWorkspaceManager = new ScanWorkspaceManager();
@@ -104,8 +111,6 @@ public class UserScanningController {
             setupKeyboardShortcuts();
             setupImageViewer();
             setupRotationChoices();
-            updateExportFormatButtons();
-            setupSavedBoxes();
             showNoBoxSelected();
             loadStartupDataAsync();
         } catch (Exception e) {
@@ -121,20 +126,6 @@ public class UserScanningController {
 
     // ===== Box selection =====
 
-    @FXML
-    private void handleOpenBox() {
-        String boxNumber = txtBoxNumber.getText();
-        Profile selectedProfile = comboProfile.getSelectionModel().getSelectedItem();
-        if (boxNumber == null || boxNumber.isBlank()) {
-            showStatus("Enter a box number first.");
-            return;
-        }
-        if (selectedProfile == null) {
-            showStatus("Select a profile first.");
-            return;
-        }
-        openBoxAsync(boxNumber.trim(), selectedProfile);
-    }
     private void openBoxAsync(String boxNumber, Profile selectedProfile) {
         Task<Box> openTask = new Task<>() {
             @Override
@@ -143,18 +134,17 @@ public class UserScanningController {
             }
         };
         openTask.setOnRunning(event -> {
-            setDisabled(true, btnOpenSavedBox, btnOpenBox, btnDoneBox, btnRemoveBox);
+            setDisabled(true, btnStartScan, btnMyBoxes);
             showStatus("Opening box...");
         });
         openTask.setOnSucceeded(event -> {
-            setDisabled(false, btnOpenSavedBox, btnOpenBox, btnDoneBox, btnRemoveBox);
+            setDisabled(false, btnStartScan, btnMyBoxes);
             Box box = openTask.getValue();
             loadSavedBoxesForCurrentUserAsync(box);
-            selectSavedBox(box);
             openBox(box);
         });
         openTask.setOnFailed(event -> {
-            setDisabled(false, btnOpenSavedBox, btnOpenBox, btnDoneBox, btnRemoveBox);
+            setDisabled(false, btnStartScan, btnMyBoxes);
             showStatus("Could not open box.");
             printTaskError(openTask);
         });
@@ -168,14 +158,8 @@ public class UserScanningController {
         currentPages.clear();
         pagesByDocument.clear();
         filmstripThumbs.clear();
-        txtBoxNumber.setText(box.getBoxNumber());
-        selectProfileForBox(box);
-        selectSavedBox(box);
         updateBoxHeader();
         loadCurrentBoxDataAsync(false);
-    }
-    private void setupSavedBoxes() {
-        comboSavedBoxes.setConverter(new BoxDisplayConverter());
     }
     private void setupRotationChoices() {
         comboRotationDegrees.getItems().setAll(0, 90, 180, 270);
@@ -207,8 +191,8 @@ public class UserScanningController {
             }
         };
         loadTask.setOnSucceeded(event -> {
-            comboSavedBoxes.getItems().setAll(loadTask.getValue());
-            selectSavedBox(boxToSelect);
+            savedBoxes.clear();
+            savedBoxes.addAll(loadTask.getValue());
         });
         loadTask.setOnFailed(event -> printTaskError(loadTask));
         runInBackground(loadTask, "scan-saved-boxes-load-thread");
@@ -219,16 +203,19 @@ public class UserScanningController {
             protected StartupData call() {
                 UUID userId = getCurrentUserId();
                 List<Box> savedBoxes = userId != null ? boxManager.getBoxesByUserId(userId) : List.of();
-                return new StartupData(profileManager.getAllProfiles(), savedBoxes);
+                return new StartupData(clientManager.getAllClients(), profileManager.getAllProfiles(), savedBoxes);
             }
         };
         startupTask.setOnRunning(event -> showStatus("Loading scanner data..."));
         startupTask.setOnSucceeded(event -> {
             StartupData data = startupTask.getValue();
-            comboProfile.getItems().setAll(data.profiles());
-            comboSavedBoxes.getItems().setAll(data.savedBoxes());
-            selectSavedBox(currentBox);
-            showStatus("Enter box number and select profile.");
+            availableClients.clear();
+            availableClients.addAll(data.clients());
+            availableProfiles.clear();
+            availableProfiles.addAll(data.profiles());
+            savedBoxes.clear();
+            savedBoxes.addAll(data.savedBoxes());
+            showStatus("Press Start scan to open a box.");
         });
         startupTask.setOnFailed(event -> {
             showStatus("Could not load scanner data.");
@@ -239,27 +226,6 @@ public class UserScanningController {
     private UUID getCurrentUserId() {
         return Session.getUser() != null ? Session.getUser().getId() : null;
     }
-    private void selectSavedBox(Box box) {
-        if (box == null) {
-            comboSavedBoxes.getSelectionModel().clearSelection();
-            return;
-        }
-        comboSavedBoxes.getItems().stream()
-                .filter(savedBox -> savedBox.getId().equals(box.getId()))
-                .findFirst()
-                .ifPresent(savedBox -> comboSavedBoxes.getSelectionModel().select(savedBox));
-    }
-    private void selectProfileForBox(Box box) {
-        if (box.getProfileId() == null) {
-            comboProfile.getSelectionModel().clearSelection();
-            return;
-        }
-        comboProfile.getItems().stream()
-                .filter(profile -> box.getProfileId().equals(profile.getId()))
-                .findFirst()
-                .ifPresent(profile -> comboProfile.getSelectionModel().select(profile));
-    }
-
     // ===== Keyboard and header UI =====
 
     private void setupKeyboardShortcuts() {
@@ -278,17 +244,17 @@ public class UserScanningController {
     private void updateBoxHeader() {
         labelClient.setText("Client: " + (currentBox.getClientName() != null ? currentBox.getClientName() : "No client"));
         labelProfile.setText("Profile: " + (currentBox.getProfileName() != null ? currentBox.getProfileName() : "No profile"));
-        labelOutputName.setText(currentBox.getBoxNumber());
     }
     private void showNoBoxSelected() {
         labelClient.setText("Client: No client");
         labelProfile.setText("Profile: No profile");
-        labelOutputName.setText("No box");
-        showStatus("Enter box number and select profile.");
+        showStatus("Press Start scan to open a box.");
     }
 
     // ===== Button actions =====
 
+    @FXML private void handleStartScan() { openStartScanPopup(); }
+    @FXML private void handleMyBoxes() { openMyBoxesPopup(); }
     @FXML private void handleFetchNext() { startImportTask(1); }
     @FXML private void handleFetchTen() { startImportTask(10); }
     @FXML private void handleRotateLeft() { rotateCurrentPage(-90); }
@@ -306,35 +272,14 @@ public class UserScanningController {
             showStatus("Enter a number between 0 and 359.");
         }
     }
-    @FXML
-    private void handleMultiPageFormat() {
-        selectedExportFormat = ExportFormat.MULTI_PAGE;
-        labelFormat.setText("TIFF Multi-page");
-        updateExportFormatButtons();
-    }
-    @FXML
-    private void handleSinglePageFormat() {
-        selectedExportFormat = ExportFormat.SINGLE_PAGE;
-        labelFormat.setText("TIFF Single-page");
-        updateExportFormatButtons();
-    }
     @FXML private void handleSlideshow() { showStatus("Slideshow is not ready yet."); }
-    @FXML
-    private void handleExport() {
-        Window owner = scanRoot.getScene() != null ? scanRoot.getScene().getWindow() : null;
-        scanExportHelper.export(currentBox, Session.getUser(), selectedExportFormat, owner, btnExport, this::showStatus);
-    }
-    @FXML
-    private void handleOpenSavedBox() {
-        Box selectedBox = comboSavedBoxes.getSelectionModel().getSelectedItem();
+    private void openSavedBox(Box selectedBox) {
         if (selectedBox == null) {
             showStatus("Select a saved box first.");
             return;
         }
-        txtBoxNumber.setText(selectedBox.getBoxNumber());
         openBox(selectedBox);
     }
-    @FXML
     private void handleCompleteCurrentBox() {
         if (currentBox == null) {
             showStatus("Open a box first.");
@@ -355,11 +300,11 @@ public class UserScanningController {
             }
         };
         completeTask.setOnRunning(event -> {
-            setDisabled(true, btnDoneBox, btnRemoveBox);
+            setDisabled(true, btnMyBoxes);
             showStatus("Marking box as done...");
         });
         completeTask.setOnSucceeded(event -> {
-            setDisabled(false, btnDoneBox, btnRemoveBox);
+            setDisabled(false, btnMyBoxes);
             if (!completeTask.getValue()) {
                 showStatus("Could not mark box as done.");
                 return;
@@ -369,15 +314,13 @@ public class UserScanningController {
             showStatus("Box marked as done.");
         });
         completeTask.setOnFailed(event -> {
-            setDisabled(false, btnDoneBox, btnRemoveBox);
+            setDisabled(false, btnMyBoxes);
             showStatus("Could not mark box as done.");
             printTaskError(completeTask);
         });
         runInBackground(completeTask, "scan-complete-box-thread");
     }
-    @FXML
-    private void handleRemoveCurrentBox() {
-        Box selectedSavedBox = comboSavedBoxes.getSelectionModel().getSelectedItem();
+    private void handleRemoveCurrentBox(Box selectedSavedBox) {
         Box boxToRemove = selectedSavedBox != null ? selectedSavedBox : currentBox;
         if (boxToRemove == null) {
             showStatus("Select a saved box first.");
@@ -394,11 +337,11 @@ public class UserScanningController {
             }
         };
         removeTask.setOnRunning(event -> {
-            setDisabled(true, btnDoneBox, btnRemoveBox);
+            setDisabled(true, btnMyBoxes);
             showStatus("Removing box from your list...");
         });
         removeTask.setOnSucceeded(event -> {
-            setDisabled(false, btnDoneBox, btnRemoveBox);
+            setDisabled(false, btnMyBoxes);
             if (currentBox != null && currentBox.getId().equals(boxToRemove.getId())) {
                 clearCurrentBox();
             }
@@ -406,7 +349,7 @@ public class UserScanningController {
             showStatus("Box removed from your list.");
         });
         removeTask.setOnFailed(event -> {
-            setDisabled(false, btnDoneBox, btnRemoveBox);
+            setDisabled(false, btnMyBoxes);
             showStatus("Could not remove box.");
             printTaskError(removeTask);
         });
@@ -422,17 +365,6 @@ public class UserScanningController {
         logoutHelper.logout(scanRoot.getScene().getWindow());
     }
 
-    // ===== Export format =====
-
-    private void updateExportFormatButtons() {
-        btnMultiPage.getStyleClass().removeAll("btn-format-active");
-        btnSinglePage.getStyleClass().removeAll("btn-format-active");
-        if (selectedExportFormat == ExportFormat.MULTI_PAGE) {
-            btnMultiPage.getStyleClass().add("btn-format-active");
-        } else {
-            btnSinglePage.getStyleClass().add("btn-format-active");
-        }
-    }
     private void removeBoxFromCurrentUser(Box box) {
         UUID userId = getCurrentUserId();
         if (userId != null && box != null) {
@@ -448,11 +380,9 @@ public class UserScanningController {
         pagesByDocument.clear();
         filmstripThumbs.clear();
         pageImageCache.clear();
-        txtBoxNumber.clear();
         labelDocsCount.setText("Docs 0");
         labelDocCount.setText("0 docs");
         labelFilesCount.setText("Files 0");
-        btnExport.setText("Export (0 documents)");
         renderDocumentCards();
         renderFilmstrip();
         showCurrentPage();
@@ -567,7 +497,6 @@ public class UserScanningController {
         labelDocsCount.setText("Docs " + currentDocuments.size());
         labelDocCount.setText(currentDocuments.size() + " docs");
         labelFilesCount.setText("Files " + snapshot.totalFiles());
-        btnExport.setText("Export (" + currentDocuments.size() + " documents)");
         if (snapshot.selectedDocumentId() != null) {
             selectedDocument = currentDocuments.stream()
                     .filter(document -> document.getId().equals(snapshot.selectedDocumentId()))
@@ -778,12 +707,8 @@ public class UserScanningController {
         labelRotationInfo.setText("Rotation: " + newRotation + " degrees");
         setRotationChoice(newRotation);
         renderFilmstrip();
-        if (isDatabaseAllowedRotation(newRotation)) {
-            showStatus("Rotation saved.");
-            saveRotationInBackground(page, oldRotation, newRotation);
-        } else {
-            showStatus("Custom rotation preview. Database only saves 0, 90, 180 and 270 until the constraint is updated.");
-        }
+        showStatus("Rotation saved.");
+        saveRotationInBackground(page, oldRotation, newRotation);
     }
     private void saveRotationInBackground(Page page, int oldRotation, int newRotation) {
         Task<Boolean> rotationTask = new Task<>() {
@@ -832,14 +757,6 @@ public class UserScanningController {
         int normalized = rotation % 360;
         return normalized < 0 ? normalized + 360 : normalized;
     }
-    private boolean isDatabaseAllowedRotation(int rotation) {
-        int normalizedRotation = normalizeRotation(rotation);
-        return normalizedRotation == 0
-                || normalizedRotation == 90
-                || normalizedRotation == 180
-                || normalizedRotation == 270;
-    }
-
     // ===== Delete and reorder pages =====
 
     @FXML
@@ -914,6 +831,69 @@ public class UserScanningController {
             error.printStackTrace();
         }
     }
-    private record StartupData(List<Profile> profiles, List<Box> savedBoxes) {}
+    private void openStartScanPopup() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/Start-Scan-Popup.fxml"));
+            Parent content = loader.load();
+            StartScanPopupController controller = loader.getController();
+            controller.setup(availableClients, availableProfiles);
+
+            Stage popup = new Stage();
+            popup.setTitle("Start scan");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            Window owner = scanRoot.getScene() != null ? scanRoot.getScene().getWindow() : null;
+            if (owner != null) {
+                popup.initOwner(owner);
+            }
+
+            popup.setResizable(false);
+            popup.setScene(new Scene(content));
+            popup.showAndWait();
+
+            if (controller.wasStarted()) {
+                openBoxAsync(controller.getBoxNumber(), controller.getSelectedProfile());
+            }
+        } catch (IOException e) {
+            showStatus("Could not open start scan popup.");
+            e.printStackTrace();
+        }
+    }
+    private void openMyBoxesPopup() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/My-Boxes-Popup.fxml"));
+            Parent content = loader.load();
+            MyBoxesPopupController controller = loader.getController();
+            controller.setup(savedBoxes, currentBox, selectedExportFormat, currentDocuments.size());
+
+            Stage popup = new Stage();
+            popup.setTitle("My boxes");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            Window owner = scanRoot.getScene() != null ? scanRoot.getScene().getWindow() : null;
+            if (owner != null) {
+                popup.initOwner(owner);
+            }
+
+            popup.setResizable(false);
+            popup.setScene(new Scene(content));
+            popup.showAndWait();
+            handleMyBoxesAction(controller, owner);
+        } catch (IOException e) {
+            showStatus("Could not open my boxes popup.");
+            e.printStackTrace();
+        }
+    }
+    private void handleMyBoxesAction(MyBoxesPopupController controller, Window owner) {
+        switch (controller.getAction()) {
+            case OPEN_SAVED -> openSavedBox(controller.getSelectedBox());
+            case DONE -> handleCompleteCurrentBox();
+            case REMOVE -> handleRemoveCurrentBox(controller.getSelectedBox());
+            case EXPORT -> {
+                selectedExportFormat = controller.getSelectedFormat();
+                scanExportHelper.export(currentBox, Session.getUser(), selectedExportFormat, owner, btnMyBoxes, this::showStatus, this::handleCompleteCurrentBox);
+            }
+            case NONE -> { }
+        }
+    }
+    private record StartupData(List<Client> clients, List<Profile> profiles, List<Box> savedBoxes) {}
     private record PageImageLoad(Page page, Image image) {}
 }

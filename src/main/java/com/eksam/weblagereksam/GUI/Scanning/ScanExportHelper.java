@@ -21,6 +21,10 @@ public class ScanExportHelper {
     }
 
     public void export(Box box, User user, ExportFormat format, Window owner, Button exportButton, Consumer<String> showStatus) {
+        export(box, user, format, owner, exportButton, showStatus, null);
+    }
+
+    public void export(Box box, User user, ExportFormat format, Window owner, Button exportButton, Consumer<String> showStatus, Runnable afterExport) {
         if (box == null) {
             showStatus.accept("Open a box before exporting.");
             return;
@@ -32,7 +36,7 @@ public class ScanExportHelper {
             return;
         }
 
-        startExport(box, user, format, folder.toPath(), exportButton, showStatus);
+        startExport(box, user, format, folder.toPath(), exportButton, showStatus, afterExport);
     }
 
     private File chooseExportFolder(Window owner) {
@@ -41,7 +45,7 @@ public class ScanExportHelper {
         return chooser.showDialog(owner);
     }
 
-    private void startExport(Box box, User user, ExportFormat format, Path folder, Button exportButton, Consumer<String> showStatus) {
+    private void startExport(Box box, User user, ExportFormat format, Path folder, Button exportButton, Consumer<String> showStatus, Runnable afterExport) {
         Task<Path> exportTask = new Task<>() {
             @Override
             protected Path call() throws Exception {
@@ -57,6 +61,9 @@ public class ScanExportHelper {
         exportTask.setOnSucceeded(event -> {
             exportButton.setDisable(false);
             showStatus.accept("Export completed: " + exportTask.getValue());
+            if (afterExport != null) {
+                afterExport.run();
+            }
         });
 
         exportTask.setOnFailed(event -> {
