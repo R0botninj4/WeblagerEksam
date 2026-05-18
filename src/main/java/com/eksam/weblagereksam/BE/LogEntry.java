@@ -9,7 +9,6 @@ public class LogEntry {
     private final String username;
     private final String action;
     private final String tableName;
-    private final UUID recordId;
     private final String oldValue;
     private final String newValue;
     private final LocalDateTime createdAt;
@@ -18,7 +17,6 @@ public class LogEntry {
                     String username,
                     String action,
                     String tableName,
-                    UUID recordId,
                     String oldValue,
                     String newValue,
                     LocalDateTime createdAt) {
@@ -26,7 +24,6 @@ public class LogEntry {
         this.username = username;
         this.action = action;
         this.tableName = tableName;
-        this.recordId = recordId;
         this.oldValue = oldValue;
         this.newValue = newValue;
         this.createdAt = createdAt;
@@ -39,8 +36,6 @@ public class LogEntry {
     public String getAction() { return action; }
 
     public String getTableName() { return tableName; }
-
-    public UUID getRecordId() { return recordId; }
 
     public String getOldValue() { return oldValue; }
 

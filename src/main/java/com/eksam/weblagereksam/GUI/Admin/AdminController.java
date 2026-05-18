@@ -470,7 +470,6 @@ public class AdminController {
         return containsSearch(log.getUsername(), search)
                 || containsSearch(log.getAction(), search)
                 || containsSearch(log.getTableName(), search)
-                || containsSearch(formatUuid(log.getRecordId()), search)
                 || containsSearch(log.getOldValue(), search)
                 || containsSearch(log.getNewValue(), search)
                 || containsSearch(formatDateTime(log.getCreatedAt()), search);
@@ -546,10 +545,6 @@ public class AdminController {
 
     private String formatDateTime(LocalDateTime date) {
         return date == null ? "Never" : date.toString().replace("T", " ");
-    }
-
-    private String formatUuid(UUID id) {
-        return id == null ? "-" : id.toString();
     }
 
     private boolean isLoggedInNow(User user) {

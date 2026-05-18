@@ -292,7 +292,6 @@ public class UserScanningController {
             showStatus("Enter a number between 0 and 359.");
         }
     }
-    @FXML private void handleSlideshow() { showStatus("Slideshow is not ready yet."); }
     private void openSavedBox(Box selectedBox) {
         if (selectedBox == null) {
             showStatus("Select a saved box first.");

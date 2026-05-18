@@ -72,15 +72,11 @@ public class LogDAO implements ILogDAO {
         Timestamp createdTimestamp = rs.getTimestamp("CreatedAt");
         LocalDateTime createdAt = createdTimestamp != null ? createdTimestamp.toLocalDateTime() : null;
 
-        String recordIdText = rs.getString("RecordId");
-        UUID recordId = recordIdText == null ? null : UUID.fromString(recordIdText);
-
         return new LogEntry(
                 UUID.fromString(rs.getString("Id")),
                 rs.getString("Username"),
                 rs.getString("Action"),
                 rs.getString("TableName"),
-                recordId,
                 rs.getString("OldValue"),
                 rs.getString("NewValue"),
                 createdAt
