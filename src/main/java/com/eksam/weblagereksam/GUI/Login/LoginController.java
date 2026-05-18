@@ -1,6 +1,7 @@
 package com.eksam.weblagereksam.GUI.Login;
 
 import com.eksam.weblagereksam.BE.User;
+import com.eksam.weblagereksam.BLL.Manager.LogManager;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
 import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.event.ActionEvent;
@@ -26,6 +27,7 @@ public class LoginController {
     private Label lblMessage;
 
     private UserManager userManager;
+    private LogManager logManager;
 
     // ===== JavaFX lifecycle =====
 
@@ -34,6 +36,7 @@ public class LoginController {
 
         try {
             userManager = new UserManager();
+            logManager = new LogManager();
         } catch (Exception e) {
             lblMessage.setText("Database fejl.");
             showException("Could not connect to the database.", e);
@@ -70,6 +73,7 @@ public class LoginController {
             }
 
             Session.setUser(user);
+            logManager.createLog(user.getId(), "Login", "Users", user.getId(), null, user.getUsername());
 
             String viewPath;
             String windowTitle;

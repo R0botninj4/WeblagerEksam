@@ -1,10 +1,12 @@
 package com.eksam.weblagereksam.GUI.Admin;
 
 import com.eksam.weblagereksam.BE.Client;
+import com.eksam.weblagereksam.BE.LogEntry;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BE.UserActivity;
 import com.eksam.weblagereksam.BLL.Manager.ClientManager;
+import com.eksam.weblagereksam.BLL.Manager.LogManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
 import com.eksam.weblagereksam.GUI.Login.Session;
@@ -35,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class AdminController {
@@ -63,6 +66,7 @@ public class AdminController {
     private UserManager userManager;
     private ProfileManager profileManager;
     private ClientManager clientManager;
+    private LogManager logManager;
     private LogoutHelper logoutHelper;
     private List<Object> currentRows = new ArrayList<>();
 
@@ -72,12 +76,11 @@ public class AdminController {
 
     @FXML
     public void initialize() {
-        btnLogged.setDisable(true);
-        btnLogged.setVisible(false);
         try {
             userManager = new UserManager();
             profileManager = new ProfileManager();
             clientManager = new ClientManager();
+            logManager = new LogManager();
             logoutHelper = new LogoutHelper();
 
             setupTableContextMenu();
@@ -111,12 +114,12 @@ public class AdminController {
         contextMenu.setOnShowing(event -> {
             // Attendance is read-only, so the edit actions should not be clickable there.
             // Activate is only useful when the selected row is currently inactive.
-            boolean attendancePage = currentPage == AdminPage.ATTENDANCE;
+            boolean readOnlyPage = currentPage == AdminPage.ATTENDANCE || currentPage == AdminPage.LOGS;
             boolean rowSelected = tableAdmin.getSelectionModel().getSelectedItem() != null;
 
-            editItem.setDisable(attendancePage || !rowSelected);
-            deleteItem.setDisable(attendancePage || !rowSelected);
-            activateItem.setDisable(attendancePage || !selectedRowIsInactive());
+            editItem.setDisable(readOnlyPage || !rowSelected);
+            deleteItem.setDisable(readOnlyPage || !rowSelected);
+            activateItem.setDisable(readOnlyPage || !selectedRowIsInactive());
         });
 
         tableAdmin.setContextMenu(contextMenu);
@@ -195,9 +198,26 @@ public class AdminController {
     }
 
     @FXML
+    private void showLogs() {
+        txtSearch.setPromptText("Search logs");
+        currentPage = AdminPage.LOGS;
+        setActiveButton(btnLogged);
+
+        tableAdmin.getColumns().setAll(
+                textColumn("Time", row -> formatDateTime(((LogEntry) row).getCreatedAt())),
+                textColumn("User", row -> ((LogEntry) row).getUsername()),
+                textColumn("Action", row -> ((LogEntry) row).getAction()),
+                textColumn("Table", row -> ((LogEntry) row).getTableName()),
+                textColumn("New value", row -> ((LogEntry) row).getNewValue())
+        );
+
+        setTableRows(logManager.getAllLogs());
+    }
+
+    @FXML
     private void handleAdd() {
-        if (currentPage == AdminPage.ATTENDANCE) {
-            showInfo("Attendance is only for viewing login status.");
+        if (currentPage == AdminPage.ATTENDANCE || currentPage == AdminPage.LOGS) {
+            showInfo(currentPage.singularName + " is only for viewing.");
             return;
         }
 
@@ -208,8 +228,8 @@ public class AdminController {
 
     @FXML
     private void handleEdit() {
-        if (currentPage == AdminPage.ATTENDANCE) {
-            showInfo("Attendance is only for viewing login status.");
+        if (currentPage == AdminPage.ATTENDANCE || currentPage == AdminPage.LOGS) {
+            showInfo(currentPage.singularName + " is only for viewing.");
             return;
         }
 
@@ -223,8 +243,8 @@ public class AdminController {
 
     @FXML
     private void handleDelete() {
-        if (currentPage == AdminPage.ATTENDANCE) {
-            showInfo("Attendance is only for viewing login status.");
+        if (currentPage == AdminPage.ATTENDANCE || currentPage == AdminPage.LOGS) {
+            showInfo(currentPage.singularName + " is only for viewing.");
             return;
         }
 
@@ -322,6 +342,7 @@ public class AdminController {
         popup.showAndWait();
 
         if (popupController.wasSaved()) {
+            writeLog(action + " " + currentPage.singularName, currentPage.singularName, null, null, title);
             refreshCurrentPage();
         }
     }
@@ -330,13 +351,14 @@ public class AdminController {
         // Deletes from the correct manager depending on which table is open.
         // This keeps database access inside BLL/DAL instead of inside the GUI.
         boolean deleted = switch (currentPage) {
-            case ATTENDANCE -> false;
+            case ATTENDANCE, LOGS -> false;
             case USERS -> userManager.deactivateUser(((User) selectedRow).getId());
             case PROFILES -> profileManager.deactivateProfile(((Profile) selectedRow).getId());
             case CLIENTS -> clientManager.deactivateClient(((Client) selectedRow).getId());
         };
 
         if (deleted) {
+            writeLog("Deactivate " + currentPage.singularName, currentPage.singularName, getRowId(selectedRow), null, getRowName(selectedRow));
             refreshCurrentPage();
         } else {
             showError("Could not deactivate selected " + currentPage.singularName.toLowerCase() + ".", null);
@@ -347,13 +369,14 @@ public class AdminController {
         // Reactivation is also handled through the managers.
         // The database row stays the same; only IsActive is changed back to true.
         boolean activated = switch (currentPage) {
-            case ATTENDANCE -> false;
+            case ATTENDANCE, LOGS -> false;
             case USERS -> userManager.activateUser(((User) selectedRow).getId());
             case PROFILES -> profileManager.activateProfile(((Profile) selectedRow).getId());
             case CLIENTS -> clientManager.activateClient(((Client) selectedRow).getId());
         };
 
         if (activated) {
+            writeLog("Activate " + currentPage.singularName, currentPage.singularName, getRowId(selectedRow), null, getRowName(selectedRow));
             refreshCurrentPage();
         } else {
             showError("Could not activate selected " + currentPage.singularName.toLowerCase() + ".", null);
@@ -365,6 +388,7 @@ public class AdminController {
         // This is used after Add/Edit/Delete and by the refresh button.
         switch (currentPage) {
             case ATTENDANCE -> showAttendance();
+            case LOGS -> showLogs();
             case USERS -> showUsers();
             case PROFILES -> showProfiles();
             case CLIENTS -> showClients();
@@ -384,6 +408,29 @@ public class AdminController {
     private void showError(String message, Throwable error) {
         Window owner = tableAdmin != null && tableAdmin.getScene() != null ? tableAdmin.getScene().getWindow() : null;
         ErrorDialog.show(owner, message, error);
+    }
+
+    private void writeLog(String action, String tableName, UUID recordId, String oldValue, String newValue) {
+        UUID userId = Session.getUser() == null ? null : Session.getUser().getId();
+        logManager.createLog(userId, action, tableName, recordId, oldValue, newValue);
+    }
+
+    private UUID getRowId(Object row) {
+        return switch (currentPage) {
+            case USERS -> ((User) row).getId();
+            case PROFILES -> ((Profile) row).getId();
+            case CLIENTS -> ((Client) row).getId();
+            case ATTENDANCE, LOGS -> null;
+        };
+    }
+
+    private String getRowName(Object row) {
+        return switch (currentPage) {
+            case USERS -> ((User) row).getUsername();
+            case PROFILES -> ((Profile) row).getName();
+            case CLIENTS -> ((Client) row).getName();
+            case ATTENDANCE, LOGS -> null;
+        };
     }
 
     private void setTableRows(List<?> rows) {
@@ -412,10 +459,21 @@ public class AdminController {
     private boolean rowMatchesSearch(Object row, String search) {
         return switch (currentPage) {
             case ATTENDANCE -> userActivityMatchesSearch((UserActivity) row, search);
+            case LOGS -> logMatchesSearch((LogEntry) row, search);
             case USERS -> userMatchesSearch((User) row, search);
             case PROFILES -> profileMatchesSearch((Profile) row, search);
             case CLIENTS -> clientMatchesSearch((Client) row, search);
         };
+    }
+
+    private boolean logMatchesSearch(LogEntry log, String search) {
+        return containsSearch(log.getUsername(), search)
+                || containsSearch(log.getAction(), search)
+                || containsSearch(log.getTableName(), search)
+                || containsSearch(formatUuid(log.getRecordId()), search)
+                || containsSearch(log.getOldValue(), search)
+                || containsSearch(log.getNewValue(), search)
+                || containsSearch(formatDateTime(log.getCreatedAt()), search);
     }
 
     private boolean userActivityMatchesSearch(UserActivity activity, String search) {
@@ -457,6 +515,7 @@ public class AdminController {
 
         return switch (currentPage) {
             case ATTENDANCE -> false;
+            case LOGS -> false;
             case USERS -> !((User) selectedRow).isActive();
             case PROFILES -> !((Profile) selectedRow).isActive();
             case CLIENTS -> !((Client) selectedRow).isActive();
@@ -489,6 +548,10 @@ public class AdminController {
         return date == null ? "Never" : date.toString().replace("T", " ");
     }
 
+    private String formatUuid(UUID id) {
+        return id == null ? "-" : id.toString();
+    }
+
     private boolean isLoggedInNow(User user) {
         // The current user is always logged in.
         // Other users count as logged in if their LastLogin is less than 30 minutes ago.
@@ -516,7 +579,7 @@ public class AdminController {
     }
 
     private List<Button> navButtons() {
-        return List.of(btnAttendance, btnUsers, btnProfiles, btnClients);
+        return List.of(btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged);
     }
 
     // ===== Admin pages =====
@@ -525,6 +588,7 @@ public class AdminController {
         // Enum means a fixed list of possible admin pages.
         // It is safer than using plain text like "USERS" because Java catches spelling mistakes.
         ATTENDANCE("Attendance", ""),
+        LOGS("Logged activity", ""),
         USERS("User", "/com/eksam/weblagereksam/Admin-Create-User-Popup.fxml"),
         PROFILES("Profile", "/com/eksam/weblagereksam/Admin-Create-Profile-Popup.fxml"),
         CLIENTS("Client", "/com/eksam/weblagereksam/Admin-Create-Client-Popup.fxml");

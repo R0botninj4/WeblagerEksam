@@ -1,5 +1,7 @@
 package com.eksam.weblagereksam.GUI.Util;
 
+import com.eksam.weblagereksam.BE.User;
+import com.eksam.weblagereksam.BLL.Manager.LogManager;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -10,6 +12,11 @@ public class LogoutHelper {
 
     public void logout(Window currentWindow) {
         try {
+            User user = Session.getUser();
+            if (user != null) {
+                new LogManager().createLog(user.getId(), "Logout", "Users", user.getId(), null, user.getUsername());
+            }
+
             Session.clear();
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/Login-view.fxml"));

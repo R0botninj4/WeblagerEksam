@@ -8,6 +8,7 @@ import com.eksam.weblagereksam.BLL.Image.FxImageConverter;
 import com.eksam.weblagereksam.BLL.Manager.BoxManager;
 import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.ExportManager.ExportFormat;
+import com.eksam.weblagereksam.BLL.Manager.LogManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanImportManager;
 import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager;
@@ -70,6 +71,7 @@ public class UserScanningController {
     private ProfileManager profileManager;
     private ScanImportManager scanImportManager;
     private ScanWorkspaceManager scanWorkspaceManager;
+    private LogManager logManager;
     private ScanViewRenderer scanViewRenderer;
     private ThemeSwitcher themeSwitcher;
     private LogoutHelper logoutHelper;
@@ -106,6 +108,7 @@ public class UserScanningController {
             profileManager = new ProfileManager();
             scanImportManager = new ScanImportManager();
             scanWorkspaceManager = new ScanWorkspaceManager();
+            logManager = new LogManager();
             scanViewRenderer = new ScanViewRenderer();
             themeSwitcher = new ThemeSwitcher();
             logoutHelper = new LogoutHelper();
@@ -163,6 +166,7 @@ public class UserScanningController {
         currentPages.clear();
         pagesByDocument.clear();
         filmstripThumbs.clear();
+        writeLog("Open box", "Boxes", box.getId(), null, box.getBoxNumber());
         updateBoxHeader();
         loadCurrentBoxDataAsync(false);
     }
@@ -325,6 +329,7 @@ public class UserScanningController {
                 showStatus("Could not mark box as done.");
                 return;
             }
+            writeLog("Complete box", "Boxes", box.getId(), null, box.getBoxNumber());
             clearCurrentBox();
             loadSavedBoxesForCurrentUserAsync(null);
             showStatus("Box marked as done.");
@@ -361,6 +366,7 @@ public class UserScanningController {
             if (currentBox != null && currentBox.getId().equals(boxToRemove.getId())) {
                 clearCurrentBox();
             }
+            writeLog("Remove box from user", "Boxes", boxToRemove.getId(), null, boxToRemove.getBoxNumber());
             loadSavedBoxesForCurrentUserAsync(currentBox);
             showStatus("Box removed from your list.");
         });
@@ -440,6 +446,7 @@ public class UserScanningController {
         importTask.setOnSucceeded(event -> {
             finishImportTask();
             showStatus("Done. " + importTask.getValue() + " documents updated.");
+            writeLog("Scan files", "Boxes", currentBox.getId(), null, importTask.getValue() + " files");
             loadCurrentBoxDataAsync(false);
         });
         importTask.setOnFailed(event -> {
@@ -846,6 +853,9 @@ public class UserScanningController {
     private void showError(String message, Throwable error) {
         Window owner = scanRoot != null && scanRoot.getScene() != null ? scanRoot.getScene().getWindow() : null;
         ErrorDialog.show(owner, message, error);
+    }
+    private void writeLog(String action, String tableName, UUID recordId, String oldValue, String newValue) {
+        logManager.createLog(getCurrentUserId(), action, tableName, recordId, oldValue, newValue);
     }
     private void openStartScanPopup() {
         try {
