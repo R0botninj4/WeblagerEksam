@@ -23,8 +23,8 @@ public class ProfileManager {
         return profileDAO.getActiveProfiles();
     }
 
-    public UUID createProfile(UUID clientId, String name, String barcodeRule, String metadataSchema) {
-        return profileDAO.addProfile(new Profile(null, clientId, null, name, barcodeRule, metadataSchema, null));
+    public UUID createProfile(UUID clientId, String name) {
+        return profileDAO.addProfile(new Profile(null, clientId, null, name, null));
     }
 
     public boolean updateProfile(Profile profile) {

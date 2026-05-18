@@ -37,7 +37,7 @@ public class DocumentDAO implements IDocumentDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -74,7 +74,7 @@ public class DocumentDAO implements IDocumentDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return documents;
@@ -109,7 +109,7 @@ public class DocumentDAO implements IDocumentDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -133,7 +133,7 @@ public class DocumentDAO implements IDocumentDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return 1;
@@ -153,10 +153,8 @@ public class DocumentDAO implements IDocumentDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean deleteDocument(UUID documentId) {
         String sql = "DELETE FROM Documents WHERE Id = ?";
@@ -168,9 +166,7 @@ public class DocumentDAO implements IDocumentDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 }

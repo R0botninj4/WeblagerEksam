@@ -33,7 +33,6 @@ public class BarcodeReaderService {
                 // No barcode was found in this rotation.
                 // That is not an error, so we just try the next rotation.
             } catch (Exception e) {
-                e.printStackTrace();
                 return null;
             }
         }

@@ -66,9 +66,7 @@ public class AdminProfilePopupController implements AdminPopupController {
             } else {
                 UUID profileId = profileManager.createProfile(
                         selectedClient.getId(),
-                        name,
-                        null,
-                        null
+                        name
                 );
                 saved = profileId != null;
             }

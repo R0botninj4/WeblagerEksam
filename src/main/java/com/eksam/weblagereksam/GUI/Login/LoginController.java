@@ -52,6 +52,8 @@ public class LoginController {
     private void handleLogin() {
 
         try {
+            // Read the username and password from the login form.
+            // trim() removes accidental spaces before/after the username.
             String username = txtUsername.getText().trim();
             String password = txtPassword.getText();
 
@@ -60,6 +62,8 @@ public class LoginController {
                 return;
             }
 
+            // The manager checks the database and password hash.
+            // If login fails it returns null, so the GUI does not need password logic.
             User user = userManager.login(username, password);
 
             if (user == null) {
@@ -73,8 +77,11 @@ public class LoginController {
             }
 
             Session.setUser(user);
+
+            // Save the login in the audit log, so admin can see user activity later.
             logManager.createLog(user.getId(), "Login", "Users", user.getId(), null, user.getUsername());
 
+            // Choose which window to open based on the user's role.
             String viewPath;
             String windowTitle;
 

@@ -55,7 +55,7 @@ public class AdminController {
 
     // FXML fields are connected to Admin-view.fxml.
     // That means JavaFX fills these variables when the view is loaded.
-    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged, btnActivate;
+    @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
 
@@ -129,6 +129,7 @@ public class AdminController {
     private void showAttendance() {
         // Attendance shows login information only.
         // It uses User data, but it is not meant for editing users.
+        // It also shows how much each user has scanned.
         txtSearch.setPromptText("Search attendance");
         currentPage = AdminPage.ATTENDANCE;
         setActiveButton(btnAttendance);
@@ -199,6 +200,8 @@ public class AdminController {
 
     @FXML
     private void showLogs() {
+        // Logged activity shows audit logs from the database.
+        // This page is read-only because logs should not be edited by admin.
         txtSearch.setPromptText("Search logs");
         currentPage = AdminPage.LOGS;
         setActiveButton(btnLogged);
@@ -411,6 +414,8 @@ public class AdminController {
     }
 
     private void writeLog(String action, String tableName, UUID recordId, String oldValue, String newValue) {
+        // Helper used by admin actions.
+        // It adds the currently logged-in admin user to the log entry.
         UUID userId = Session.getUser() == null ? null : Session.getUser().getId();
         logManager.createLog(userId, action, tableName, recordId, oldValue, newValue);
     }

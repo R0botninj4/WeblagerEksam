@@ -18,8 +18,6 @@ public class UserDAO implements IUserDAO {
         dbConnector = new DBConnector();
     }
 
-
-    // BLVDSIONVEFW
     public User getUserByUsername(String username) {
 
         String sql = """
@@ -41,7 +39,7 @@ public class UserDAO implements IUserDAO {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
 
         return null;
@@ -67,7 +65,7 @@ public class UserDAO implements IUserDAO {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
 
         return null;
@@ -92,7 +90,7 @@ public class UserDAO implements IUserDAO {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
 
         return users;
@@ -101,6 +99,8 @@ public class UserDAO implements IUserDAO {
 
         List<UserActivity> activities = new ArrayList<>();
 
+        // Attendance activity is counted in one SQL query.
+        // This is faster than loading every box, document and page one by one in Java.
         String sql = """
             SELECT u.Id, u.Username, u.PasswordHash, u.RoleId, u.IsActive, u.LastLogin,
                    r.Name AS RoleName,
@@ -131,7 +131,7 @@ public class UserDAO implements IUserDAO {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
 
         return activities;
@@ -158,7 +158,7 @@ public class UserDAO implements IUserDAO {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
 
         return roles;
@@ -188,7 +188,7 @@ public class UserDAO implements IUserDAO {
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
 
         return null;
@@ -214,10 +214,8 @@ public class UserDAO implements IUserDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
-
-        return false;
     }
     public boolean updateLastLogin(UUID id) {
 
@@ -234,10 +232,8 @@ public class UserDAO implements IUserDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException("Database operation failed.", ex);
         }
-
-        return false;
     }
 
     private User mapUser(ResultSet rs) throws SQLException {

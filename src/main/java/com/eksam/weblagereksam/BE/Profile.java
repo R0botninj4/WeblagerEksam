@@ -9,8 +9,6 @@ public class Profile {
     private UUID clientId;
     private String clientName;
     private String name;
-    private String barcodeSplitRule;
-    private String metadataSchema;
     private boolean active;
     private LocalDateTime createdAt;
 
@@ -18,26 +16,20 @@ public class Profile {
                    UUID clientId,
                    String clientName,
                    String name,
-                   String barcodeSplitRule,
-                   String metadataSchema,
                    LocalDateTime createdAt) {
-        this(id, clientId, clientName, name, barcodeSplitRule, metadataSchema, true, createdAt);
+        this(id, clientId, clientName, name, true, createdAt);
     }
 
     public Profile(UUID id,
                    UUID clientId,
                    String clientName,
                    String name,
-                   String barcodeSplitRule,
-                   String metadataSchema,
                    boolean active,
                    LocalDateTime createdAt) {
         this.id = id;
         this.clientId = clientId;
         this.clientName = clientName;
         this.name = name;
-        this.barcodeSplitRule = barcodeSplitRule;
-        this.metadataSchema = metadataSchema;
         this.active = active;
         this.createdAt = createdAt;
     }
@@ -50,10 +42,6 @@ public class Profile {
 
     public String getName() { return name; }
 
-    public String getBarcodeSplitRule() { return barcodeSplitRule; }
-
-    public String getMetadataSchema() { return metadataSchema; }
-
     public boolean isActive() { return active; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
@@ -63,10 +51,6 @@ public class Profile {
     public void setClientName(String clientName) { this.clientName = clientName; }
 
     public void setName(String name) { this.name = name; }
-
-    public void setBarcodeSplitRule(String barcodeSplitRule) { this.barcodeSplitRule = barcodeSplitRule; }
-
-    public void setMetadataSchema(String metadataSchema) { this.metadataSchema = metadataSchema; }
 
     public void setActive(boolean active) { this.active = active; }
 

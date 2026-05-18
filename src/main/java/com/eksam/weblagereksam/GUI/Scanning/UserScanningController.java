@@ -135,6 +135,8 @@ public class UserScanningController {
     // ===== Box selection =====
 
     private void openBoxAsync(String boxNumber, Profile selectedProfile) {
+        // Opening a box can touch the database, so it runs in a JavaFX Task.
+        // That keeps the UI from freezing while the box is created or loaded.
         Task<Box> openTask = new Task<>() {
             @Override
             protected Box call() throws Exception {
@@ -159,6 +161,8 @@ public class UserScanningController {
         runInBackground(openTask, "scan-open-box-thread");
     }
     private void openBox(Box box) {
+        // This method changes the current workspace to the selected box.
+        // After this, documents and pages are loaded for that box.
         currentBox = box;
         selectedDocument = null;
         currentPageIndex = 0;
@@ -308,6 +312,8 @@ public class UserScanningController {
         completeBoxAsync(currentBox);
     }
     private void completeBoxAsync(Box box) {
+        // Completing a box updates its status and removes it from the user's active list.
+        // It runs in the background because it writes to the database.
         Task<Boolean> completeTask = new Task<>() {
             @Override
             protected Boolean call() {
@@ -349,6 +355,8 @@ public class UserScanningController {
         removeBoxAsync(boxToRemove);
     }
     private void removeBoxAsync(Box boxToRemove) {
+        // Remove only disconnects the box from this user.
+        // It does not delete the box or scanned pages from the database.
         Task<Void> removeTask = new Task<>() {
             @Override
             protected Void call() {
@@ -413,6 +421,8 @@ public class UserScanningController {
     // ===== Import scanning =====
 
     private void startImportTask(int amount) {
+        // This starts the actual scan/import work.
+        // amount 1 fetches one random TIFF, amount 10 fetches a batch.
         if (importInProgress) {
             return;
         }
@@ -470,6 +480,8 @@ public class UserScanningController {
     // ===== Load documents and pages =====
 
     private void loadCurrentBoxDataAsync(boolean preserveStatusMessage) {
+        // Loading box data can be slow because pages contain image data.
+        // Therefore it runs in the background and updates the UI when done.
         if (loadingBoxData) {
             return;
         }
@@ -595,6 +607,8 @@ public class UserScanningController {
         return pageImageCache.computeIfAbsent(page.getId(), ignored -> FxImageConverter.bytesToFxImage(page.getImageData()));
     }
     private void showCurrentPage() {
+        // Shows the selected page in the big preview area.
+        // If the image has not been loaded yet, it starts loading in the background.
         if (selectedDocument == null || currentPages.isEmpty()) {
             pageImageView.setImage(null);
             pageImageView.setRotate(0);
@@ -729,6 +743,8 @@ public class UserScanningController {
         saveRotationInBackground(page, oldRotation, newRotation);
     }
     private void saveRotationInBackground(Page page, int oldRotation, int newRotation) {
+        // The UI rotation happens immediately.
+        // The database save happens in the background so buttons do not feel stuck.
         Task<Boolean> rotationTask = new Task<>() {
             @Override
             protected Boolean call() {
@@ -782,6 +798,8 @@ public class UserScanningController {
 
     @FXML
     private void deleteCurrentPage() {
+        // Deleting a page removes it from the database and then refreshes the current box.
+        // The refresh keeps document/page counters correct after delete.
         if (selectedDocument == null || currentPages.isEmpty()) {
             return;
         }
@@ -854,6 +872,8 @@ public class UserScanningController {
         ErrorDialog.show(owner, message, error);
     }
     private void writeLog(String action, String tableName, UUID recordId, String oldValue, String newValue) {
+        // Scanning actions are also saved to the audit log.
+        // This helps admin see who opened boxes and scanned files.
         logManager.createLog(getCurrentUserId(), action, tableName, recordId, oldValue, newValue);
     }
     private void openStartScanPopup() {

@@ -44,7 +44,7 @@ public class DocumentMetadataDAO implements IDocumentMetadataDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return metadata;

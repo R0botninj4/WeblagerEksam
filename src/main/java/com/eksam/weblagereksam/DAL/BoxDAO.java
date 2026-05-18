@@ -38,7 +38,7 @@ public class BoxDAO implements IBoxDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return boxes;
@@ -60,7 +60,7 @@ public class BoxDAO implements IBoxDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -82,7 +82,7 @@ public class BoxDAO implements IBoxDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -116,7 +116,7 @@ public class BoxDAO implements IBoxDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -151,10 +151,8 @@ public class BoxDAO implements IBoxDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean assignBoxToUser(UUID userId, UUID boxId) {
         String sql = """
@@ -181,10 +179,8 @@ public class BoxDAO implements IBoxDAO {
             return true;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean removeBoxFromUser(UUID userId, UUID boxId) {
         String sql = """
@@ -201,10 +197,8 @@ public class BoxDAO implements IBoxDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean deleteBox(UUID id) {
         String sql = "DELETE FROM Boxes WHERE Id = ?";
@@ -217,10 +211,8 @@ public class BoxDAO implements IBoxDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     private Box mapBox(ResultSet rs) throws SQLException {

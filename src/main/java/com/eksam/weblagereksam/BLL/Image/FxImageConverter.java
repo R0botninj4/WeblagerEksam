@@ -26,7 +26,6 @@ public class FxImageConverter {
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
 
             if (bufferedImage == null) {
-                System.out.println("Could not decode image bytes.");
                 return null;
             }
 
@@ -35,7 +34,6 @@ public class FxImageConverter {
             return SwingFXUtils.toFXImage(bufferedImage, null);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

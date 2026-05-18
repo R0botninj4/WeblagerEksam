@@ -35,7 +35,7 @@ public class ClientDAO implements IClientDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return clients;
@@ -60,7 +60,7 @@ public class ClientDAO implements IClientDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return clients;
@@ -106,10 +106,8 @@ public class ClientDAO implements IClientDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     public boolean deactivateClient(UUID id) {
@@ -122,10 +120,8 @@ public class ClientDAO implements IClientDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     public boolean activateClient(UUID id) {
@@ -138,10 +134,8 @@ public class ClientDAO implements IClientDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     private Client mapClient(ResultSet rs) throws SQLException {

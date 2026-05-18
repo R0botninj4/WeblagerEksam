@@ -12,6 +12,8 @@ public class LogoutHelper {
 
     public void logout(Window currentWindow) {
         try {
+            // Save logout before clearing the session.
+            // After Session.clear() we no longer know which user logged out.
             User user = Session.getUser();
             if (user != null) {
                 new LogManager().createLog(user.getId(), "Logout", "Users", user.getId(), null, user.getUsername());
@@ -19,6 +21,7 @@ public class LogoutHelper {
 
             Session.clear();
 
+            // Open the login window again and close the current admin/scan window.
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/Login-view.fxml"));
             Stage loginStage = new Stage();
             loginStage.setTitle("Login");

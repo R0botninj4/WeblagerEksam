@@ -24,6 +24,8 @@ public class LogDAO implements ILogDAO {
     public List<LogEntry> getAllLogs() {
         List<LogEntry> logs = new ArrayList<>();
 
+        // TOP 500 keeps the admin table fast even if the database gets many logs.
+        // Newest logs are shown first.
         String sql = """
                 SELECT TOP 500 l.*, u.Username
                 FROM Logs l
@@ -40,13 +42,15 @@ public class LogDAO implements ILogDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return logs;
     }
 
     public void createLog(UUID userId, String action, String tableName, UUID recordId, String oldValue, String newValue) {
+        // The log is saved directly in the Logs table.
+        // CreatedAt is not inserted here because the database sets it automatically.
         String sql = """
                 INSERT INTO Logs (UserId, Action, TableName, RecordId, OldValue, NewValue)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -64,7 +68,7 @@ public class LogDAO implements ILogDAO {
             stmt.executeUpdate();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
     }
 

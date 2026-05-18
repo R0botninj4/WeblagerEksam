@@ -16,10 +16,14 @@ public class LogManager {
     }
 
     public List<LogEntry> getAllLogs() {
+        // BLL method used by admin.
+        // It keeps the GUI away from SQL and database code.
         return logDAO.getAllLogs();
     }
 
     public void createLog(UUID userId, String action, String tableName, UUID recordId, String oldValue, String newValue) {
+        // This creates an audit log entry.
+        // Example: user X opened box Y at this time.
         logDAO.createLog(userId, action, tableName, recordId, oldValue, newValue);
     }
 }

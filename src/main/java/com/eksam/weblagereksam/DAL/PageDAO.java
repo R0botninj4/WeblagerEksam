@@ -65,7 +65,7 @@ public class PageDAO implements IPageDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -92,7 +92,7 @@ public class PageDAO implements IPageDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return pages;
@@ -115,7 +115,7 @@ public class PageDAO implements IPageDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -144,7 +144,7 @@ public class PageDAO implements IPageDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return pages;
@@ -167,7 +167,7 @@ public class PageDAO implements IPageDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return 1;
@@ -190,7 +190,7 @@ public class PageDAO implements IPageDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return 1;
@@ -249,10 +249,8 @@ public class PageDAO implements IPageDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean updatePageRotation(UUID pageId, int rotation) {
         String sql = """
@@ -270,10 +268,8 @@ public class PageDAO implements IPageDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean deletePage(UUID pageId) {
         String sql = "DELETE FROM Pages WHERE Id = ?";
@@ -285,10 +281,8 @@ public class PageDAO implements IPageDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
     public boolean updatePageOrders(UUID documentId, List<Page> pages) {
         String sql = """
@@ -314,10 +308,8 @@ public class PageDAO implements IPageDAO {
             return true;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     private Page mapPage(ResultSet rs, boolean includeImageData) throws SQLException {

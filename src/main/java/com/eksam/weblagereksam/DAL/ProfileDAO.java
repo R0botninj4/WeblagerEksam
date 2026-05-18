@@ -36,7 +36,7 @@ public class ProfileDAO implements IProfileDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return profiles;
@@ -62,7 +62,7 @@ public class ProfileDAO implements IProfileDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return profiles;
@@ -70,9 +70,9 @@ public class ProfileDAO implements IProfileDAO {
 
     public UUID addProfile(Profile profile) {
         String sql = """
-                INSERT INTO Profiles (ClientId, Name, BarcodeSplitRule, MetadataSchema)
+                INSERT INTO Profiles (ClientId, Name)
                 OUTPUT INSERTED.Id
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?)
                 """;
 
         try (Connection conn = dbConnector.getConnection();
@@ -80,8 +80,6 @@ public class ProfileDAO implements IProfileDAO {
 
             stmt.setString(1, profile.getClientId().toString());
             stmt.setString(2, profile.getName());
-            stmt.setString(3, profile.getBarcodeSplitRule());
-            stmt.setString(4, profile.getMetadataSchema());
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -89,7 +87,7 @@ public class ProfileDAO implements IProfileDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
 
         return null;
@@ -98,7 +96,7 @@ public class ProfileDAO implements IProfileDAO {
     public boolean updateProfile(Profile profile) {
         String sql = """
                 UPDATE Profiles
-                SET ClientId = ?, Name = ?, BarcodeSplitRule = ?, MetadataSchema = ?, IsActive = ?
+                SET ClientId = ?, Name = ?, IsActive = ?
                 WHERE Id = ?
                 """;
 
@@ -107,17 +105,13 @@ public class ProfileDAO implements IProfileDAO {
 
             stmt.setString(1, profile.getClientId().toString());
             stmt.setString(2, profile.getName());
-            stmt.setString(3, profile.getBarcodeSplitRule());
-            stmt.setString(4, profile.getMetadataSchema());
-            stmt.setBoolean(5, profile.isActive());
-            stmt.setString(6, profile.getId().toString());
+            stmt.setBoolean(3, profile.isActive());
+            stmt.setString(4, profile.getId().toString());
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     public boolean deactivateProfile(UUID id) {
@@ -130,10 +124,8 @@ public class ProfileDAO implements IProfileDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     public boolean deactivateProfilesByClientId(UUID clientId) {
@@ -147,10 +139,8 @@ public class ProfileDAO implements IProfileDAO {
             return true;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     public boolean activateProfile(UUID id) {
@@ -163,10 +153,8 @@ public class ProfileDAO implements IProfileDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Database operation failed.", e);
         }
-
-        return false;
     }
 
     private Profile mapProfile(ResultSet rs) throws SQLException {
@@ -178,8 +166,6 @@ public class ProfileDAO implements IProfileDAO {
                 UUID.fromString(rs.getString("ClientId")),
                 rs.getString("ClientName"),
                 rs.getString("Name"),
-                rs.getString("BarcodeSplitRule"),
-                rs.getString("MetadataSchema"),
                 hasColumn(rs, "IsActive") ? rs.getBoolean("IsActive") : true,
                 createdAt
         );
