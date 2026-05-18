@@ -2,6 +2,7 @@ package com.eksam.weblagereksam.BLL.Manager;
 
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BE.Role;
+import com.eksam.weblagereksam.BE.UserActivity;
 import com.eksam.weblagereksam.BLL.Security.PasswordHasher;
 import com.eksam.weblagereksam.DAL.IUserDAO;
 import com.eksam.weblagereksam.DAL.UserDAO;
@@ -62,6 +63,10 @@ public class UserManager {
 
     public List<User> getAllUsers() {
         return userDAO.getAllUsers();
+    }
+
+    public List<UserActivity> getUserActivities() {
+        return userDAO.getUserActivities();
     }
 
     public List<Role> getAllRoles() {

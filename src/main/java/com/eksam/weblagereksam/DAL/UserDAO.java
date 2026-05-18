@@ -2,6 +2,7 @@ package com.eksam.weblagereksam.DAL;
 
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BE.Role;
+import com.eksam.weblagereksam.BE.UserActivity;
 import com.eksam.weblagereksam.DAL.DB.DBConnector;
 
 import java.sql.*;
@@ -95,6 +96,45 @@ public class UserDAO implements IUserDAO {
         }
 
         return users;
+    }
+    public List<UserActivity> getUserActivities() {
+
+        List<UserActivity> activities = new ArrayList<>();
+
+        String sql = """
+            SELECT u.Id, u.Username, u.PasswordHash, u.RoleId, u.IsActive, u.LastLogin,
+                   r.Name AS RoleName,
+                   COUNT(DISTINCT b.Id) AS BoxCount,
+                   COUNT(DISTINCT d.Id) AS DocumentCount,
+                   COUNT(p.Id) AS PageCount
+            FROM Users u
+            INNER JOIN Roles r ON u.RoleId = r.Id
+            LEFT JOIN UserBoxes ub ON ub.UserId = u.Id
+            LEFT JOIN Boxes b ON b.Id = ub.BoxId
+            LEFT JOIN Documents d ON d.BoxId = b.Id
+            LEFT JOIN Pages p ON p.DocumentId = d.Id
+            GROUP BY u.Id, u.Username, u.PasswordHash, u.RoleId, u.IsActive, u.LastLogin, r.Name
+            ORDER BY u.Username
+        """;
+
+        try (Connection conn = dbConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                activities.add(new UserActivity(
+                        mapUser(rs),
+                        rs.getInt("BoxCount"),
+                        rs.getInt("DocumentCount"),
+                        rs.getInt("PageCount")
+                ));
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return activities;
     }
     public List<Role> getAllRoles() {
 

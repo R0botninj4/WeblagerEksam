@@ -2,6 +2,7 @@ package com.eksam.weblagereksam.DAL;
 
 import com.eksam.weblagereksam.BE.User;
 import com.eksam.weblagereksam.BE.Role;
+import com.eksam.weblagereksam.BE.UserActivity;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,8 @@ public interface IUserDAO {
     User getUserById(UUID id);
 
     List<User> getAllUsers();
+
+    List<UserActivity> getUserActivities();
 
     List<Role> getAllRoles();
 

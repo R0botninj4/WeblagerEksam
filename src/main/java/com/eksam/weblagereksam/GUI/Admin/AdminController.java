@@ -3,6 +3,7 @@ package com.eksam.weblagereksam.GUI.Admin;
 import com.eksam.weblagereksam.BE.Client;
 import com.eksam.weblagereksam.BE.Profile;
 import com.eksam.weblagereksam.BE.User;
+import com.eksam.weblagereksam.BE.UserActivity;
 import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
@@ -130,12 +131,15 @@ public class AdminController {
         setActiveButton(btnAttendance);
 
         tableAdmin.getColumns().setAll(
-                textColumn("Username", row -> ((User) row).getUsername()),
-                textColumn("Logged in now", row -> isLoggedInNow((User) row) ? "Yes" : "No"),
-                textColumn("Last login", row -> formatDateTime(((User) row).getLastLogin()))
+                textColumn("Username", row -> ((UserActivity) row).getUser().getUsername()),
+                textColumn("Logged in now", row -> isLoggedInNow(((UserActivity) row).getUser()) ? "Yes" : "No"),
+                textColumn("Last login", row -> formatDateTime(((UserActivity) row).getUser().getLastLogin())),
+                textColumn("Boxes", row -> String.valueOf(((UserActivity) row).getBoxCount())),
+                textColumn("Docs", row -> String.valueOf(((UserActivity) row).getDocumentCount())),
+                textColumn("Pages", row -> String.valueOf(((UserActivity) row).getPageCount()))
         );
 
-        setTableRows(userManager.getAllUsers());
+        setTableRows(userManager.getUserActivities());
     }
 
     // ===== Page buttons =====
@@ -407,10 +411,20 @@ public class AdminController {
 
     private boolean rowMatchesSearch(Object row, String search) {
         return switch (currentPage) {
-            case ATTENDANCE, USERS -> userMatchesSearch((User) row, search);
+            case ATTENDANCE -> userActivityMatchesSearch((UserActivity) row, search);
+            case USERS -> userMatchesSearch((User) row, search);
             case PROFILES -> profileMatchesSearch((Profile) row, search);
             case CLIENTS -> clientMatchesSearch((Client) row, search);
         };
+    }
+
+    private boolean userActivityMatchesSearch(UserActivity activity, String search) {
+        User user = activity.getUser();
+
+        return userMatchesSearch(user, search)
+                || containsSearch(String.valueOf(activity.getBoxCount()), search)
+                || containsSearch(String.valueOf(activity.getDocumentCount()), search)
+                || containsSearch(String.valueOf(activity.getPageCount()), search);
     }
 
     private boolean userMatchesSearch(User user, String search) {
