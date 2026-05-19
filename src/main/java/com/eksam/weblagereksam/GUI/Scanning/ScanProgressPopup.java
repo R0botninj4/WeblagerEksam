@@ -1,5 +1,6 @@
 package com.eksam.weblagereksam.GUI.Scanning;
 
+import com.eksam.weblagereksam.GUI.Interface.ClosableWindow;
 import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
@@ -33,6 +34,7 @@ public class ScanProgressPopup {
             popup.setTitle("Scanning");
             popup.setResizable(false);
             popup.setScene(new Scene(content));
+            ClosableWindow.enableEscClose(popup);
             popup.show();
             return true;
         } catch (Exception e) {

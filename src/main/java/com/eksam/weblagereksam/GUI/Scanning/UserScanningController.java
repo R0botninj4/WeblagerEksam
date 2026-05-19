@@ -16,21 +16,28 @@ import com.eksam.weblagereksam.BLL.Manager.ScanWorkspaceManager.BoxDataSnapshot;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer;
 import com.eksam.weblagereksam.GUI.Renderer.ScanViewRenderer.DocumentTreeNode;
+import com.eksam.weblagereksam.GUI.Interface.ClosableWindow;
 import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
+import com.eksam.weblagereksam.GUI.Util.SettingsPopupController;
+import com.eksam.weblagereksam.GUI.Util.ShortcutList;
 import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.concurrent.Task;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -53,12 +60,12 @@ public class UserScanningController {
 
     @FXML private Label labelClient, labelProfile, labelFilesCount, labelDocsCount, labelUser, labelDocCount;
     @FXML private Label labelPagePosition, labelPageRef;
-    @FXML private Label labelConnected, labelRotationInfo, labelStatusUser;
+    @FXML private Label labelConnected, labelRotationInfo, labelStatusUser, labelShortcuts;
     @FXML private ComboBox<Integer> comboRotationDegrees;
     @FXML private BorderPane scanRoot;
     @FXML private Button btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
-    @FXML private Button btnThemeToggle, btnStartScan, btnMyBoxes;
+    @FXML private Button btnSettings, btnStartScan, btnMyBoxes;
     @FXML private TreeView<DocumentTreeNode> documentTreeView;
     @FXML private HBox filmstripBox;
     @FXML private StackPane imageViewerPane;
@@ -257,13 +264,67 @@ public class UserScanningController {
             if (newScene == null) {
                 return;
             }
-            newScene.setOnKeyPressed(event -> {
-                if (event.getCode() == KeyCode.RIGHT) showNextPage();
-                else if (event.getCode() == KeyCode.LEFT) showPreviousPage();
-                else if (event.getCode() == KeyCode.DELETE) deleteCurrentPage();
-                else if (event.getCode() == KeyCode.R) rotateCurrentPage(event.isShiftDown() ? -90 : 90);
-            });
+            newScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyboardShortcut);
         });
+        labelShortcuts.setText("Shortcuts: <-/-> pages  Ctrl+Up/Down docs  R rotate  F fetch  T fetch 10  S start  B boxes  Del delete  Esc logout");
+    }
+    private void handleKeyboardShortcut(KeyEvent event) {
+        if (event.getCode() == KeyCode.ESCAPE) {
+            logoutHelper.confirmAndLogout(scanRoot.getScene().getWindow());
+            event.consume();
+            return;
+        }
+
+        if (isTypingInInput(event)) {
+            return;
+        }
+
+        KeyCode key = event.getCode();
+
+        if (key == KeyCode.RIGHT || key == KeyCode.PAGE_DOWN) {
+            showNextPage();
+        } else if (key == KeyCode.LEFT || key == KeyCode.PAGE_UP) {
+            showPreviousPage();
+        } else if (key == KeyCode.HOME) {
+            selectPageByIndex(0);
+        } else if (key == KeyCode.END) {
+            selectPageByIndex(currentPages.size() - 1);
+        } else if (key == KeyCode.UP && event.isControlDown()) {
+            selectDocumentByOffset(-1);
+        } else if (key == KeyCode.DOWN && event.isControlDown()) {
+            selectDocumentByOffset(1);
+        } else if (key == KeyCode.R || key == KeyCode.PLUS || key == KeyCode.ADD) {
+            rotateCurrentPage(event.isShiftDown() ? -90 : 90);
+        } else if (key == KeyCode.MINUS || key == KeyCode.SUBTRACT) {
+            rotateCurrentPage(-90);
+        } else if (key == KeyCode.DELETE) {
+            deleteCurrentPage();
+        } else if (key == KeyCode.F) {
+            startImportIfReady(1);
+        } else if (key == KeyCode.T) {
+            startImportIfReady(10);
+        } else if (key == KeyCode.S) {
+            openStartScanPopup();
+        } else if (key == KeyCode.B) {
+            openMyBoxesPopup();
+        } else {
+            return;
+        }
+
+        event.consume();
+    }
+    private boolean isTypingInInput(KeyEvent event) {
+        if (!(event.getTarget() instanceof Node node)) {
+            return false;
+        }
+
+        while (node != null) {
+            if (node instanceof TextInputControl || node instanceof ComboBoxBase<?>) {
+                return true;
+            }
+            node = node.getParent();
+        }
+        return false;
     }
     private void updateBoxHeader() {
         labelClient.setText("Client: " + (currentBox.getClientName() != null ? currentBox.getClientName() : "No client"));
@@ -385,15 +446,30 @@ public class UserScanningController {
         runInBackground(removeTask, "scan-remove-box-thread");
     }
     @FXML
-    private void handleThemeToggle() {
-        themeSwitcher.toggleTheme(scanRoot, btnThemeToggle);
-        showStatus(themeSwitcher.isDarkMode() ? "Dark mode enabled." : "Light mode enabled.");
-    }
-    @FXML
-    private void handleLogout() {
-        logoutHelper.logout(scanRoot.getScene().getWindow());
-    }
+    private void handleSettings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/Settings-Popup.fxml"));
+            Parent content = loader.load();
+            SettingsPopupController controller = loader.getController();
+            themeSwitcher.setDarkMode(content, themeSwitcher.isDarkMode());
+            controller.setup(themeSwitcher.isDarkMode(), darkMode -> {
+                themeSwitcher.setDarkMode(scanRoot, darkMode);
+                themeSwitcher.setDarkMode(content, darkMode);
+                showStatus(darkMode ? "Dark mode enabled." : "Light mode enabled.");
+            }, () -> logoutHelper.confirmAndLogout(scanRoot.getScene().getWindow()), ShortcutList.all());
 
+            Stage popup = new Stage();
+            popup.setTitle("Settings");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.initOwner(scanRoot.getScene().getWindow());
+            popup.setResizable(false);
+            popup.setScene(new Scene(content));
+            ClosableWindow.enableEscClose(popup);
+            popup.showAndWait();
+        } catch (IOException e) {
+            showError("Could not open settings.", e);
+        }
+    }
     private void removeBoxFromCurrentUser(Box box) {
         UUID userId = getCurrentUserId();
         if (userId != null && box != null) {
@@ -709,6 +785,24 @@ public class UserScanningController {
 
     @FXML private void showNextPage() { movePage(1); }
     @FXML private void showPreviousPage() { movePage(-1); }
+    private void selectPageByIndex(int pageIndex) {
+        if (currentPages.isEmpty()) {
+            return;
+        }
+
+        currentPageIndex = Math.max(0, Math.min(pageIndex, currentPages.size() - 1));
+        refreshFilmstripSelection();
+        showCurrentPage();
+    }
+    private void selectDocumentByOffset(int offset) {
+        if (currentDocuments.isEmpty()) {
+            return;
+        }
+
+        int currentDocumentIndex = selectedDocument != null ? currentDocuments.indexOf(selectedDocument) : 0;
+        int nextDocumentIndex = Math.max(0, Math.min(currentDocumentIndex + offset, currentDocuments.size() - 1));
+        selectDocument(currentDocuments.get(nextDocumentIndex).getId(), 0);
+    }
     private void movePage(int direction) {
         if (currentPages.isEmpty()) {
             return;
@@ -718,6 +812,11 @@ public class UserScanningController {
             currentPageIndex = nextIndex;
             refreshFilmstripSelection();
             showCurrentPage();
+        }
+    }
+    private void startImportIfReady(int amount) {
+        if (!importInProgress) {
+            startImportTask(amount);
         }
     }
 
@@ -956,6 +1055,7 @@ public class UserScanningController {
 
             popup.setResizable(false);
             popup.setScene(new Scene(content));
+            ClosableWindow.enableEscClose(popup);
             popup.showAndWait();
 
             if (controller.wasStarted()) {
@@ -983,6 +1083,7 @@ public class UserScanningController {
 
             popup.setResizable(false);
             popup.setScene(new Scene(content));
+            ClosableWindow.enableEscClose(popup);
             popup.showAndWait();
             handleMyBoxesAction(controller, owner);
         } catch (IOException e) {
