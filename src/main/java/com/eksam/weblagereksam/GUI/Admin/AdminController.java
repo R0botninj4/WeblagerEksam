@@ -42,17 +42,6 @@ import java.util.function.Function;
 
 public class AdminController {
 
-    // ===== Styling =====
-
-    private static final String ACTIVE_NAV_STYLE = """
-            -fx-background-color: #2D3D4F;
-            -fx-text-fill: white;
-            -fx-border-color: white;
-            -fx-border-width: 0 0 0 4;
-            -fx-background-radius: 6;
-            -fx-border-radius: 6;
-            """;
-
     // FXML fields are connected to Admin-view.fxml.
     // That means JavaFX fills these variables when the view is loaded.
     @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
@@ -571,11 +560,9 @@ public class AdminController {
     private void setActiveButton(Button activeButton) {
         for (Button button : navButtons()) {
             button.getStyleClass().removeAll("nav-btn-active");
-            button.setStyle("");
         }
 
         activeButton.getStyleClass().add("nav-btn-active");
-        activeButton.setStyle(ACTIVE_NAV_STYLE);
     }
 
     private List<Button> navButtons() {

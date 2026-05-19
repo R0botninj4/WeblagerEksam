@@ -23,7 +23,7 @@
             </children>
         </VBox>
         <Button maxWidth="250" onAction="#handleLogin" styleClass="btn-primary" text="Login" />
-        <Label fx:id="lblMessage" styleClass="helper-text" style="-fx-text-fill: -wl-state-error;" text="" />
+        <Label fx:id="lblMessage" styleClass="helper-text, error-text" text="" />
         <Button maxWidth="250" onAction="#Bypass" styleClass="btn-secondary" text="Bypass Admin" />
         <Button maxWidth="250" onAction="#BypassUser" styleClass="btn-secondary" text="Bypass User" />
         <Button maxWidth="250" onAction="#BypassQA" styleClass="btn-secondary" text="Bypass QA" />
