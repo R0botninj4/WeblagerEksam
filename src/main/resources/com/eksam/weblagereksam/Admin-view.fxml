@@ -32,6 +32,13 @@
                             </HBox.margin>
                         </Label>
                         <Button fx:id="btnSettings" mnemonicParsing="false" onAction="#handleSettings" styleClass="btn-secondary" text="Settings">
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../../Icons/icon_settings.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
                             <HBox.margin>
                                 <Insets bottom="10.0" right="10.0" top="10.0" />
                             </HBox.margin>
