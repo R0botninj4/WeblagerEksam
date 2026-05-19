@@ -3,6 +3,7 @@ package com.eksam.weblagereksam.GUI.Renderer;
 import com.eksam.weblagereksam.BE.Document;
 import com.eksam.weblagereksam.BE.Page;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
@@ -23,15 +24,19 @@ public class ScanViewRenderer {
     private static final String FILMSTRIP_THUMB_ACTIVE = "filmstrip-thumb-active";
     private static final String FILMSTRIP_THUMB_BARCODE = "filmstrip-thumb-barcode";
     private static final String SMALL_TEXT = "small-text";
+    private static final String TREE_PAGE_DRAG_PREFIX = "TREE_PAGE|";
+    private static final String DOCUMENT_DROP_TARGET = "document-drop-target";
+    private static final int DOCUMENT_TREE_ROW_HEIGHT = 36;
 
-    public record DocumentTreeNode(UUID documentId, int pageIndex, String text) {
+    public record DocumentTreeNode(UUID documentId, UUID pageId, int pageIndex, String text) {
         public static DocumentTreeNode root() {
-            return new DocumentTreeNode(null, -1, "Documents");
+            return new DocumentTreeNode(null, null, -1, "Documents");
         }
 
         public static DocumentTreeNode document(Document document, List<Page> pages) {
             return new DocumentTreeNode(
                     document.getId(),
+                    null,
                     -1,
                     "Document " + document.getDocumentNumber() + " (" + pages.size() + " pages)"
             );
@@ -44,7 +49,11 @@ public class ScanViewRenderer {
                 text += " - " + page.getRotation() + " degrees";
             }
 
-            return new DocumentTreeNode(document.getId(), pageIndex, text);
+            return new DocumentTreeNode(document.getId(), page.getId(), pageIndex, text);
+        }
+
+        public boolean isPage() {
+            return pageId != null;
         }
 
         @Override
@@ -60,7 +69,8 @@ public class ScanViewRenderer {
             List<Document> documents,
             Map<UUID, List<Page>> pagesByDocument,
             Document selectedDocument,
-            int selectedPageIndex
+            int selectedPageIndex,
+            PageMoveHandler onPageMoved
     ) {
         TreeItem<DocumentTreeNode> root = new TreeItem<>(DocumentTreeNode.root());
         root.setExpanded(true);
@@ -68,7 +78,7 @@ public class ScanViewRenderer {
         for (Document document : documents) {
             List<Page> pages = pagesByDocument.getOrDefault(document.getId(), List.of());
             TreeItem<DocumentTreeNode> documentItem = new TreeItem<>(DocumentTreeNode.document(document, pages));
-            documentItem.setExpanded(document.equals(selectedDocument));
+            documentItem.setExpanded(true);
 
             for (int i = 0; i < pages.size(); i++) {
                 documentItem.getChildren().add(new TreeItem<>(DocumentTreeNode.page(document, pages.get(i), i)));
@@ -78,6 +88,8 @@ public class ScanViewRenderer {
         }
 
         documentTreeView.setRoot(root);
+        fitTreeHeightToRows(documentTreeView, root);
+        setupDocumentTreeDragAndDrop(documentTreeView, onPageMoved);
         selectCurrentTreeItem(documentTreeView, selectedDocument, selectedPageIndex);
     }
 
@@ -141,6 +153,108 @@ public class ScanViewRenderer {
         }
     }
 
+    private void setupDocumentTreeDragAndDrop(TreeView<DocumentTreeNode> treeView, PageMoveHandler onPageMoved) {
+        treeView.setCellFactory(view -> {
+            TreeCell<DocumentTreeNode> cell = new TreeCell<>() {
+                @Override
+                protected void updateItem(DocumentTreeNode item, boolean empty) {
+                    super.updateItem(item, empty);
+                    getStyleClass().remove(DOCUMENT_DROP_TARGET);
+                    setText(empty || item == null ? null : item.toString());
+                }
+            };
+
+            cell.setOnDragDetected(event -> {
+                DocumentTreeNode item = cell.getItem();
+                if (item == null || !item.isPage()) {
+                    return;
+                }
+
+                Dragboard dragboard = cell.startDragAndDrop(TransferMode.MOVE);
+                ClipboardContent content = new ClipboardContent();
+                content.putString(TREE_PAGE_DRAG_PREFIX + item.documentId() + "|" + item.pageId() + "|" + item.pageIndex());
+                dragboard.setContent(content);
+                event.consume();
+            });
+
+            cell.setOnDragOver(event -> {
+                DocumentTreeNode target = cell.getItem();
+                if (target != null && target.documentId() != null && hasTreePageDrag(event.getDragboard())) {
+                    event.acceptTransferModes(TransferMode.MOVE);
+                    showDropTarget(cell);
+                }
+                event.consume();
+            });
+
+            cell.setOnDragExited(event -> {
+                cell.getStyleClass().remove(DOCUMENT_DROP_TARGET);
+                event.consume();
+            });
+
+            cell.setOnDragDropped(event -> {
+                boolean completed = false;
+                DocumentTreeNode target = cell.getItem();
+                cell.getStyleClass().remove(DOCUMENT_DROP_TARGET);
+
+                if (target != null && target.documentId() != null && hasTreePageDrag(event.getDragboard())) {
+                    String dragText = event.getDragboard().getString().substring(TREE_PAGE_DRAG_PREFIX.length());
+                    String[] parts = dragText.split("\\|");
+                    UUID sourceDocumentId = UUID.fromString(parts[0]);
+                    UUID pageId = UUID.fromString(parts[1]);
+                    int sourcePageIndex = Integer.parseInt(parts[2]);
+                    int targetPageIndex = target.isPage() ? target.pageIndex() : -1;
+
+                    completed = onPageMoved.movePage(
+                            sourceDocumentId,
+                            pageId,
+                            sourcePageIndex,
+                            target.documentId(),
+                            targetPageIndex
+                    );
+                }
+
+                event.setDropCompleted(completed);
+                event.consume();
+            });
+
+            return cell;
+        });
+    }
+
+    private void showDropTarget(TreeCell<DocumentTreeNode> cell) {
+        if (!cell.getStyleClass().contains(DOCUMENT_DROP_TARGET)) {
+            cell.getStyleClass().add(DOCUMENT_DROP_TARGET);
+        }
+    }
+
+    private void fitTreeHeightToRows(TreeView<DocumentTreeNode> treeView, TreeItem<DocumentTreeNode> root) {
+        int visibleRows = 0;
+        for (TreeItem<DocumentTreeNode> documentItem : root.getChildren()) {
+            visibleRows += countVisibleRows(documentItem);
+        }
+        treeView.setPrefHeight((visibleRows * DOCUMENT_TREE_ROW_HEIGHT) + DOCUMENT_TREE_ROW_HEIGHT);
+    }
+
+    private int countVisibleRows(TreeItem<DocumentTreeNode> item) {
+        if (item == null) {
+            return 0;
+        }
+
+        int rows = 1;
+        if (!item.isExpanded()) {
+            return rows;
+        }
+
+        for (TreeItem<DocumentTreeNode> child : item.getChildren()) {
+            rows += countVisibleRows(child);
+        }
+        return rows;
+    }
+
+    private boolean hasTreePageDrag(Dragboard dragboard) {
+        return dragboard.hasString() && dragboard.getString().startsWith(TREE_PAGE_DRAG_PREFIX);
+    }
+
     // ===== Thumbnail nodes =====
 
     private VBox createThumbnail(
@@ -185,7 +299,7 @@ public class ScanViewRenderer {
         });
 
         thumb.setOnDragOver(event -> {
-            if (event.getGestureSource() != thumb && event.getDragboard().hasString()) {
+            if (event.getGestureSource() != thumb && hasFilmstripDrag(event.getDragboard())) {
                 event.acceptTransferModes(TransferMode.MOVE);
             }
             event.consume();
@@ -194,7 +308,7 @@ public class ScanViewRenderer {
         thumb.setOnDragDropped(event -> {
             boolean completed = false;
 
-            if (event.getDragboard().hasString()) {
+            if (hasFilmstripDrag(event.getDragboard())) {
                 int fromIndex = Integer.parseInt(event.getDragboard().getString());
                 completed = onPageReordered.apply(fromIndex, index);
             }
@@ -216,5 +330,14 @@ public class ScanViewRenderer {
         if (selected) {
             thumb.getStyleClass().add(FILMSTRIP_THUMB_ACTIVE);
         }
+    }
+
+    private boolean hasFilmstripDrag(Dragboard dragboard) {
+        return dragboard.hasString() && dragboard.getString().matches("\\d+");
+    }
+
+    @FunctionalInterface
+    public interface PageMoveHandler {
+        boolean movePage(UUID sourceDocumentId, UUID pageId, int sourcePageIndex, UUID targetDocumentId, int targetPageIndex);
     }
 }

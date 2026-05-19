@@ -312,6 +312,34 @@ public class PageDAO implements IPageDAO {
         }
     }
 
+    public boolean updatePageDocumentsAndOrders(List<Page> pages) {
+        String sql = """
+                UPDATE Pages
+                SET DocumentId = ?, UiOrder = ?
+                WHERE Id = ?
+                """;
+
+        try (Connection conn = dbConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+
+            for (Page page : pages) {
+                stmt.setString(1, page.getDocumentId().toString());
+                stmt.setInt(2, page.getUiOrder());
+                stmt.setString(3, page.getId().toString());
+                stmt.addBatch();
+            }
+
+            stmt.executeBatch();
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Database operation failed.", e);
+        }
+    }
+
     private Page mapPage(ResultSet rs, boolean includeImageData) throws SQLException {
         Timestamp ts = rs.getTimestamp("CreatedAt");
         LocalDateTime createdAt = ts != null ? ts.toLocalDateTime() : null;

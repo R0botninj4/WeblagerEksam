@@ -568,7 +568,14 @@ public class UserScanningController {
 
     private void renderDocumentCards() {
         updatingDocumentTree = true;
-        scanViewRenderer.renderDocumentTree(documentTreeView, currentDocuments, pagesByDocument, selectedDocument, currentPageIndex);
+        scanViewRenderer.renderDocumentTree(
+                documentTreeView,
+                currentDocuments,
+                pagesByDocument,
+                selectedDocument,
+                currentPageIndex,
+                this::movePageInDocumentTree
+        );
         updatingDocumentTree = false;
     }
     private void selectDocument(UUID documentId, int pageIndex) {
@@ -829,17 +836,25 @@ public class UserScanningController {
         }
     }
     private boolean reorderPage(int fromIndex, int toIndex) {
-        if (selectedDocument == null || fromIndex == toIndex || fromIndex < 0 || toIndex < 0
-                || fromIndex >= currentPages.size() || toIndex >= currentPages.size()) {
+        if (selectedDocument == null || fromIndex < 0 || toIndex < 0
+                || fromIndex >= currentPages.size() || toIndex > currentPages.size()) {
             return false;
         }
+
         Page movedPage = currentPages.remove(fromIndex);
-        currentPages.add(toIndex, movedPage);
+        int insertIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
+
+        if (insertIndex == fromIndex) {
+            currentPages.add(fromIndex, movedPage);
+            return false;
+        }
+
+        currentPages.add(insertIndex, movedPage);
         try {
             if (!scanWorkspaceManager.updatePageOrders(selectedDocument.getId(), currentPages)) {
                 throw new Exception("Database did not accept the new page order.");
             }
-            currentPageIndex = toIndex;
+            currentPageIndex = insertIndex;
             pagesByDocument.put(selectedDocument.getId(), copyPages(currentPages));
             renderDocumentCards();
             renderFilmstrip();
@@ -849,6 +864,54 @@ public class UserScanningController {
         } catch (Exception e) {
             showStatus("Could not save page order.");
             showError("Could not save page order.", e);
+            loadCurrentBoxDataAsync(true);
+            return false;
+        }
+    }
+    private boolean movePageInDocumentTree(
+            UUID sourceDocumentId,
+            UUID pageId,
+            int sourcePageIndex,
+            UUID targetDocumentId,
+            int targetPageIndex
+    ) {
+        if (sourceDocumentId.equals(targetDocumentId)) {
+            int targetIndex = targetPageIndex < 0
+                    ? pagesByDocument.getOrDefault(sourceDocumentId, List.of()).size()
+                    : targetPageIndex;
+            return reorderPage(sourcePageIndex, targetIndex);
+        }
+
+        List<Page> sourcePages = copyPages(pagesByDocument.get(sourceDocumentId));
+        List<Page> targetPages = copyPages(pagesByDocument.get(targetDocumentId));
+
+        if (sourcePageIndex < 0 || sourcePageIndex >= sourcePages.size()) {
+            return false;
+        }
+
+        int insertIndex = targetPageIndex < 0 ? targetPages.size() : Math.min(targetPageIndex, targetPages.size());
+        Page movedPage = sourcePages.remove(sourcePageIndex);
+        targetPages.add(insertIndex, movedPage);
+
+        try {
+            if (!scanWorkspaceManager.movePageBetweenDocuments(sourceDocumentId, targetDocumentId, sourcePages, targetPages)) {
+                throw new Exception("Database did not accept the page move.");
+            }
+
+            pagesByDocument.put(targetDocumentId, copyPages(targetPages));
+            if (sourcePages.isEmpty()) {
+                pagesByDocument.remove(sourceDocumentId);
+                currentDocuments.removeIf(document -> document.getId().equals(sourceDocumentId));
+            } else {
+                pagesByDocument.put(sourceDocumentId, copyPages(sourcePages));
+            }
+
+            selectDocument(targetDocumentId, insertIndex);
+            showStatus("Page moved.");
+            return true;
+        } catch (Exception e) {
+            showStatus("Could not move page.");
+            showError("Could not move page.", e);
             loadCurrentBoxDataAsync(true);
             return false;
         }

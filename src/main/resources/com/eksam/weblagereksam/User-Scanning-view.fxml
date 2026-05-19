@@ -51,7 +51,7 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelDocCount" styleClass="sidebar-section-count" text="0 docs" />
             </HBox>
-            <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
                 <TreeView fx:id="documentTreeView" maxWidth="Infinity" showRoot="false" styleClass="document-tree" />
             </ScrollPane>
         </VBox>

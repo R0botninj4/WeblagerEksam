@@ -85,6 +85,36 @@ public class ScanWorkspaceManager {
         return pageManager.updatePageOrders(documentId, pages);
     }
 
+    public boolean movePageBetweenDocuments(
+            UUID sourceDocumentId,
+            UUID targetDocumentId,
+            List<Page> sourcePages,
+            List<Page> targetPages
+    ) throws Exception {
+        updatePageNumbers(sourceDocumentId, sourcePages);
+        updatePageNumbers(targetDocumentId, targetPages);
+
+        List<Page> changedPages = new ArrayList<>();
+        changedPages.addAll(sourcePages);
+        changedPages.addAll(targetPages);
+
+        boolean saved = pageManager.updatePageDocumentsAndOrders(changedPages);
+
+        if (saved && sourcePages.isEmpty()) {
+            documentManager.deleteDocument(sourceDocumentId);
+        }
+
+        return saved;
+    }
+
+    private void updatePageNumbers(UUID documentId, List<Page> pages) {
+        for (int i = 0; i < pages.size(); i++) {
+            Page page = pages.get(i);
+            page.setDocumentId(documentId);
+            page.setUiOrder(i + 1);
+        }
+    }
+
     // ===== Small helpers =====
 
     private int normalizeRotation(int rotation) {

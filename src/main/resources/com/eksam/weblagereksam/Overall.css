@@ -330,6 +330,13 @@
     -fx-text-fill: -wl-document-tree-selected-text;
 }
 
+.document-tree .tree-cell.document-drop-target {
+    -fx-background-color: transparent;
+    -fx-border-color: white transparent transparent transparent;
+    -fx-border-width: 3 0 0 0;
+    -fx-text-fill: -wl-document-tree-text;
+}
+
 .document-tree .tree-disclosure-node .arrow {
     -fx-background-color: -wl-document-tree-text;
 }

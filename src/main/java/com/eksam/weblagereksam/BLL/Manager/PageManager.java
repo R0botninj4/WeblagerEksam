@@ -46,4 +46,8 @@ public class PageManager {
     public boolean updatePageOrders(UUID documentId, List<Page> pages) {
         return pageDAO.updatePageOrders(documentId, pages);
     }
+
+    public boolean updatePageDocumentsAndOrders(List<Page> pages) {
+        return pageDAO.updatePageDocumentsAndOrders(pages);
+    }
 }
