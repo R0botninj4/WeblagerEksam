@@ -485,11 +485,13 @@
 }
 
 /* The currently selected admin page in the sidebar */
-.nav-btn-active {
+.nav-btn.nav-btn-active,
+.nav-btn.nav-btn-active:hover,
+.nav-btn.nav-btn-active:focused {
     -fx-background-color: #2D3D4F;
     -fx-text-fill: white;
     -fx-border-color: white;
-    -fx-border-width: 0 0 0 4;
+    -fx-border-width: 0 0 0 5;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
 }
