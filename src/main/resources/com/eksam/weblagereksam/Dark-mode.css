@@ -309,21 +309,6 @@
     -fx-background-color: -wl-state-border;        /* Even darker when pressed */
 }
 
-/* ID-based fallback for admin toolbar buttons */
-#btnAdd, #btnEdit, #btnDelete, #btnUpdate {
-    -fx-background-color: -wl-action-tertiary-btn; /* Dark grey fill */
-    -fx-border-color: -wl-state-border;
-}
-#btnAdd:hover, #btnEdit:hover, #btnDelete:hover, #btnUpdate:hover {
-    -fx-background-color: -wl-state-hover;
-}
-#btnAdd:armed, #btnEdit:armed, #btnDelete:armed, #btnUpdate:armed {
-    -fx-background-color: -wl-state-border;
-}
-#btnAdd:focused, #btnEdit:focused, #btnDelete:focused, #btnUpdate:focused {
-    -fx-border-color: -wl-focus-ring;
-}
-
 /* Format toggle button – unselected state */
 .btn-format {
     -fx-background-color: -wl-action-tertiary-btn; /* Dark grey unselected fill */

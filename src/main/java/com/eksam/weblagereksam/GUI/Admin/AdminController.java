@@ -9,13 +9,18 @@ import com.eksam.weblagereksam.BLL.Manager.ClientManager;
 import com.eksam.weblagereksam.BLL.Manager.LogManager;
 import com.eksam.weblagereksam.BLL.Manager.ProfileManager;
 import com.eksam.weblagereksam.BLL.Manager.UserManager;
+import com.eksam.weblagereksam.GUI.Interface.ClosableWindow;
 import com.eksam.weblagereksam.GUI.Login.Session;
 import com.eksam.weblagereksam.GUI.Util.ErrorDialog;
 import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
+import com.eksam.weblagereksam.GUI.Util.SettingsPopupController;
+import com.eksam.weblagereksam.GUI.Util.ShortcutList;
+import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -26,6 +31,10 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -42,22 +51,13 @@ import java.util.function.Function;
 
 public class AdminController {
 
-    // ===== Styling =====
-
-    private static final String ACTIVE_NAV_STYLE = """
-            -fx-background-color: #2D3D4F;
-            -fx-text-fill: white;
-            -fx-border-color: white;
-            -fx-border-width: 0 0 0 4;
-            -fx-background-radius: 6;
-            -fx-border-radius: 6;
-            """;
-
     // FXML fields are connected to Admin-view.fxml.
     // That means JavaFX fills these variables when the view is loaded.
     @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
+    @FXML private Button btnSettings;
     @FXML private TextField txtSearch;
     @FXML private TableView<Object> tableAdmin;
+    @FXML private BorderPane adminRoot;
 
     // ===== Managers and page state =====
 
@@ -68,6 +68,7 @@ public class AdminController {
     private ClientManager clientManager;
     private LogManager logManager;
     private LogoutHelper logoutHelper;
+    private ThemeSwitcher themeSwitcher;
     private List<Object> currentRows = new ArrayList<>();
 
     // Keeps track of which admin page/table is currently shown.
@@ -82,9 +83,11 @@ public class AdminController {
             clientManager = new ClientManager();
             logManager = new LogManager();
             logoutHelper = new LogoutHelper();
+            themeSwitcher = new ThemeSwitcher();
 
             setupTableContextMenu();
             setupSearchBar();
+            setupKeyboardShortcuts();
             showUsers();
         } catch (Exception e) {
             showError("Admin page could not start.", e);
@@ -97,6 +100,67 @@ public class AdminController {
         // Every time the admin types in the search field, the current table is filtered.
         // The full list is kept in currentRows, so clearing search shows everything again.
         txtSearch.textProperty().addListener((obs, oldText, newText) -> applySearchFilter());
+    }
+
+    private void setupKeyboardShortcuts() {
+        tableAdmin.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyboardShortcut);
+            }
+        });
+    }
+
+    private void handleKeyboardShortcut(KeyEvent event) {
+        if (event.isControlDown() && event.getCode() == KeyCode.F) {
+            focusSearch();
+        } else if (event.getCode() == KeyCode.ESCAPE) {
+            logoutHelper.confirmAndLogout(adminRoot.getScene().getWindow());
+        } else if (isTypingInInput(event)) {
+            return;
+        } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT1) {
+            showAttendance();
+        } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT2) {
+            showUsers();
+        } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT3) {
+            showProfiles();
+        } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT4) {
+            showClients();
+        } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT5) {
+            showLogs();
+        } else if (event.getCode() == KeyCode.F5 || event.getCode() == KeyCode.R) {
+            handleRefresh();
+        } else if (event.getCode() == KeyCode.A || event.getCode() == KeyCode.INSERT) {
+            handleAdd();
+        } else if (event.getCode() == KeyCode.E || event.getCode() == KeyCode.ENTER) {
+            handleEdit();
+        } else if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.D) {
+            handleDelete();
+        } else if (event.getCode() == KeyCode.V) {
+            handleActivate();
+        } else {
+            return;
+        }
+
+        event.consume();
+    }
+
+    private boolean isTypingInInput(KeyEvent event) {
+        if (!(event.getTarget() instanceof Node node)) {
+            return false;
+        }
+
+        while (node != null) {
+            if (node instanceof TextInputControl) {
+                return true;
+            }
+            node = node.getParent();
+        }
+        return false;
+    }
+
+    private void focusSearch() {
+        txtSearch.requestFocus();
+        txtSearch.selectAll();
     }
 
     private void setupTableContextMenu() {
@@ -306,8 +370,28 @@ public class AdminController {
     }
 
     @FXML
-    private void handleLogout() {
-        logoutHelper.logout(tableAdmin.getScene().getWindow());
+    private void handleSettings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/eksam/weblagereksam/Settings-Popup.fxml"));
+            Parent content = loader.load();
+            SettingsPopupController controller = loader.getController();
+            themeSwitcher.setDarkMode(content, themeSwitcher.isDarkMode());
+            controller.setup(themeSwitcher.isDarkMode(), darkMode -> {
+                themeSwitcher.setDarkMode(adminRoot, darkMode);
+                themeSwitcher.setDarkMode(content, darkMode);
+            }, () -> logoutHelper.confirmAndLogout(adminRoot.getScene().getWindow()), ShortcutList.all());
+
+            Stage popup = new Stage();
+            popup.setTitle("Settings");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.initOwner(adminRoot.getScene().getWindow());
+            popup.setResizable(false);
+            popup.setScene(new Scene(content));
+            ClosableWindow.enableEscClose(popup);
+            popup.showAndWait();
+        } catch (IOException e) {
+            showError("Could not open settings.", e);
+        }
     }
 
     private void openCurrentPagePopup(String action) {
@@ -342,6 +426,7 @@ public class AdminController {
 
         popup.setResizable(false);
         popup.setScene(new Scene(content));
+        ClosableWindow.enableEscClose(popup);
         popup.showAndWait();
 
         if (popupController.wasSaved()) {
@@ -571,11 +656,9 @@ public class AdminController {
     private void setActiveButton(Button activeButton) {
         for (Button button : navButtons()) {
             button.getStyleClass().removeAll("nav-btn-active");
-            button.setStyle("");
         }
 
         activeButton.getStyleClass().add("nav-btn-active");
-        activeButton.setStyle(ACTIVE_NAV_STYLE);
     }
 
     private List<Button> navButtons() {

@@ -26,4 +26,6 @@ public interface IPageDAO {
     boolean deletePage(UUID pageId);
 
     boolean updatePageOrders(UUID documentId, List<Page> pages);
+
+    boolean updatePageDocumentsAndOrders(List<Page> pages);
 }

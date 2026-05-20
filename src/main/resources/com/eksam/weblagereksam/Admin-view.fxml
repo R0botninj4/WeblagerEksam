@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminController">
+<BorderPane fx:id="adminRoot" prefHeight="567.0" prefWidth="765.0" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminController">
     <top>
         <HBox prefHeight="49.0" prefWidth="972.0" styleClass="top-bar" BorderPane.alignment="CENTER">
             <children>
@@ -31,7 +31,14 @@
                                 <Insets bottom="10.0" top="10.0" />
                             </HBox.margin>
                         </Label>
-                        <Button fx:id="btnLogout" mnemonicParsing="false" onAction="#handleLogout" styleClass="btn-secondary" text="Logout">
+                        <Button fx:id="btnSettings" mnemonicParsing="false" onAction="#handleSettings" styleClass="btn-secondary" text="Settings">
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../../Icons/icon_settings.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
                             <HBox.margin>
                                 <Insets bottom="10.0" right="10.0" top="10.0" />
                             </HBox.margin>
@@ -93,7 +100,7 @@
                             </HBox.margin>
                         </TextField>
                         <Separator orientation="VERTICAL" prefHeight="28.0" prefWidth="231.0" HBox.hgrow="ALWAYS" />
-                        <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#handleAdd" text="">
+                        <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#handleAdd" styleClass="btn-icon" text="">
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
@@ -102,7 +109,7 @@
                                 </ImageView>
                             </graphic>
                         </Button>
-                        <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#handleEdit" text="">
+                        <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#handleEdit" styleClass="btn-icon" text="">
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
@@ -111,7 +118,7 @@
                                 </ImageView>
                             </graphic>
                         </Button>
-                        <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#handleDelete" text="">
+                        <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#handleDelete" styleClass="btn-icon" text="">
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
@@ -120,8 +127,18 @@
                                 </ImageView>
                             </graphic>
                         </Button>
-                        <Button fx:id="btnActivate" mnemonicParsing="false" onAction="#handleActivate" text="Activate" />
-                        <Button fx:id="btnUpdate" mnemonicParsing="false" onAction="#handleRefresh" text="">
+
+                        <Button fx:id="btnActivate" mnemonicParsing="false" onAction="#handleActivate" styleClass="btn-icon" text="" >
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../../Icons/icon_activate.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+
+                        <Button fx:id="btnUpdate" mnemonicParsing="false" onAction="#handleRefresh" styleClass="btn-icon" text="">
                             <HBox.margin>
                                 <Insets right="10.0" />
                             </HBox.margin>

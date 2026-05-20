@@ -141,7 +141,6 @@ public class LoginController {
 
     private void showError(String text) {
         lblMessage.setText(text);
-        lblMessage.setStyle("-fx-text-fill: red;");
     }
 
     private void showException(String message, Throwable error) {

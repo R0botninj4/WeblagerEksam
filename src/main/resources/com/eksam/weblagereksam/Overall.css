@@ -70,6 +70,109 @@
     -fx-font-weight: 700;                   /* Keeps helper text regular weight so it stays subtle */
 }
 
+/* Error text used for validation messages under fields */
+.error-text {
+    -fx-text-fill: -wl-state-error;
+}
+
+/* Rows inside the settings shortcut list */
+.settings-panel {
+    -fx-background-color: -wl-bg-surface;
+}
+
+.settings-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -wl-text-primary;
+}
+
+.settings-theme-row {
+    -fx-padding: 12;
+    -fx-background-color: -wl-bg-card-content;
+    -fx-background-radius: 12;
+    -fx-border-color: -wl-state-border;
+    -fx-border-radius: 12;
+}
+
+.settings-theme-icon,
+.settings-theme-mode {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -wl-text-primary;
+}
+
+.theme-switch {
+    -fx-min-width: 112px;
+    -fx-pref-width: 112px;
+    -fx-min-height: 42px;
+    -fx-pref-height: 42px;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-cursor: hand;
+}
+
+.theme-switch-light {
+    -fx-background-color: linear-gradient(to right, #FFFFFF 0%, #FFFFFF 45%, #D9DEE7 46%, #D9DEE7 100%);
+    -fx-border-color: #A8B0BF;
+    -fx-text-fill: #2D3D4F;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 0 14;
+}
+
+.theme-switch-dark {
+    -fx-background-color: linear-gradient(to right, #2D3D4F 0%, #2D3D4F 55%, #FFFFFF 56%, #FFFFFF 100%);
+    -fx-border-color: #FFFFFF;
+    -fx-text-fill: #FFFFFF;
+    -fx-alignment: CENTER_RIGHT;
+    -fx-padding: 0 14 0 0;
+}
+
+.settings-shortcut-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-state-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.settings-shortcut-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.settings-shortcut-list {
+    -fx-padding: 10;
+}
+
+.settings-shortcut-heading {
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -wl-text-primary;
+    -fx-padding: 12 0 4 0;
+}
+
+.settings-shortcut-row {
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: -wl-bg-card-content;
+    -fx-background-radius: 8;
+}
+
+.settings-shortcut-key {
+    -fx-min-width: 135px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -wl-text-primary;
+}
+
+.settings-shortcut-action {
+    -fx-font-size: 12px;
+    -fx-text-fill: -wl-text-secondary;
+}
+
+.settings-footer {
+    -fx-padding: 4 0 0 0;
+}
+
 /* Small text used for page markers, barcode labels, and thumbnail captions */
 .small-text {
     -fx-font-size: 10px;
@@ -332,6 +435,13 @@
     -fx-text-fill: -wl-document-tree-selected-text;
 }
 
+.document-tree .tree-cell.document-drop-target {
+    -fx-background-color: transparent;
+    -fx-border-color: white transparent transparent transparent;
+    -fx-border-width: 3 0 0 0;
+    -fx-text-fill: -wl-document-tree-text;
+}
+
 .document-tree .tree-disclosure-node .arrow {
     -fx-background-color: -wl-document-tree-text;
 }
@@ -374,6 +484,18 @@
 .nav-btn:focused {
     -fx-border-color: -wl-text-on-dark;     /* Shows a white focus ring so keyboard users can see which button is focused */
     -fx-border-width: 1.5;                  /* Makes the focus ring visible but not overpowering */
+}
+
+/* The currently selected admin page in the sidebar */
+.nav-btn.nav-btn-active,
+.nav-btn.nav-btn-active:hover,
+.nav-btn.nav-btn-active:focused {
+    -fx-background-color: #2D3D4F;
+    -fx-text-fill: white;
+    -fx-border-color: white;
+    -fx-border-width: 0 0 0 5;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
 }
 
 

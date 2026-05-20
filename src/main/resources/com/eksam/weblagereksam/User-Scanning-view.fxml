@@ -23,7 +23,6 @@
                 <Label styleClass="top-bar-title" text="Weblager" />
                 <Region prefHeight="50.0" prefWidth="1016.0" HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelUser" styleClass="top-bar-username" text="Username" />
-                <Button fx:id="btnLogout" onAction="#handleLogout" styleClass="btn-secondary" text="Logout" />
             </HBox>
             <HBox spacing="18" styleClass="scan-info-bar">
                 <Button fx:id="btnStartScan" onAction="#handleStartScan" styleClass="btn-secondary" text="Start scan" />
@@ -37,7 +36,17 @@
                 <Separator orientation="VERTICAL" />
                 <Label fx:id="labelDocsCount" styleClass="top-bar-label top-bar-count" text="Docs 0" />
                 <Separator orientation="VERTICAL" />
-                <Button fx:id="btnThemeToggle" onAction="#handleThemeToggle" styleClass="btn-secondary" text="Light mode" />
+
+                <Button fx:id="btnSettings" onAction="#handleSettings" styleClass="btn-secondary" text="Settings" >
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                            <image>
+                                <Image url="@../../../Icons/icon_settings.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
+
                 <Separator orientation="VERTICAL" />
                 <Label fx:id="labelConnected" styleClass="scan-info-label" text="Connected" />
             </HBox>
@@ -51,7 +60,7 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelDocCount" styleClass="sidebar-section-count" text="0 docs" />
             </HBox>
-            <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="documentsScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="filmstrip-scroll" VBox.vgrow="ALWAYS">
                 <TreeView fx:id="documentTreeView" maxWidth="Infinity" showRoot="false" styleClass="document-tree" />
             </ScrollPane>
         </VBox>
