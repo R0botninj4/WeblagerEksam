@@ -127,7 +127,17 @@
                                 </ImageView>
                             </graphic>
                         </Button>
-                        <Button fx:id="btnActivate" mnemonicParsing="false" onAction="#handleActivate" text="Activate" />
+
+                        <Button fx:id="btnActivate" mnemonicParsing="false" onAction="#handleActivate" text="" >
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../../../Icons/icon_activate.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+
                         <Button fx:id="btnUpdate" mnemonicParsing="false" onAction="#handleRefresh" text="">
                             <HBox.margin>
                                 <Insets right="10.0" />
