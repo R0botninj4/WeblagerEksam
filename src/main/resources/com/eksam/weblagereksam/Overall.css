@@ -5,6 +5,7 @@
 
    This file contains NO colours. It only defines structure,
    sizing, typography, spacing, and component behaviour.
+   sizing, typography, spacing, and component behaviour.
    Covers: Admin view, Scanner view, QA view.
    ============================================================ */
 
@@ -46,7 +47,7 @@
    ============================================================ */
 .h2 {
     -fx-font-size: 18px;                    /* Makes H2 the second largest text size */
-    -fx-font-weight: 600;                   /* Makes H2 semi-bold */
+    -fx-font-weight: 700;                   /* Makes H2 semi-bold */
 }
 
 /* ============================================================
@@ -56,7 +57,7 @@
    ============================================================ */
 .h3 {
     -fx-font-size: 15px;                    /* Makes H3 slightly larger than body text */
-    -fx-font-weight: 600;                   /* Makes H3 semi-bold */
+    -fx-font-weight: 700;                   /* Makes H3 semi-bold */
 }
 
 /* ============================================================
@@ -66,7 +67,7 @@
    ============================================================ */
 .helper-text {
     -fx-font-size: 10px;                    /* Makes helper text smaller than all other text */
-    -fx-font-weight: 400;                   /* Keeps helper text regular weight so it stays subtle */
+    -fx-font-weight: 700;                   /* Keeps helper text regular weight so it stays subtle */
 }
 
 /* Small text used for page markers, barcode labels, and thumbnail captions */
@@ -159,12 +160,12 @@
 
 .scan-info-label {
     -fx-text-fill: -wl-text-primary;
-    -fx-font-weight: 500;
+    -fx-font-weight: 700;
 }
 
 /* The ADMIN role badge shown on the right of the admin top bar */
 .top-bar-role {
-    -fx-font-weight: 500;                   /* Makes the role label medium weight so it is readable but not dominant */
+    -fx-font-weight: 700;                   /* Makes the role label medium weight so it is readable but not dominant */
     -fx-alignment: CENTER;                  /* Centres the role text inside its allocated space */
     -fx-text-fill: -wl-text-primary;        /* Colours the role badge with the primary text colour */
 }
@@ -218,6 +219,7 @@
 .sidebar-section-header .label {
     -fx-font-weight: 700;                   /* Makes section header labels bold so they stand out */
     -fx-text-fill: -wl-text-on-sidebar;     /* Colours the section header text to be visible on the sidebar bg */
+    -fx-letter-spacing: 0.06em;
 }
 
 /* Small count label on the right of a sidebar section header (e.g. "0 docs") */
@@ -316,7 +318,7 @@
     -fx-text-fill: -wl-document-tree-text;
     -fx-padding: 7 8 7 8;
     -fx-font-size: 13px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
 }
 
 .document-tree .tree-cell:hover {
@@ -349,7 +351,7 @@
     -fx-pref-width: 148px;                  /* Sets a fixed width so all nav buttons are the same size */
     -fx-pref-height: 53px;                  /* Makes nav buttons taller than standard buttons for easy clicking */
     -fx-font-size: 12px;                    /* Keeps the button label at the standard text size */
-    -fx-font-weight: 500;                   /* Makes the button label medium weight */
+    -fx-font-weight: 700;                   /* Makes the button label medium weight */
     -fx-background-radius: 6;              /* Rounds the corners of the nav button */
     -fx-border-radius: 6;                   /* Rounds the border to match the background */
     -fx-cursor: hand;                       /* Shows a pointer cursor to indicate the button is clickable */
@@ -488,7 +490,7 @@
 .btn-primary {
     -fx-pref-height: 30px;                  /* Sets the button to the default component height */
     -fx-font-size: 12px;                    /* Keeps the button label at standard body size */
-    -fx-font-weight: 500;                   /* Makes the label medium weight for clarity */
+    -fx-font-weight: 700;                   /* Makes the label medium weight for clarity */
     -fx-background-radius: 6;              /* Rounds the button corners */
     -fx-border-radius: 6;                   /* Rounds the border to match the background */
     -fx-border-width: 0;                    /* Removes the border – the filled background defines the button */
@@ -520,7 +522,7 @@
 .btn-secondary {
     -fx-pref-height: 30px;                  /* Sets the button to the default component height */
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 700;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 0;
@@ -552,7 +554,7 @@
 .btn-tertiary {
     -fx-pref-height: 30px;
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 700;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 1;                    /* Adds a border to define the button since the fill is very light */
@@ -584,7 +586,7 @@
 .btn-destructive {
     -fx-pref-height: 30px;
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 700;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 0;
@@ -649,7 +651,7 @@
 .btn-format {
     -fx-pref-height: 30px;
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 700;
     -fx-background-radius: 0;              /* No rounded corners so adjacent buttons connect seamlessly */
     -fx-border-radius: 0;
     -fx-border-width: 1;
@@ -700,7 +702,7 @@
 /* The text label inside each column header cell */
 .table-view .column-header .label {
     -fx-text-fill: -wl-text-primary;        /* Colours the column header text */
-    -fx-font-weight: 500;                   /* Makes column headers slightly bolder than row text */
+    -fx-font-weight: 700;                   /* Makes column headers slightly bolder than row text */
     -fx-padding: 0 9 0 9;                  /* Adds horizontal padding inside column headers */
     -fx-alignment: CENTER_LEFT;             /* Left-aligns the header text */
 }
@@ -808,7 +810,7 @@
    ============================================================ */
 .image-action-bar {
     -fx-padding: 8 16 8 16;                /* Adds comfortable padding inside the action bar */
-    -fx-spacing: 8;                         /* Sets the gap between action bar buttons */
+    -fx-spacing: 12;                         /* Sets the gap between action bar buttons */
     -fx-alignment: CENTER_LEFT;             /* Vertically centres all items */
     -fx-background-color: -wl-bg-surface;   /* Fills the bar with the surface colour */
     -fx-border-color: -wl-state-border;
@@ -886,7 +888,7 @@
     -fx-pref-height: 30px;
     -fx-max-width: Infinity;                /* Stretches to fill the available width in the VBox */
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 700;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 0;

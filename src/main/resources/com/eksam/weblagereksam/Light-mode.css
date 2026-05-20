@@ -61,7 +61,7 @@
     -wl-barcode-bg:         #FFF0F6;
 
     /* Document tree */
-    -wl-document-tree-row-hover:     rgba(45,61,79,0.10);
+    -wl-document-tree-row-hover:     rgba(255,255,255,0.25);
     -wl-document-tree-row-selected:  #FFFFFF;
     -wl-document-tree-text:          #2D3D4F;
     -wl-document-tree-selected-text: #2D3D4F;
@@ -76,6 +76,7 @@
 .top-bar {
     -fx-background-color: -wl-bg-surface;   /* White top bar */
     -fx-border-color: -wl-state-border;     /* Light grey bottom border line */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);
 }
 
 .top-bar-title {
