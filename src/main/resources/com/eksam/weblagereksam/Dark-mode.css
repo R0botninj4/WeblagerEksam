@@ -42,7 +42,7 @@
     -wl-action-destructive:     #EF4444;    /* Delete and irreversible action buttons – same as light mode */
 
     /* State and feedback colours */
-    -wl-state-border:       #2B3B4C;        /* All borders throughout the interface */
+    -wl-state-border:       #1E2D3D;        /* All borders throughout the interface */
     -wl-state-placeholder:  #697489;        /* Placeholder text in inputs and empty states */
     -wl-state-hover:        #2B3B4C;        /* Background colour when hovering over an interactive surface */
     -wl-state-success:      #4CD07D;        /* Success feedback indicators – same as light mode */
@@ -93,7 +93,6 @@
 .top-bar-role {
     -fx-text-fill: -wl-text-on-dark;           /* White role badge on the blue top bar */
 }
-
 
 /* ============================================================
    BOTTOM STATUS BAR – DARK MODE
@@ -431,6 +430,7 @@
 }
 
 .filmstrip-thumb {
+    -fx-background-color: -wl-bg-surface;
     -fx-border-color: -wl-state-border;        /* Dark border around thumbnails */
 }
 
