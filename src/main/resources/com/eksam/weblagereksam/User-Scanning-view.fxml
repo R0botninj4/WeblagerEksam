@@ -20,7 +20,7 @@
     <top>
         <VBox>
             <HBox prefHeight="49.0" prefWidth="1280.0" styleClass="top-bar" BorderPane.alignment="CENTER">
-                <Label styleClass="top-bar-title" text="Weblager" />
+                <Label styleClass="top-bar-title" text="WebLager Scan" />
                 <Region prefHeight="50.0" prefWidth="1016.0" HBox.hgrow="ALWAYS" />
                 <Label fx:id="labelUser" styleClass="top-bar-username" text="Username" />
             </HBox>

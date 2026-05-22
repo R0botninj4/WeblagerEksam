@@ -15,7 +15,9 @@ import java.util.function.Consumer;
 
 public class SettingsPopupController implements ClosableWindow {
 
-    @FXML private Button btnThemeSwitch;
+    @FXML private HBox themeSwitchTrack;
+    @FXML private Label labelSwitchLight;
+    @FXML private Label labelSwitchDark;
     @FXML private Label labelThemeMode;
     @FXML private VBox shortcutsBox;
     @FXML private Button btnClose;
@@ -55,9 +57,11 @@ public class SettingsPopupController implements ClosableWindow {
     }
 
     private void updateThemeSwitch() {
-        btnThemeSwitch.getStyleClass().setAll("theme-switch");
-        btnThemeSwitch.getStyleClass().add(darkMode ? "theme-switch-dark" : "theme-switch-light");
-        btnThemeSwitch.setText(darkMode ? "Dark" : "Light");
+        themeSwitchTrack.getStyleClass().setAll("theme-switch");
+        themeSwitchTrack.getStyleClass().add(darkMode ? "theme-switch-dark" : "theme-switch-light");
+        labelSwitchLight.getStyleClass().setAll("theme-switch-option");
+        labelSwitchDark.getStyleClass().setAll("theme-switch-option");
+        (darkMode ? labelSwitchDark : labelSwitchLight).getStyleClass().add("theme-switch-option-active");
         labelThemeMode.setText(darkMode ? "Dark mode" : "Light mode");
     }
 

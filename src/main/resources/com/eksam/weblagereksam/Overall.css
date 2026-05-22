@@ -5,7 +5,6 @@
 
    This file contains NO colours. It only defines structure,
    sizing, typography, spacing, and component behaviour.
-   sizing, typography, spacing, and component behaviour.
    Covers: Admin view, Scanner view, QA view.
    ============================================================ */
 
@@ -25,7 +24,7 @@
    a more specific rule overrides them.
    ============================================================ */
 .root {
-    -fx-font-family: 'Montserrat';          /* Makes every text element in the app use Montserrat */
+    -fx-font-family: 'Montserrat', 'Segoe UI', sans-serif; /* Uses Montserrat first, with safe fallbacks if the font is not installed */
     -fx-font-size: 12px;                    /* Sets the default text size for body text, labels, and buttons */
 }
 
@@ -46,8 +45,8 @@
    Apply the style class "h2" to a Label node in SceneBuilder.
    ============================================================ */
 .h2 {
-    -fx-font-size: 18px;                    /* Makes H2 the second largest text size */
-    -fx-font-weight: 700;                   /* Makes H2 semi-bold */
+    -fx-font-size: 15px;                    /* Matches the style guide section heading size */
+    -fx-font-weight: 600;                   /* Makes H2 semi-bold */
 }
 
 /* ============================================================
@@ -56,8 +55,8 @@
    Apply the style class "h3" to a Label node in SceneBuilder.
    ============================================================ */
 .h3 {
-    -fx-font-size: 15px;                    /* Makes H3 slightly larger than body text */
-    -fx-font-weight: 700;                   /* Makes H3 semi-bold */
+    -fx-font-size: 18px;                    /* Matches the style guide card heading size */
+    -fx-font-weight: 600;                   /* Makes H3 semi-bold */
 }
 
 /* ============================================================
@@ -67,7 +66,7 @@
    ============================================================ */
 .helper-text {
     -fx-font-size: 10px;                    /* Makes helper text smaller than all other text */
-    -fx-font-weight: 700;                   /* Keeps helper text regular weight so it stays subtle */
+    -fx-font-weight: 400;                   /* Keeps helper text regular weight so it stays subtle */
 }
 
 /* Error text used for validation messages under fields */
@@ -81,59 +80,67 @@
 }
 
 .settings-title {
-    -fx-font-size: 24px;
-    -fx-font-weight: 800;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
     -fx-text-fill: -wl-text-primary;
 }
 
 .settings-theme-row {
     -fx-padding: 12;
     -fx-background-color: -wl-bg-card-content;
-    -fx-background-radius: 12;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-state-border;
-    -fx-border-radius: 12;
+    -fx-border-radius: 10;
 }
 
 .settings-theme-icon,
 .settings-theme-mode {
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
     -fx-text-fill: -wl-text-primary;
 }
 
 .theme-switch {
-    -fx-min-width: 112px;
-    -fx-pref-width: 112px;
-    -fx-min-height: 42px;
-    -fx-pref-height: 42px;
-    -fx-background-radius: 22;
-    -fx-border-radius: 22;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
+    -fx-min-width: 132px;
+    -fx-pref-width: 132px;
+    -fx-min-height: 30px;
+    -fx-pref-height: 30px;
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+    -fx-padding: 3;
+    -fx-spacing: 3;
     -fx-cursor: hand;
 }
 
 .theme-switch-light {
-    -fx-background-color: linear-gradient(to right, #FFFFFF 0%, #FFFFFF 45%, #D9DEE7 46%, #D9DEE7 100%);
-    -fx-border-color: #A8B0BF;
-    -fx-text-fill: #2D3D4F;
-    -fx-alignment: CENTER_LEFT;
-    -fx-padding: 0 0 0 14;
+    -fx-background-color: -wl-bg-surface;
+    -fx-border-color: -wl-state-border;
 }
 
 .theme-switch-dark {
-    -fx-background-color: linear-gradient(to right, #2D3D4F 0%, #2D3D4F 55%, #FFFFFF 56%, #FFFFFF 100%);
-    -fx-border-color: #FFFFFF;
-    -fx-text-fill: #FFFFFF;
-    -fx-alignment: CENTER_RIGHT;
-    -fx-padding: 0 14 0 0;
+    -fx-background-color: -wl-bg-card-content;
+    -fx-border-color: -wl-state-border;
+}
+
+.theme-switch-option {
+    -fx-min-height: 24px;
+    -fx-background-radius: 12;
+    -fx-padding: 0 12 0 12;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -wl-text-primary;
+}
+
+.theme-switch-option-active {
+    -fx-background-color: -wl-action-primary;
+    -fx-text-fill: -wl-text-on-dark;
 }
 
 .settings-shortcut-scroll {
     -fx-background-color: transparent;
     -fx-border-color: -wl-state-border;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
 }
 
 .settings-shortcut-scroll .viewport {
@@ -146,7 +153,7 @@
 
 .settings-shortcut-heading {
     -fx-font-size: 15px;
-    -fx-font-weight: 800;
+    -fx-font-weight: 600;
     -fx-text-fill: -wl-text-primary;
     -fx-padding: 12 0 4 0;
 }
@@ -154,13 +161,13 @@
 .settings-shortcut-row {
     -fx-padding: 8 10 8 10;
     -fx-background-color: -wl-bg-card-content;
-    -fx-background-radius: 8;
+    -fx-background-radius: 6;
 }
 
 .settings-shortcut-key {
     -fx-min-width: 135px;
     -fx-font-size: 12px;
-    -fx-font-weight: 800;
+    -fx-font-weight: 600;
     -fx-text-fill: -wl-text-primary;
 }
 
@@ -220,7 +227,7 @@
    Used in: Admin, Scanner, QA.
    ============================================================ */
 .top-bar {
-    -fx-padding: 0 16 0 16;                 /* Adds horizontal breathing room inside the top bar */
+    -fx-padding: 0 24 0 24;                 /* Adds horizontal breathing room inside the top bar */
     -fx-spacing: 10;                        /* Sets the gap between items in the top bar */
     -fx-alignment: CENTER_LEFT;             /* Vertically centres all children inside the top bar */
     -fx-border-width: 0 0 1 0;             /* Draws a thin line along the bottom of the top bar */
@@ -313,7 +320,7 @@
 /* Section header inside the sidebar (e.g. "DOCUMENTS", "EXPORT") */
 .sidebar-section-header {
     -fx-padding: 8 12 8 12;                 /* Adds padding so the header text does not touch the edges */
-    -fxl-border-width: 0 0 1 0;            /* Draws a separator line below the section header */
+    -fx-border-width: 0 0 1 0;             /* Draws a separator line below the section header */
     -fx-border-color: -wl-state-border;     /* Colours the separator line */
     -fx-background-color: -wl-nav-secondary-bg; /* Keeps the header background consistent with the sidebar */
 }
@@ -461,7 +468,7 @@
     -fx-pref-width: 148px;                  /* Sets a fixed width so all nav buttons are the same size */
     -fx-pref-height: 53px;                  /* Makes nav buttons taller than standard buttons for easy clicking */
     -fx-font-size: 12px;                    /* Keeps the button label at the standard text size */
-    -fx-font-weight: 700;                   /* Makes the button label medium weight */
+    -fx-font-weight: 500;                   /* Makes the button label medium weight */
     -fx-background-radius: 6;              /* Rounds the corners of the nav button */
     -fx-border-radius: 6;                   /* Rounds the border to match the background */
     -fx-cursor: hand;                       /* Shows a pointer cursor to indicate the button is clickable */
@@ -506,8 +513,8 @@
    Used in: Admin view. A similar action bar is used in Scanner.
    ============================================================ */
 .toolbar {
-    -fx-padding: 10 10 10 10;              /* Adds space inside the toolbar so contents don't touch the edges */
-    -fx-spacing: 6;                         /* Sets the gap between toolbar items */
+    -fx-padding: 12;                       /* Adds space inside the toolbar so contents don't touch the edges */
+    -fx-spacing: 9;                         /* Sets the gap between toolbar items */
     -fx-alignment: CENTER_LEFT;             /* Vertically centres all toolbar items */
     -fx-background-color: -wl-bg-surface;   /* Fills the toolbar with the card/surface colour */
     -fx-border-color: -wl-state-border;     /* Colours the toolbar border */
@@ -612,7 +619,7 @@
 .btn-primary {
     -fx-pref-height: 30px;                  /* Sets the button to the default component height */
     -fx-font-size: 12px;                    /* Keeps the button label at standard body size */
-    -fx-font-weight: 700;                   /* Makes the label medium weight for clarity */
+    -fx-font-weight: 500;                   /* Makes the label medium weight for clarity */
     -fx-background-radius: 6;              /* Rounds the button corners */
     -fx-border-radius: 6;                   /* Rounds the border to match the background */
     -fx-border-width: 0;                    /* Removes the border – the filled background defines the button */
@@ -644,7 +651,7 @@
 .btn-secondary {
     -fx-pref-height: 30px;                  /* Sets the button to the default component height */
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 500;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 0;
@@ -676,7 +683,7 @@
 .btn-tertiary {
     -fx-pref-height: 30px;
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 500;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 1;                    /* Adds a border to define the button since the fill is very light */
@@ -708,7 +715,7 @@
 .btn-destructive {
     -fx-pref-height: 30px;
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 500;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 0;
@@ -773,7 +780,7 @@
 .btn-format {
     -fx-pref-height: 30px;
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 500;
     -fx-background-radius: 0;              /* No rounded corners so adjacent buttons connect seamlessly */
     -fx-border-radius: 0;
     -fx-border-width: 1;
@@ -1010,7 +1017,7 @@
     -fx-pref-height: 30px;
     -fx-max-width: Infinity;                /* Stretches to fill the available width in the VBox */
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 500;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-width: 0;
@@ -1025,6 +1032,51 @@
 
 .btn-fetch:disabled {
     -fx-opacity: 0.6;
+}
+
+
+/* ============================================================
+   CHECKBOX
+   Used in simple forms such as user creation/edit.
+   ============================================================ */
+.check-box {
+    -fx-text-fill: -wl-text-primary;
+    -fx-font-size: 12px;
+}
+
+.check-box .box {
+    -fx-background-color: -wl-bg-surface;
+    -fx-border-color: -wl-state-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: -wl-text-on-dark;
+}
+
+.check-box:selected .box {
+    -fx-background-color: -wl-action-primary;
+    -fx-border-color: -wl-action-primary;
+}
+
+
+/* ============================================================
+   PROGRESS BAR
+   Used by the scan progress popup.
+   ============================================================ */
+.progress-bar {
+    -fx-pref-height: 12px;
+}
+
+.progress-bar .track {
+    -fx-background-color: -wl-bg-card-content;
+    -fx-background-radius: 6;
+}
+
+.progress-bar .bar {
+    -fx-background-color: -wl-action-primary;
+    -fx-background-radius: 6;
 }
 
 
@@ -1066,8 +1118,8 @@
     -fx-background-color: -wl-bg-surface;   /* Fills the container with the card surface colour */
     -fx-border-color: -wl-state-border;     /* Adds a border to define the card edges */
     -fx-border-width: 1;
-    -fx-border-radius: 6;                   /* Rounds all card corners */
-    -fx-background-radius: 6;
+    -fx-border-radius: 10;                  /* Rounds modal/card corners using the style guide large radius */
+    -fx-background-radius: 10;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 12, 0, 0, 2); /* Adds a subtle shadow to lift the card above the background */
 }
 

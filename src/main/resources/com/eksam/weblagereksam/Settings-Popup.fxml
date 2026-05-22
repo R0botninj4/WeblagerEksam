@@ -9,22 +9,24 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefWidth="520" spacing="16" styleClass="cBoarder, settings-panel" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Util.SettingsPopupController">
+<VBox prefWidth="480" spacing="12" styleClass="cBoarder, settings-panel" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Util.SettingsPopupController">
     <padding>
-        <Insets bottom="14" left="14" right="14" top="14" />
+        <Insets bottom="18" left="18" right="18" top="18" />
     </padding>
     <children>
         <Label styleClass="settings-title" text="Settings" />
         <HBox alignment="CENTER_LEFT" spacing="12" styleClass="settings-theme-row">
-            <Label styleClass="settings-theme-icon" text="Light" />
-            <Button fx:id="btnThemeSwitch" onAction="#handleDarkModeChanged" styleClass="theme-switch" text="Light" />
-            <Label styleClass="settings-theme-icon" text="Dark" />
+            <Label styleClass="settings-theme-icon" text="Theme" />
+            <HBox fx:id="themeSwitchTrack" alignment="CENTER" onMouseClicked="#handleDarkModeChanged" styleClass="theme-switch">
+                <Label fx:id="labelSwitchLight" alignment="CENTER" maxWidth="Infinity" styleClass="theme-switch-option" text="Light" HBox.hgrow="ALWAYS" />
+                <Label fx:id="labelSwitchDark" alignment="CENTER" maxWidth="Infinity" styleClass="theme-switch-option" text="Dark" HBox.hgrow="ALWAYS" />
+            </HBox>
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="labelThemeMode" styleClass="settings-theme-mode" text="Light mode" />
         </HBox>
         <TitledPane expanded="true" text="Keyboard shortcuts">
             <content>
-                <ScrollPane fitToWidth="true" prefHeight="360" styleClass="settings-shortcut-scroll">
+                <ScrollPane fitToWidth="true" prefHeight="330" styleClass="settings-shortcut-scroll">
                     <VBox fx:id="shortcutsBox" spacing="7" styleClass="settings-shortcut-list" />
                 </ScrollPane>
             </content>

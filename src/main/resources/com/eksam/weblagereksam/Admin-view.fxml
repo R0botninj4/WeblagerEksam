@@ -20,7 +20,7 @@
             <children>
                 <HBox prefHeight="67.0" prefWidth="966.0" HBox.hgrow="ALWAYS">
                     <children>
-                        <Label prefHeight="67.0" prefWidth="172.0" styleClass="top-bar-title" text="Weblager">
+                        <Label prefHeight="67.0" prefWidth="172.0" styleClass="top-bar-title" text="WebLager Admin">
                             <HBox.margin>
                                 <Insets left="10.0" />
                             </HBox.margin>

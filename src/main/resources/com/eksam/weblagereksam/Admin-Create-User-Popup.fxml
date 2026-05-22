@@ -8,19 +8,19 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="250.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminUserPopupController">
+<VBox prefWidth="360" spacing="12" styleClass="cBoarder" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminUserPopupController">
     <padding>
-        <Insets bottom="10" left="10" right="10" top="10" />
+        <Insets bottom="18" left="18" right="18" top="18" />
     </padding>
     <children>
-        <Label fx:id="labelTitle" styleClass="top-bar-label" text="User creation" />
+        <Label fx:id="labelTitle" styleClass="h3" text="User creation" />
         <TextField fx:id="txtUsername" promptText="Username" styleClass="search-field" />
         <TextField fx:id="txtPassword" promptText="Password" styleClass="search-field" />
-        <ComboBox fx:id="comboRole" prefHeight="25.0" prefWidth="288.0" promptText="Role" styleClass="combo-box" />
+        <ComboBox fx:id="comboRole" maxWidth="Infinity" promptText="Role" styleClass="combo-box" />
         <CheckBox fx:id="checkActive" selected="true" text="Active user" />
-        <Button mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
+        <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#save" styleClass="btn-primary" text="Add">
             <VBox.margin>
-                <Insets top="10.0" />
+                <Insets top="6.0" />
             </VBox.margin>
         </Button>
     </children>

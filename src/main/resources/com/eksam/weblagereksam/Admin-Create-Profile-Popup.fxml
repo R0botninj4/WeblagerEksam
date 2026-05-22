@@ -8,18 +8,18 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="180.0" prefWidth="300" spacing="10" styleClass="cBoarder" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminProfilePopupController">
+<VBox prefWidth="360" spacing="12" styleClass="cBoarder" stylesheets="@Overall.css, @Light-mode.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.eksam.weblagereksam.GUI.Admin.AdminProfilePopupController">
     <padding>
-        <Insets bottom="10" left="10" right="10" top="10" />
+        <Insets bottom="18" left="18" right="18" top="18" />
     </padding>
     <children>
-        <Label fx:id="labelTitle" styleClass="top-bar-label" text="Profile creation" />
+        <Label fx:id="labelTitle" styleClass="h3" text="Profile creation" />
         <TextField fx:id="txtName" promptText="Profile name" styleClass="search-field" />
-        <ComboBox fx:id="comboClient" prefHeight="25.0" prefWidth="288.0" promptText="Client" styleClass="combo-box" />
+        <ComboBox fx:id="comboClient" maxWidth="Infinity" promptText="Client" styleClass="combo-box" />
         <Separator prefWidth="200.0" />
-        <Button mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="289.0" styleClass="btn-primary" text="Add">
+        <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#save" styleClass="btn-primary" text="Add">
             <VBox.margin>
-                <Insets top="10.0" />
+                <Insets top="6.0" />
             </VBox.margin>
         </Button>
     </children>

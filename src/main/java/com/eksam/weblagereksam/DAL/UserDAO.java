@@ -18,6 +18,8 @@ public class UserDAO implements IUserDAO {
         dbConnector = new DBConnector();
     }
 
+    // ===== User lookup =====
+
     public User getUserByUsername(String username) {
 
         String sql = """
@@ -44,6 +46,7 @@ public class UserDAO implements IUserDAO {
 
         return null;
     }
+
     public User getUserById(UUID id) {
 
         String sql = """
@@ -70,6 +73,9 @@ public class UserDAO implements IUserDAO {
 
         return null;
     }
+
+    // ===== User lists and activity =====
+
     public List<User> getAllUsers() {
 
         List<User> users = new ArrayList<>();
@@ -95,6 +101,7 @@ public class UserDAO implements IUserDAO {
 
         return users;
     }
+
     public List<UserActivity> getUserActivities() {
 
         List<UserActivity> activities = new ArrayList<>();
@@ -136,6 +143,9 @@ public class UserDAO implements IUserDAO {
 
         return activities;
     }
+
+    // ===== Roles =====
+
     public List<Role> getAllRoles() {
 
         List<Role> roles = new ArrayList<>();
@@ -163,6 +173,9 @@ public class UserDAO implements IUserDAO {
 
         return roles;
     }
+
+    // ===== Create and update users =====
+
     public UUID addUser(String username,
                         String passwordHash,
                         UUID roleId) {
@@ -193,6 +206,7 @@ public class UserDAO implements IUserDAO {
 
         return null;
     }
+
     public boolean updateUser(User user) {
 
         String sql = """
@@ -217,6 +231,7 @@ public class UserDAO implements IUserDAO {
             throw new RuntimeException("Database operation failed.", ex);
         }
     }
+
     public boolean updateLastLogin(UUID id) {
 
         String sql = """
@@ -235,6 +250,8 @@ public class UserDAO implements IUserDAO {
             throw new RuntimeException("Database operation failed.", ex);
         }
     }
+
+    // ===== Mapping =====
 
     private User mapUser(ResultSet rs) throws SQLException {
         Timestamp lastLoginTimestamp = rs.getTimestamp("LastLogin");
