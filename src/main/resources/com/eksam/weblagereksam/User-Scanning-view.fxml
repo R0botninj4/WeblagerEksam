@@ -105,10 +105,14 @@
                             </graphic>
                         </Button>
 
+                        <Button fx:id="btnSplitDocument" onAction="#splitCurrentDocument" styleClass="btn-secondary" text="Split here" />
+                        <Button fx:id="btnMergeDocument" onAction="#mergeCurrentDocumentWithPrevious" styleClass="btn-secondary" text="Merge with previous" />
+
                         <Region HBox.hgrow="ALWAYS" />
                         <Button fx:id="btnPrev" onAction="#showPreviousPage" styleClass="btn-secondary" text="Previous" />
                         <Label fx:id="labelPagePosition" styleClass="image-page-position" text="0 / 0" />
                         <Button fx:id="btnNext" onAction="#showNextPage" styleClass="btn-secondary" text="Next" />
+                        <Button fx:id="btnSlideshow" onAction="#toggleSlideshow" styleClass="btn-secondary" text="Slideshow" />
                         <Region HBox.hgrow="ALWAYS" />
                     </HBox>
                 </top>

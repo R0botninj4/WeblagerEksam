@@ -107,6 +107,50 @@ public class ScanWorkspaceManager {
         return saved;
     }
 
+    public UUID splitDocument(UUID boxId, UUID sourceDocumentId, List<Page> pagesBeforeSplit, List<Page> pagesAfterSplit) {
+        if (pagesBeforeSplit.isEmpty() || pagesAfterSplit.isEmpty()) {
+            return null;
+        }
+
+        int nextDocumentNumber = documentManager.getNextDocumentNumber(boxId);
+        UUID newDocumentId = documentManager.createDocument(boxId, nextDocumentNumber, "Manual split");
+
+        if (newDocumentId == null) {
+            return null;
+        }
+
+        updatePageNumbers(sourceDocumentId, pagesBeforeSplit);
+        updatePageNumbers(newDocumentId, pagesAfterSplit);
+
+        List<Page> changedPages = new ArrayList<>();
+        changedPages.addAll(pagesBeforeSplit);
+        changedPages.addAll(pagesAfterSplit);
+
+        if (!pageManager.updatePageDocumentsAndOrders(changedPages)) {
+            documentManager.deleteDocument(newDocumentId);
+            return null;
+        }
+
+        return newDocumentId;
+    }
+
+    public boolean mergeDocumentIntoPrevious(UUID previousDocumentId, UUID currentDocumentId, List<Page> previousPages, List<Page> currentPages) {
+        if (previousPages.isEmpty() || currentPages.isEmpty()) {
+            return false;
+        }
+
+        List<Page> mergedPages = new ArrayList<>();
+        mergedPages.addAll(previousPages);
+        mergedPages.addAll(currentPages);
+        updatePageNumbers(previousDocumentId, mergedPages);
+
+        if (!pageManager.updatePageDocumentsAndOrders(mergedPages)) {
+            return false;
+        }
+
+        return documentManager.deleteDocument(currentDocumentId);
+    }
+
     private void updatePageNumbers(UUID documentId, List<Page> pages) {
         for (int i = 0; i < pages.size(); i++) {
             Page page = pages.get(i);

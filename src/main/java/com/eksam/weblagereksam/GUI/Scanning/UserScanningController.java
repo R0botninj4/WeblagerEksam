@@ -22,6 +22,8 @@ import com.eksam.weblagereksam.GUI.Util.LogoutHelper;
 import com.eksam.weblagereksam.GUI.Util.SettingsPopupController;
 import com.eksam.weblagereksam.GUI.Util.ShortcutList;
 import com.eksam.weblagereksam.GUI.Util.ThemeSwitcher;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.concurrent.Task;
@@ -46,6 +48,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,7 +68,7 @@ public class UserScanningController {
     @FXML private BorderPane scanRoot;
     @FXML private Button btnRotateCCW, btnRotateCW, btnDeletePage, btnPrev;
     @FXML private Button btnNext, btnNavLeft, btnNavRight, btnFetchNext, btnFetchTen;
-    @FXML private Button btnSettings, btnStartScan, btnMyBoxes;
+    @FXML private Button btnSettings, btnStartScan, btnMyBoxes, btnSplitDocument, btnMergeDocument, btnSlideshow;
     @FXML private TreeView<DocumentTreeNode> documentTreeView;
     @FXML private HBox filmstripBox;
     @FXML private StackPane imageViewerPane;
@@ -103,6 +106,7 @@ public class UserScanningController {
     private boolean loadingBoxData = false;
     private boolean updatingDocumentTree = false;
     private boolean updatingRotationChoice = false;
+    private Timeline slideshowTimeline;
     private ExportFormat selectedExportFormat = ExportFormat.MULTI_PAGE;
 
     // ===== Startup =====
@@ -126,6 +130,7 @@ public class UserScanningController {
             setupDocumentTree();
             setupImageViewer();
             setupRotationChoices();
+            setupSlideshow();
             showNoBoxSelected();
             loadStartupDataAsync();
         } catch (Exception e) {
@@ -200,6 +205,11 @@ public class UserScanningController {
         pageImageView.setMouseTransparent(true);
     }
 
+    private void setupSlideshow() {
+        slideshowTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), event -> showNextPageInSlideshow()));
+        slideshowTimeline.setCycleCount(Timeline.INDEFINITE);
+    }
+
     private void setupDocumentTree() {
         documentTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
             if (updatingDocumentTree || newItem == null || newItem.getValue().documentId() == null) {
@@ -266,7 +276,7 @@ public class UserScanningController {
             }
             newScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyboardShortcut);
         });
-        labelShortcuts.setText("Shortcuts: <-/-> pages  Ctrl+Up/Down docs  R rotate  F fetch  T fetch 10  S start  B boxes  Del delete  Esc logout");
+        labelShortcuts.setText("Shortcuts: <-/-> pages  Ctrl+Up/Down docs  R rotate  X split  M merge  F fetch  T fetch 10");
     }
     private void handleKeyboardShortcut(KeyEvent event) {
         if (event.getCode() == KeyCode.ESCAPE) {
@@ -299,6 +309,10 @@ public class UserScanningController {
             rotateCurrentPage(-90);
         } else if (key == KeyCode.DELETE) {
             deleteCurrentPage();
+        } else if (key == KeyCode.X) {
+            splitCurrentDocument();
+        } else if (key == KeyCode.M) {
+            mergeCurrentDocumentWithPrevious();
         } else if (key == KeyCode.F) {
             startImportIfReady(1);
         } else if (key == KeyCode.T) {
@@ -344,6 +358,26 @@ public class UserScanningController {
     @FXML private void handleFetchTen() { startImportTask(10); }
     @FXML private void handleRotateLeft() { rotateCurrentPage(-90); }
     @FXML private void handleRotateRight() { rotateCurrentPage(90); }
+    @FXML private void toggleSlideshow() {
+        if (slideshowTimeline == null) {
+            return;
+        }
+
+        if (slideshowTimeline.getStatus() == Timeline.Status.RUNNING) {
+            stopSlideshow("Slideshow stopped.");
+            return;
+        }
+
+        if (selectedDocument == null || currentPages.isEmpty()) {
+            showStatus("Open a document before starting slideshow.");
+            return;
+        }
+
+        selectDocument(currentDocuments.get(0).getId(), 0);
+        btnSlideshow.setText("Stop slideshow");
+        slideshowTimeline.playFromStart();
+        showStatus("Slideshow started.");
+    }
     @FXML
     private void handleRotationSelected() {
         if (updatingRotationChoice) {
@@ -477,6 +511,7 @@ public class UserScanningController {
         }
     }
     private void clearCurrentBox() {
+        stopSlideshow(null);
         currentBox = null;
         selectedDocument = null;
         currentPageIndex = 0;
@@ -558,13 +593,17 @@ public class UserScanningController {
     private void loadCurrentBoxDataAsync(boolean preserveStatusMessage) {
         // Loading box data can be slow because pages contain image data.
         // Therefore it runs in the background and updates the UI when done.
+        stopSlideshow(null);
+        loadCurrentBoxDataAsync(selectedDocument != null ? selectedDocument.getId() : null, preserveStatusMessage);
+    }
+    private void loadCurrentBoxDataAsync(UUID documentIdToSelect, boolean preserveStatusMessage) {
         if (loadingBoxData) {
             return;
         }
         Task<BoxDataSnapshot> loadTask = new Task<>() {
             @Override
             protected BoxDataSnapshot call() throws Exception {
-                return fetchBoxDataSnapshot();
+                return fetchBoxDataSnapshot(documentIdToSelect);
             }
         };
         loadTask.setOnRunning(event -> {
@@ -590,12 +629,11 @@ public class UserScanningController {
         });
         runInBackground(loadTask, "scan-box-load-thread");
     }
-    private BoxDataSnapshot fetchBoxDataSnapshot() {
+    private BoxDataSnapshot fetchBoxDataSnapshot(UUID documentIdToSelect) {
         if (currentBox == null) {
             return new BoxDataSnapshot(List.of(), Map.of(), null, 0);
         }
-        UUID selectedDocumentId = selectedDocument != null ? selectedDocument.getId() : null;
-        return scanWorkspaceManager.loadBoxData(currentBox.getId(), selectedDocumentId);
+        return scanWorkspaceManager.loadBoxData(currentBox.getId(), documentIdToSelect);
     }
     private void applyBoxDataSnapshot(BoxDataSnapshot snapshot) {
         currentDocuments.clear();
@@ -629,7 +667,7 @@ public class UserScanningController {
         showCurrentPage();
     }
     private void setNavigationDisabled(boolean disabled) {
-        setDisabled(disabled, btnPrev, btnNext, btnNavLeft, btnNavRight, btnRotateCCW, btnRotateCW, btnDeletePage);
+        setDisabled(disabled, btnPrev, btnNext, btnNavLeft, btnNavRight, btnRotateCCW, btnRotateCW, btnDeletePage, btnSplitDocument, btnMergeDocument);
     }
     private void setDisabled(boolean disabled, Button... buttons) {
         for (Button button : buttons) {
@@ -686,6 +724,11 @@ public class UserScanningController {
     private void refreshFilmstripSelection() {
         scanViewRenderer.refreshFilmstripSelection(currentPages, currentPageIndex, filmstripThumbs);
     }
+    private void refreshDocumentTreeSelection() {
+        updatingDocumentTree = true;
+        scanViewRenderer.selectCurrentTreeItem(documentTreeView, selectedDocument, currentPageIndex);
+        updatingDocumentTree = false;
+    }
     private Image getCachedPageImage(Page page) {
         return pageImageCache.computeIfAbsent(page.getId(), ignored -> FxImageConverter.bytesToFxImage(page.getImageData()));
     }
@@ -715,6 +758,7 @@ public class UserScanningController {
         Image cachedImage = pageImageCache.get(page.getId());
         if (cachedImage != null) {
             pageImageView.setImage(cachedImage);
+            preloadNearbyPages();
             return;
         }
         if (page.getImageData() == null) {
@@ -724,6 +768,7 @@ public class UserScanningController {
             return;
         }
         pageImageView.setImage(getCachedPageImage(page));
+        preloadNearbyPages();
     }
 
     // ===== Lazy page image loading =====
@@ -756,6 +801,7 @@ public class UserScanningController {
                 pageImageView.setImage(pageLoad.image());
                 pageImageView.setRotate(pageLoad.page().getRotation());
                 showStatus("Ready");
+                preloadNearbyPages();
             }
         });
         loadTask.setOnFailed(event -> {
@@ -764,6 +810,42 @@ public class UserScanningController {
             showTaskError("Could not load page.", loadTask);
         });
         runInBackground(loadTask, "scan-page-load-thread");
+    }
+    private void preloadNearbyPages() {
+        preloadPageAtIndex(currentPageIndex + 1);
+        preloadPageAtIndex(currentPageIndex - 1);
+        preloadFirstPageInNextDocument();
+    }
+    private void preloadPageAtIndex(int pageIndex) {
+        if (pageIndex < 0 || pageIndex >= currentPages.size()) {
+            return;
+        }
+
+        Page page = currentPages.get(pageIndex);
+        if (!pageImageCache.containsKey(page.getId())) {
+            loadPageImageAsync(page.getId());
+        }
+    }
+    private void preloadFirstPageInNextDocument() {
+        if (selectedDocument == null || currentPageIndex < currentPages.size() - 1) {
+            return;
+        }
+
+        int documentIndex = currentDocuments.indexOf(selectedDocument);
+        if (documentIndex < 0 || documentIndex + 1 >= currentDocuments.size()) {
+            return;
+        }
+
+        Document nextDocument = currentDocuments.get(documentIndex + 1);
+        List<Page> nextPages = pagesByDocument.getOrDefault(nextDocument.getId(), List.of());
+        if (nextPages.isEmpty()) {
+            return;
+        }
+
+        Page firstPage = nextPages.get(0);
+        if (!pageImageCache.containsKey(firstPage.getId())) {
+            loadPageImageAsync(firstPage.getId());
+        }
     }
     private void replacePage(Page loadedPage) {
         replacePageInList(currentPages, loadedPage);
@@ -792,6 +874,7 @@ public class UserScanningController {
 
         currentPageIndex = Math.max(0, Math.min(pageIndex, currentPages.size() - 1));
         refreshFilmstripSelection();
+        refreshDocumentTreeSelection();
         showCurrentPage();
     }
     private void selectDocumentByOffset(int offset) {
@@ -804,14 +887,57 @@ public class UserScanningController {
         selectDocument(currentDocuments.get(nextDocumentIndex).getId(), 0);
     }
     private void movePage(int direction) {
-        if (currentPages.isEmpty()) {
+        if (currentPages.isEmpty() || selectedDocument == null) {
             return;
         }
         int nextIndex = currentPageIndex + direction;
         if (nextIndex >= 0 && nextIndex < currentPages.size()) {
             currentPageIndex = nextIndex;
             refreshFilmstripSelection();
+            refreshDocumentTreeSelection();
             showCurrentPage();
+            return;
+        }
+
+        moveToNeighbourDocument(direction);
+    }
+    private boolean moveToNeighbourDocument(int direction) {
+        int currentDocumentIndex = currentDocuments.indexOf(selectedDocument);
+        int nextDocumentIndex = currentDocumentIndex + direction;
+
+        if (currentDocumentIndex < 0 || nextDocumentIndex < 0 || nextDocumentIndex >= currentDocuments.size()) {
+            return false;
+        }
+
+        Document nextDocument = currentDocuments.get(nextDocumentIndex);
+        List<Page> nextPages = pagesByDocument.getOrDefault(nextDocument.getId(), List.of());
+        int nextPageIndex = direction > 0 ? 0 : Math.max(0, nextPages.size() - 1);
+        selectDocument(nextDocument.getId(), nextPageIndex);
+        return true;
+    }
+    private void showNextPageInSlideshow() {
+        if (selectedDocument == null || currentPages.isEmpty()) {
+            stopSlideshow("Slideshow stopped.");
+            return;
+        }
+
+        int oldDocumentIndex = currentDocuments.indexOf(selectedDocument);
+        int oldPageIndex = currentPageIndex;
+        movePage(1);
+
+        if (oldDocumentIndex == currentDocuments.indexOf(selectedDocument) && oldPageIndex == currentPageIndex) {
+            stopSlideshow("Slideshow finished.");
+        }
+    }
+    private void stopSlideshow(String statusMessage) {
+        if (slideshowTimeline != null) {
+            slideshowTimeline.stop();
+        }
+        if (btnSlideshow != null) {
+            btnSlideshow.setText("Slideshow");
+        }
+        if (statusMessage != null) {
+            showStatus(statusMessage);
         }
     }
     private void startImportIfReady(int amount) {
@@ -900,7 +1026,107 @@ public class UserScanningController {
         int normalized = rotation % 360;
         return normalized < 0 ? normalized + 360 : normalized;
     }
-    // ===== Delete and reorder pages =====
+    // ===== Manual split, merge, delete and reorder pages =====
+
+    @FXML
+    private void splitCurrentDocument() {
+        if (currentBox == null || selectedDocument == null || currentPages.isEmpty()) {
+            showStatus("Open a document before splitting.");
+            return;
+        }
+
+        if (currentPageIndex == 0) {
+            showStatus("Select a page after the first page to split.");
+            return;
+        }
+
+        List<Page> pagesBeforeSplit = new ArrayList<>(currentPages.subList(0, currentPageIndex));
+        List<Page> pagesAfterSplit = new ArrayList<>(currentPages.subList(currentPageIndex, currentPages.size()));
+        UUID sourceDocumentId = selectedDocument.getId();
+
+        Task<UUID> splitTask = new Task<>() {
+            @Override
+            protected UUID call() {
+                return scanWorkspaceManager.splitDocument(currentBox.getId(), sourceDocumentId, pagesBeforeSplit, pagesAfterSplit);
+            }
+        };
+
+        splitTask.setOnRunning(event -> {
+            setNavigationDisabled(true);
+            showStatus("Splitting document...");
+        });
+        splitTask.setOnSucceeded(event -> {
+            setNavigationDisabled(false);
+            UUID newDocumentId = splitTask.getValue();
+            if (newDocumentId == null) {
+                showStatus("Could not split document.");
+                return;
+            }
+            writeLog("Manual split", "Documents", newDocumentId, null, "Split from document " + selectedDocument.getDocumentNumber());
+            loadCurrentBoxDataAsync(newDocumentId, false);
+            showStatus("Document split.");
+        });
+        splitTask.setOnFailed(event -> {
+            setNavigationDisabled(false);
+            showStatus("Could not split document.");
+            showTaskError("Could not split document.", splitTask);
+        });
+
+        runInBackground(splitTask, "scan-manual-split-thread");
+    }
+
+    @FXML
+    private void mergeCurrentDocumentWithPrevious() {
+        if (selectedDocument == null || currentDocuments.size() < 2) {
+            showStatus("Select a document to merge.");
+            return;
+        }
+
+        int documentIndex = currentDocuments.indexOf(selectedDocument);
+        if (documentIndex <= 0) {
+            showStatus("First document cannot merge with previous.");
+            return;
+        }
+
+        Document previousDocument = currentDocuments.get(documentIndex - 1);
+        Document documentToMerge = selectedDocument;
+        List<Page> previousPages = copyPages(pagesByDocument.get(previousDocument.getId()));
+        List<Page> pagesToMerge = copyPages(pagesByDocument.get(documentToMerge.getId()));
+
+        Task<Boolean> mergeTask = new Task<>() {
+            @Override
+            protected Boolean call() {
+                return scanWorkspaceManager.mergeDocumentIntoPrevious(
+                        previousDocument.getId(),
+                        documentToMerge.getId(),
+                        previousPages,
+                        pagesToMerge
+                );
+            }
+        };
+
+        mergeTask.setOnRunning(event -> {
+            setNavigationDisabled(true);
+            showStatus("Merging documents...");
+        });
+        mergeTask.setOnSucceeded(event -> {
+            setNavigationDisabled(false);
+            if (!mergeTask.getValue()) {
+                showStatus("Could not merge documents.");
+                return;
+            }
+            writeLog("Remove split", "Documents", previousDocument.getId(), null, "Merged document " + documentToMerge.getDocumentNumber());
+            loadCurrentBoxDataAsync(previousDocument.getId(), false);
+            showStatus("Split removed.");
+        });
+        mergeTask.setOnFailed(event -> {
+            setNavigationDisabled(false);
+            showStatus("Could not merge documents.");
+            showTaskError("Could not merge documents.", mergeTask);
+        });
+
+        runInBackground(mergeTask, "scan-merge-document-thread");
+    }
 
     @FXML
     private void deleteCurrentPage() {

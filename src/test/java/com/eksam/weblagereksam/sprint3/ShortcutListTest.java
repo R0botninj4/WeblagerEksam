@@ -38,4 +38,19 @@ class ShortcutListTest {
                         && shortcut.keys().equals("Esc")
                         && shortcut.action().equals("Close open popup")));
     }
+
+    @Test
+    void sprint3Scanner_shortcutListContainsManualSplitShortcuts() {
+        List<ShortcutList.Shortcut> shortcuts = ShortcutList.all();
+
+        assertTrue(shortcuts.stream().anyMatch(shortcut ->
+                shortcut.group().equals("Scanner")
+                        && shortcut.keys().equals("X")
+                        && shortcut.action().equals("Split document at current page")));
+
+        assertTrue(shortcuts.stream().anyMatch(shortcut ->
+                shortcut.group().equals("Scanner")
+                        && shortcut.keys().equals("M")
+                        && shortcut.action().equals("Merge document with previous")));
+    }
 }

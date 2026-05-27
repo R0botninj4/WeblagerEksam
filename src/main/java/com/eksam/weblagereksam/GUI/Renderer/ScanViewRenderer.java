@@ -134,7 +134,7 @@ public class ScanViewRenderer {
 
     // ===== Document tree nodes =====
 
-    private void selectCurrentTreeItem(TreeView<DocumentTreeNode> treeView, Document selectedDocument, int selectedPageIndex) {
+    public void selectCurrentTreeItem(TreeView<DocumentTreeNode> treeView, Document selectedDocument, int selectedPageIndex) {
         if (selectedDocument == null) {
             return;
         }

@@ -23,6 +23,15 @@ public class DocumentManager {
         return documentDAO.getDocumentsByBoxId(boxId);
     }
 
+    public UUID createDocument(UUID boxId, int documentNumber, String barcodeValue) {
+        Document document = new Document(null, boxId, documentNumber, barcodeValue, "SCANNED", null);
+        return documentDAO.addDocument(document);
+    }
+
+    public int getNextDocumentNumber(UUID boxId) {
+        return documentDAO.getNextDocumentNumber(boxId);
+    }
+
     public boolean deleteDocument(UUID documentId) {
         return documentDAO.deleteDocument(documentId);
     }

@@ -27,6 +27,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -41,7 +42,9 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -54,8 +57,9 @@ public class AdminController {
     // FXML fields are connected to Admin-view.fxml.
     // That means JavaFX fills these variables when the view is loaded.
     @FXML private Button btnAttendance, btnUsers, btnProfiles, btnClients, btnLogged;
-    @FXML private Button btnSettings;
+    @FXML private Button btnSettings, btnAdd, btnEdit, btnDelete, btnActivate;
     @FXML private TextField txtSearch;
+    @FXML private DatePicker dateLogFilter;
     @FXML private TableView<Object> tableAdmin;
     @FXML private BorderPane adminRoot;
 
@@ -70,6 +74,7 @@ public class AdminController {
     private LogoutHelper logoutHelper;
     private ThemeSwitcher themeSwitcher;
     private List<Object> currentRows = new ArrayList<>();
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     // Keeps track of which admin page/table is currently shown.
     // Example: USERS means Add/Edit/Delete should open the user popup.
@@ -100,6 +105,7 @@ public class AdminController {
         // Every time the admin types in the search field, the current table is filtered.
         // The full list is kept in currentRows, so clearing search shows everything again.
         txtSearch.textProperty().addListener((obs, oldText, newText) -> applySearchFilter());
+        dateLogFilter.valueProperty().addListener((obs, oldDate, newDate) -> applySearchFilter());
     }
 
     private void setupKeyboardShortcuts() {
@@ -163,11 +169,34 @@ public class AdminController {
         txtSearch.selectAll();
     }
 
+    private void updateActionButtonVisibility() {
+        boolean readOnlyPage = currentPage == AdminPage.ATTENDANCE || currentPage == AdminPage.LOGS;
+        setButtonVisible(btnAdd, !readOnlyPage);
+        setButtonVisible(btnEdit, !readOnlyPage);
+        setButtonVisible(btnDelete, !readOnlyPage);
+        setButtonVisible(btnActivate, !readOnlyPage);
+    }
+
+    private void updateLogDateFilterVisibility() {
+        boolean logPage = currentPage == AdminPage.LOGS;
+        dateLogFilter.setVisible(logPage);
+        dateLogFilter.setManaged(logPage);
+
+        if (!logPage) {
+            dateLogFilter.setValue(null);
+        }
+    }
+
+    private void setButtonVisible(Button button, boolean visible) {
+        button.setVisible(visible);
+        button.setManaged(visible);
+    }
+
     private void setupTableContextMenu() {
         // This is the menu shown when the admin right-clicks the table.
         // It reuses the same methods as the toolbar buttons, so the logic only exists once.
         MenuItem editItem = new MenuItem("Edit");
-        MenuItem deleteItem = new MenuItem("Delete");
+        MenuItem deleteItem = new MenuItem("Deactivate");
         MenuItem activateItem = new MenuItem("Activate");
 
         editItem.setOnAction(event -> handleEdit());
@@ -197,6 +226,8 @@ public class AdminController {
         txtSearch.setPromptText("Search attendance");
         currentPage = AdminPage.ATTENDANCE;
         setActiveButton(btnAttendance);
+        updateActionButtonVisibility();
+        updateLogDateFilterVisibility();
 
         tableAdmin.getColumns().setAll(
                 textColumn("Username", row -> ((UserActivity) row).getUser().getUsername()),
@@ -219,6 +250,8 @@ public class AdminController {
         txtSearch.setPromptText("Search user");
         currentPage = AdminPage.USERS;
         setActiveButton(btnUsers);
+        updateActionButtonVisibility();
+        updateLogDateFilterVisibility();
 
         tableAdmin.getColumns().setAll(
                 textColumn("Username", row -> ((User) row).getUsername()),
@@ -235,6 +268,8 @@ public class AdminController {
         txtSearch.setPromptText("Search profile");
         currentPage = AdminPage.PROFILES;
         setActiveButton(btnProfiles);
+        updateActionButtonVisibility();
+        updateLogDateFilterVisibility();
 
         tableAdmin.getColumns().setAll(
                 textColumn("Name", row -> ((Profile) row).getName()),
@@ -252,6 +287,8 @@ public class AdminController {
         txtSearch.setPromptText("Search client");
         currentPage = AdminPage.CLIENTS;
         setActiveButton(btnClients);
+        updateActionButtonVisibility();
+        updateLogDateFilterVisibility();
 
         tableAdmin.getColumns().setAll(
                 textColumn("Name", row -> ((Client) row).getName()),
@@ -269,6 +306,8 @@ public class AdminController {
         txtSearch.setPromptText("Search logs");
         currentPage = AdminPage.LOGS;
         setActiveButton(btnLogged);
+        updateActionButtonVisibility();
+        updateLogDateFilterVisibility();
 
         tableAdmin.getColumns().setAll(
                 textColumn("Time", row -> formatDateTime(((LogEntry) row).getCreatedAt())),
@@ -318,7 +357,7 @@ public class AdminController {
         Object selectedRow = tableAdmin.getSelectionModel().getSelectedItem();
 
         if (selectedRow == null) {
-            showInfo("Select a row before deleting.");
+            showInfo("Select a row before deactivating.");
             return;
         }
 
@@ -436,7 +475,7 @@ public class AdminController {
     }
 
     private void deleteSelectedRow(Object selectedRow) {
-        // Deletes from the correct manager depending on which table is open.
+        // Deactivates from the correct manager depending on which table is open.
         // This keeps database access inside BLL/DAL instead of inside the GUI.
         boolean deleted = switch (currentPage) {
             case ATTENDANCE, LOGS -> false;
@@ -532,18 +571,29 @@ public class AdminController {
 
     private void applySearchFilter() {
         String searchText = txtSearch.getText();
+        LocalDate selectedLogDate = currentPage == AdminPage.LOGS ? dateLogFilter.getValue() : null;
 
-        if (searchText == null || searchText.isBlank()) {
+        if ((searchText == null || searchText.isBlank()) && selectedLogDate == null) {
             tableAdmin.setItems(FXCollections.observableArrayList(currentRows));
             return;
         }
 
-        String search = searchText.toLowerCase(Locale.ROOT);
+        String search = searchText == null ? "" : searchText.toLowerCase(Locale.ROOT);
         List<Object> filteredRows = currentRows.stream()
-                .filter(row -> rowMatchesSearch(row, search))
+                .filter(row -> rowMatchesDate(row, selectedLogDate))
+                .filter(row -> search.isBlank() || rowMatchesSearch(row, search))
                 .toList();
 
         tableAdmin.setItems(FXCollections.observableArrayList(filteredRows));
+    }
+
+    private boolean rowMatchesDate(Object row, LocalDate selectedLogDate) {
+        if (selectedLogDate == null || currentPage != AdminPage.LOGS) {
+            return true;
+        }
+
+        LocalDateTime createdAt = ((LogEntry) row).getCreatedAt();
+        return createdAt != null && createdAt.toLocalDate().equals(selectedLogDate);
     }
 
     private boolean rowMatchesSearch(Object row, String search) {
@@ -634,7 +684,7 @@ public class AdminController {
     }
 
     private String formatDateTime(LocalDateTime date) {
-        return date == null ? "Never" : date.toString().replace("T", " ");
+        return date == null ? "Never" : date.format(DATE_TIME_FORMAT);
     }
 
     private boolean isLoggedInNow(User user) {
