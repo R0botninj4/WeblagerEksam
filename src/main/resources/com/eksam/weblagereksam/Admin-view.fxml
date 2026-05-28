@@ -147,7 +147,7 @@
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../Icons/icon_save.png" />
+                                        <Image url="@../../../Icons/icon_reload.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
