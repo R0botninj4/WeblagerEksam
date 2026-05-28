@@ -124,7 +124,7 @@
                             <graphic>
                                 <ImageView fitHeight="20" fitWidth="20" preserveRatio="true">
                                     <image>
-                                        <Image url="@../../../Icons/icon_delete.png" />
+                                        <Image url="@../../../Icons/icon_deactivate.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
