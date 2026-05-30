@@ -314,7 +314,7 @@ public class AdminController {
                 textColumn("User", row -> ((LogEntry) row).getUsername()),
                 textColumn("Action", row -> ((LogEntry) row).getAction()),
                 textColumn("Table", row -> ((LogEntry) row).getTableName()),
-                textColumn("New value", row -> ((LogEntry) row).getNewValue())
+                textColumn("Details", row -> formatLogDetails((LogEntry) row))
         );
 
         setTableRows(logManager.getAllLogs());
@@ -663,6 +663,23 @@ public class AdminController {
 
     private boolean containsSearch(String value, String search) {
         return safeText(value).toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    private String formatLogDetails(LogEntry log) {
+        // The database stores old/new values, but the admin only needs a readable summary.
+        String oldValue = log.getOldValue();
+        String newValue = log.getNewValue();
+
+        if (oldValue != null && !oldValue.isBlank() && newValue != null && !newValue.isBlank()) {
+            return oldValue + " -> " + newValue;
+        }
+        if (newValue != null && !newValue.isBlank()) {
+            return newValue;
+        }
+        if (oldValue != null && !oldValue.isBlank()) {
+            return oldValue;
+        }
+        return "-";
     }
 
     private TableColumn<Object, String> textColumn(String title, Function<Object, String> getter) {

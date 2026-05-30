@@ -114,28 +114,6 @@ public class LoginController {
         }
     }
 
-    // ===== Test login shortcuts =====
-
-    @FXML
-    public void Bypass(ActionEvent event) {
-        bypassLogin("admin", "GOD12");
-    }
-
-    @FXML
-    public void BypassUser(ActionEvent event) {
-        bypassLogin("user", "User");
-    }
-
-    @FXML
-    public void BypassQA(ActionEvent event) {
-        bypassLogin("QA", "QA");
-    }
-
-    private void bypassLogin(String username, String password) {
-        txtUsername.setText(username);
-        txtPassword.setText(password);
-        handleLogin();
-    }
 
     // ===== UI feedback =====
 
