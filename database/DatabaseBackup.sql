@@ -3,8 +3,7 @@ create table Clients
     Id        uniqueidentifier default newid() not null
         primary key,
     Name      nvarchar(150)                    not null,
-    Code      nvarchar(50)
-        unique,
+    Code      nvarchar(50),
     CreatedAt datetime2        default getdate()
 )
     go
@@ -67,19 +66,6 @@ create table Documents
 )
     go
 
-create table DocumentMetadata
-(
-    Id         uniqueidentifier default newid() not null
-        primary key,
-    DocumentId uniqueidentifier                 not null
-        constraint FK_DocumentMetadata_Documents
-            references Documents
-            on delete cascade,
-    FieldName  nvarchar(150)                    not null,
-    FieldValue nvarchar(max)
-)
-    go
-
 create index IX_Documents_BoxId
     on Documents (BoxId)
     go
@@ -99,18 +85,11 @@ create table Pages
     ImageData          varbinary(max)                   not null,
     FileSize           bigint,
     Checksum           nvarchar(128),
-    Rotation           int              default 0
-        constraint CK_Pages_Rotation_0_359
-            check ([Rotation] >= 0 AND [Rotation] <= 359)
-    constraint CK_Pages_Rotation_0_359
-        check ([Rotation] >= 0 AND [Rotation] <= 359)
-    constraint CK_Pages_Rotation_0_359
-        check ([Rotation] >= 0 AND [Rotation] <= 359)
-    check ([Rotation] = 270 OR [Rotation] = 180 OR [Rotation] = 90 OR [Rotation] = 0),
-Width              int,
-Height             int,
-IsBarcodePage      bit              default 0,
-CreatedAt          datetime2        default getdate()
+    Rotation           int              default 0,
+    Width              int,
+    Height             int,
+    IsBarcodePage      bit              default 0,
+    CreatedAt          datetime2        default getdate()
 )
     go
 
